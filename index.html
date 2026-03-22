@@ -321,10 +321,11 @@
         let globalTotalRaised = 0;
         let globalDonorCount = 0;
 
-        // --- NEW: Smart Animation Flags ---
+        // --- NEW: Bulletproof Animation System ---
         let isPaymentSuccessModalWaiting = false; 
         let isSharingWhatsApp = false;
-        let pendingTargetWidth = 0;
+        let lastDisplayedPercent = 0; 
+        let finalTargetPercent = 0;   
 
         const form = document.getElementById('donationForm');
         const paymentModal = document.getElementById('paymentModal');
@@ -454,14 +455,21 @@
             
             document.getElementById('percentageDisplay').innerText = percent.toFixed(0);
             
-            // MAGIC: Agar user popup par hai, toh background mein bar ko pause kardo
-            if(isPaymentSuccessModalWaiting) {
-                pendingTargetWidth = percent; 
-            } else {
-                document.getElementById('progressBar').style.width = percent + '%';
+            finalTargetPercent = percent;
+
+            if (!isPaymentSuccessModalWaiting && !isSharingWhatsApp) {
+                animateBar(percent);
             }
 
             if (loader) loader.style.display = 'none';
+        }
+
+        function animateBar(targetPercent) {
+            const progressBar = document.getElementById('progressBar');
+            requestAnimationFrame(() => {
+                progressBar.style.width = targetPercent + '%';
+            });
+            lastDisplayedPercent = targetPercent; 
         }
 
         function renderRecentSupporters() {
@@ -625,40 +633,37 @@
 
         cancelStep1Btn.addEventListener('click', () => { paymentModal.classList.add('hidden'); pendingDonation = null; });
         
-        // --- SMART ANIMATION TRIGGER FUNCTION ---
         function triggerSuccessAnimation() {
-            if (isPaymentSuccessModalWaiting) {
-                isPaymentSuccessModalWaiting = false;
-                // Popup hatne ke 300ms baad bar bharega aur patakhe phutenge (WOW effect)
-                setTimeout(() => {
-                    document.getElementById('progressBar').style.width = pendingTargetWidth + '%';
-                    fireConfetti(); 
-                }, 300);
-            }
+            setTimeout(() => {
+                if (finalTargetPercent > lastDisplayedPercent) {
+                    animateBar(finalTargetPercent); 
+                    setTimeout(fireConfetti, 300); 
+                }
+                isPaymentSuccessModalWaiting = false; 
+                isSharingWhatsApp = false;
+            }, 100); 
         }
 
-        // --- NEW CLOSE BUTTON LOGIC ---
+        // --- UPDATED CLOSE BUTTON (No Scroll to Top) ---
         closeSuccessBtn.addEventListener('click', () => { 
             paymentModal.classList.add('hidden'); 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            triggerSuccessAnimation(); // Call animation manually
+            // scroll wala code hata diya gaya hai!
+            triggerSuccessAnimation(); 
         });
 
-        // --- NEW SHARE BUTTON LOGIC (WhatsApp + Auto Return Detect) ---
         shareWhatsappBtn.addEventListener('click', () => {
-            isSharingWhatsApp = true; // Mark user went to WhatsApp
+            isSharingWhatsApp = true; 
             const currentUrl = window.location.href;
             const text = `Hey! I just supported Rohan's "Beyond The Verse" initiative. Join me in helping him upgrade his teaching setup! 🚀\n\nSupport here: ${currentUrl}`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
         });
 
-        // Browser API: Jab user WhatsApp se tab par waapas aayega
+        // --- UPDATED WHATSAPP RETURN BEHAVIOR (No Scroll to Top) ---
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible' && isSharingWhatsApp) {
-                isSharingWhatsApp = false; 
-                paymentModal.classList.add('hidden'); // Modal automatically close
-                window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top
-                triggerSuccessAnimation(); // Bar animation start + Confetti
+                paymentModal.classList.add('hidden'); 
+                // scroll wala code yahan se bhi hata diya gaya hai!
+                triggerSuccessAnimation(); 
             }
         });
 
@@ -685,7 +690,6 @@
                     timestamp: Date.now()
                 });
                 
-                // Lock animation while modal is open
                 isPaymentSuccessModalWaiting = true; 
 
                 form.reset();
@@ -695,7 +699,6 @@
                 
                 step1Confirm.classList.add('hidden');
                 step3Success.classList.remove('hidden');
-                // Confetti yahan se hata kar Animation function me daal diya hai!
 
             } catch (error) {
                 alert("Failed to save. Please check your internet connection.");
@@ -706,7 +709,6 @@
             }
         });
 
-        // --- ADMIN LOGIN LOGIC ---
         let clickCount = 0; let clickTimer;
         document.getElementById('appTitle').addEventListener('click', () => {
             clickCount++;
@@ -845,6 +847,7 @@
             link.click();
             document.body.removeChild(link);
         });
+
     </script>
 
 
