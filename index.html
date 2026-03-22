@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; }
-        .progress-bar-animated { transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        .progress-bar-animated { transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
         .modal-overlay { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -296,16 +296,15 @@
         import { getAuth, signInAnonymously, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // DHYAN DEIN: Yahan par aapki apni Firebase Config honi chahiye, warna data test server par jayega.
         const firebaseConfig = {
-  apiKey: "AIzaSyAcJgkQWpIW4dpgS_2NAJ4wotLsk3RQV5o",
-  authDomain: "donation-app-25cac.firebaseapp.com",
-  databaseURL: "https://donation-app-25cac-default-rtdb.firebaseio.com",
-  projectId: "donation-app-25cac",
-  storageBucket: "donation-app-25cac.firebasestorage.app",
-  messagingSenderId: "523938237581",
-  appId: "1:523938237581:web:5fe504c83db2af679da6c4",
-  measurementId: "G-Q9LNF41K15"
-};
+            apiKey: "AIzaSyAcJgkQWpIW4dpgS_2NAJ4wotLsk3RQV5o",
+            authDomain: "donation-app-25cac.firebaseapp.com",
+            projectId: "donation-app-25cac",
+            storageBucket: "donation-app-25cac.firebasestorage.app",
+            messagingSenderId: "523938237581",
+            appId: "1:523938237581:web:5fe504c83db2af679da6c4"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -438,10 +437,8 @@
             }, 250);
         }
 
-        // --- BULLETPROOF UPDATE UI ---
         function updateUI() {
             document.getElementById('targetAmountDisplay').innerText = TARGET_AMOUNT.toLocaleString('en-IN');
-            // Using || 0 to prevent NaN
             let safeRaised = globalTotalRaised || 0; 
             document.getElementById('raisedAmountDisplay').innerText = safeRaised.toLocaleString('en-IN');
             document.getElementById('donorCountDisplay').innerText = globalDonorCount || 0;
@@ -455,7 +452,6 @@
             if (loader) loader.style.display = 'none';
         }
 
-        // --- BULLETPROOF RENDER RECENT ---
         function renderRecentSupporters() {
             const container = document.getElementById('recentSupportersList');
             container.innerHTML = '';
@@ -497,7 +493,6 @@
             });
         }
 
-        // --- BULLETPROOF RENDER TOP ---
         function renderTopSupporters() {
             const container = document.getElementById('topSupportersList');
             container.innerHTML = '';
@@ -562,7 +557,7 @@
                     snapshot.forEach(doc => {
                         let data = doc.data();
                         let amt = Number(data.amount);
-                        if(isNaN(amt)) amt = 0; // Error prevention
+                        if(isNaN(amt)) amt = 0; 
                         
                         globalTotalRaised += amt;
                         list.push({ id: doc.id, ...data });
@@ -638,11 +633,11 @@
 
         cancelStep1Btn.addEventListener('click', () => { paymentModal.classList.add('hidden'); pendingDonation = null; });
         
+        // --- AUTO REFRESH FIX ADDED HERE ---
         closeSuccessBtn.addEventListener('click', () => { 
-    paymentModal.classList.add('hidden'); 
-    window.location.reload(); // यह लाइन वेबसाइट को तुरंत रिफ्रेश करके नया डेटा ले आएगी
-});
-
+            paymentModal.classList.add('hidden'); 
+            window.location.reload(); // PAGE WILL REFRESH AND SHOW NEW DATA
+        });
 
         confirmBtn.addEventListener('click', async () => {
             if (!pendingDonation) return;
@@ -687,10 +682,12 @@
             }
         });
 
+        // --- AUTO REFRESH ON SHARE BUTTON TOO ---
         shareWhatsappBtn.addEventListener('click', () => {
             const currentUrl = window.location.href;
             const text = `Hey! I just supported Rohan's "Beyond The Verse" initiative. Join me in helping him upgrade his teaching setup! 🚀\n\nSupport here: ${currentUrl}`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
+            setTimeout(() => { window.location.reload(); }, 1500); // Reload after opening WhatsApp
         });
 
         let clickCount = 0; let clickTimer;
@@ -834,4 +831,4 @@
 
     </script>
 </body>
-                </html>
+    </html>
