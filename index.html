@@ -635,10 +635,12 @@
         
         // --- AUTO REFRESH FIX ADDED HERE ---
         closeSuccessBtn.addEventListener('click', () => { 
-            paymentModal.classList.add('hidden'); 
-            window.location.reload(); // PAGE WILL REFRESH AND SHOW NEW DATA
-        });
-
+    // यह सिर्फ पॉपअप को छुपाएगा, पेज रिफ्रेश नहीं करेगा
+    paymentModal.classList.add('hidden'); 
+    
+    // यह स्मूथली पेज को ऊपर स्क्रॉल कर देगा ताकि यूज़र को नया प्रोग्रेस बार दिख जाए
+    window.scrollTo({ top: 0, behavior: 'smooth' }); 
+});
         confirmBtn.addEventListener('click', async () => {
             if (!pendingDonation) return;
             
@@ -684,11 +686,11 @@
 
         // --- AUTO REFRESH ON SHARE BUTTON TOO ---
         shareWhatsappBtn.addEventListener('click', () => {
-            const currentUrl = window.location.href;
-            const text = `Hey! I just supported Rohan's "Beyond The Verse" initiative. Join me in helping him upgrade his teaching setup! 🚀\n\nSupport here: ${currentUrl}`;
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
-            setTimeout(() => { window.location.reload(); }, 1500); // Reload after opening WhatsApp
-        });
+    const currentUrl = window.location.href;
+    const text = `Hey! I just supported Rohan's "Beyond The Verse" initiative. Join me in helping him upgrade his teaching setup! 🚀\n\nSupport here: ${currentUrl}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
+    // यहाँ से भी मैंने रीलोड वाला टाइमर हटा दिया है
+});
 
         let clickCount = 0; let clickTimer;
         document.getElementById('appTitle').addEventListener('click', () => {
