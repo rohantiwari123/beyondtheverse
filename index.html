@@ -146,11 +146,12 @@
                         </div>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 font-bold">₹</div>
-                            <input type="number" id="donationAmount" required min="1" value="500" placeholder="Custom Amount" class="w-full pl-8 pr-3 py-3 border-2 border-teal-100 rounded-xl focus:ring-0 focus:border-teal-500 outline-none text-lg font-bold bg-teal-50/30">
+                            <input type="number" id="donationAmount" required min="200" value="500" placeholder="Minimum ₹200" class="w-full pl-8 pr-3 py-3 border-2 border-teal-100 rounded-xl focus:ring-0 focus:border-teal-500 outline-none text-lg font-bold bg-teal-50/30">
                         </div>
+                        <p class="text-[10px] text-slate-500 mt-1 pl-1">* Minimum donation is ₹200</p>
                     </div>
 
-                    <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 px-4 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2 mt-4">
+                    <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 px-4 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2 mt-2">
                         Proceed to Donate <i class="fa-solid fa-arrow-right ml-1"></i>
                     </button>
                 </form>
@@ -340,7 +341,6 @@
         const utrInput = document.getElementById('utrInput');
         const utrError = document.getElementById('utrError');
 
-        // Preset Amount Logic
         presetBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 presetBtns.forEach(b => b.classList.remove('active'));
@@ -350,7 +350,6 @@
         });
         amtInput.addEventListener('input', () => { presetBtns.forEach(b => b.classList.remove('active')); });
 
-        // FAQ Accordion Logic
         document.querySelectorAll('.faq-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const answer = btn.nextElementSibling;
@@ -367,7 +366,6 @@
             });
         });
 
-        // Tabs Logic (Recent vs Top)
         const tabRecent = document.getElementById('tabRecent');
         const tabTop = document.getElementById('tabTop');
         const listRecent = document.getElementById('recentSupportersList');
@@ -526,7 +524,6 @@
             });
         }
 
-        // --- Firebase Init ---
         const startApp = async () => {
             try {
                 if (!auth.currentUser) {
@@ -579,7 +576,7 @@
         startApp();
         setInterval(renderRecentSupporters, 60000);
 
-        // --- Form Submit ---
+        // --- Form Submit (Added Minimum ₹200 Logic) ---
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const name = document.getElementById('donorName').value;
@@ -587,7 +584,12 @@
             const amount = parseFloat(document.getElementById('donationAmount').value);
             const message = document.getElementById('donorMessage').value.trim();
             
-            if(amount <= 0) return;
+            // SECURITY: Double checking if amount is less than 200
+            if(amount < 200) {
+                alert("Minimum donation amount is ₹200. Please enter a valid amount.");
+                return;
+            }
+            
             pendingDonation = { name, phone, amount, message };
             
             document.getElementById('step1Amount').innerText = amount.toLocaleString('en-IN');
@@ -601,12 +603,12 @@
             paymentModal.classList.remove('hidden');
         });
 
-        // --- Open UPI App (Merchant Parameters) ---
+        // --- CLEAN UPI URL (Removed Fake transaction ID) ---
         openUpiBtn.addEventListener('click', () => {
             if (!pendingDonation) return;
             
-            const trRef = "BTV" + Date.now(); 
-            const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&mc=8299&tr=${trRef}&am=${pendingDonation.amount}&cu=INR&tn=${encodeURIComponent("Donation")}`;
+            // Clean Intent URL without 'mc' and 'tr' to bypass strict UPI network block
+            const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${pendingDonation.amount}&cu=INR`;
             
             window.location.href = upiUrl;
             step1Confirm.classList.add('hidden');
@@ -617,14 +619,11 @@
         cancelPaymentBtn.addEventListener('click', () => { paymentModal.classList.add('hidden'); pendingDonation = null; });
         closeSuccessBtn.addEventListener('click', () => { paymentModal.classList.add('hidden'); });
 
-        // --- Verify UTR & Save to DB ---
-        // DHYAN DEIN: Button dabaane ke liye exactly 12 numbers daalne padenge UTR box mein
         confirmBtn.addEventListener('click', async () => {
             if (!pendingDonation) return;
             
             const utrVal = utrInput.value.trim();
             
-            // Validation: Ensure exactly 12 digits for UTR
             if(utrVal.length !== 12 || isNaN(utrVal)) {
                 utrError.classList.remove('hidden');
                 utrInput.focus();
@@ -670,7 +669,6 @@
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
         });
 
-        // --- SECURE ADMIN LOGIN (Firebase Auth) ---
         let clickCount = 0; let clickTimer;
         document.getElementById('appTitle').addEventListener('click', () => {
             clickCount++;
@@ -806,4 +804,4 @@
         }
     </script>
 </body>
-    </html>
+</html>
