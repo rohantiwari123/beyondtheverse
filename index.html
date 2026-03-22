@@ -17,7 +17,6 @@
         .preset-btn.active { background-color: #ccfbf1; border-color: #14b8a6; color: #0f766e; }
         .message-bubble { position: relative; background: #f1f5f9; border-radius: .4rem; padding: 8px 12px; margin-top: 8px; font-size: 0.8rem; color: #475569; font-style: italic; }
         .message-bubble::after { content: ''; position: absolute; top: -10px; left: 15px; border-width: 5px; border-style: solid; border-color: transparent transparent #f1f5f9 transparent; }
-        /* FAQ Accordion animation */
         .faq-answer { transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out; max-height: 0; overflow: hidden; }
         .faq-answer.open { max-height: 500px; padding-bottom: 1rem; }
     </style>
@@ -152,7 +151,7 @@
                     </div>
 
                     <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 px-4 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2 mt-2">
-                        Proceed to Donate <i class="fa-solid fa-arrow-right ml-1"></i>
+                        Generate QR to Donate <i class="fa-solid fa-qrcode ml-1"></i>
                     </button>
                 </form>
 
@@ -173,49 +172,48 @@
     </main>
 
     <div id="paymentModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-overlay hidden">
-        <div class="bg-white rounded-2xl p-8 max-w-md w-full relative shadow-2xl text-center">
+        <div class="bg-white rounded-2xl w-full max-w-md relative shadow-2xl flex flex-col max-h-[90vh]">
             
-            <div id="step1Confirm">
-                <div class="w-16 h-16 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-                    <i class="fa-solid fa-wallet"></i>
-                </div>
-                <h3 class="text-2xl font-bold mb-2 text-slate-800">Complete Payment</h3>
-                <p class="text-slate-600 mb-6 text-sm">You are about to donate <strong class="text-teal-700 text-lg">₹<span id="step1Amount"></span></strong> to Beyond The Verse.</p>
-                <button id="openUpiBtn" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg mb-3 flex justify-center items-center gap-2 transition">
-                    <i class="fa-brands fa-google-pay text-xl"></i> Open UPI App
-                </button>
-                <button id="cancelStep1Btn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 px-4 rounded-xl transition">Cancel</button>
-            </div>
-
-            <div id="step2Wait" class="hidden">
-                <h3 class="text-2xl font-bold mb-2 text-slate-800">Verify Payment</h3>
-                <p class="text-slate-600 mb-4 text-sm">After paying <strong class="text-teal-700">₹<span id="confirmAmountDisplay"></span></strong> on your UPI app, enter the 12-digit UTR/Reference Number below to verify.</p>
+            <div id="step1Confirm" class="overflow-y-auto p-8 no-scrollbar text-center">
+                <h3 class="text-2xl font-bold mb-1 text-slate-800">Scan & Donate</h3>
+                <p class="text-slate-600 mb-4 text-sm">Scan this QR with any UPI App to donate <strong class="text-teal-700 text-lg">₹<span id="step1Amount"></span></strong></p>
                 
+                <div class="bg-white p-3 rounded-xl border-2 border-teal-100 inline-block mb-3 shadow-sm relative">
+                    <div id="qrLoader" class="absolute inset-0 bg-white/80 flex items-center justify-center hidden">
+                        <i class="fa-solid fa-spinner fa-spin text-teal-600 text-2xl"></i>
+                    </div>
+                    <img id="qrCodeImage" src="" alt="UPI QR Code" class="w-48 h-48 mx-auto" crossorigin="anonymous">
+                </div>
+
+                <button id="downloadQrBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-lg text-sm mb-4 transition flex items-center justify-center gap-2 mx-auto shadow-sm border border-slate-200">
+                    <i class="fa-solid fa-download"></i> Download QR
+                </button>
+
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4 flex justify-between items-center text-left">
                     <div>
-                        <p class="text-[10px] text-slate-500 uppercase tracking-wide">Paying to</p>
-                        <p class="font-bold text-slate-800 text-sm">Rohan Tiwari</p>
-                        <p class="text-xs text-slate-500 font-mono" id="upiIdText">BHARATPE.8E0D1Z2J6Z43763@fbpe</p>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-wide">Or Pay to UPI ID</p>
+                        <p class="text-xs text-slate-800 font-mono font-bold" id="upiIdText">BHARATPE.8E0D1Z2J6Z43763@fbpe</p>
                     </div>
-                    <button id="copyUpiBtn" class="text-teal-600 hover:bg-teal-50 p-2 rounded-lg transition text-sm flex flex-col items-center">
+                    <button id="copyUpiBtn" class="text-teal-600 hover:bg-teal-50 p-2 rounded-lg transition flex flex-col items-center">
                         <i class="fa-regular fa-copy"></i>
-                        <span class="text-[10px] font-bold mt-1">Copy</span>
                     </button>
                 </div>
 
-                <div class="mb-4 text-left">
-                    <label class="block text-xs font-bold text-slate-700 mb-1">12-Digit UTR Number <span class="text-red-500">*</span></label>
+                <div class="mb-4 text-left border-t border-slate-100 pt-5">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Enter 12-Digit UTR / Ref No. <span class="text-red-500">*</span></label>
                     <input type="text" id="utrInput" placeholder="e.g. 312345678901" maxlength="12" class="w-full px-3 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none font-mono text-center tracking-widest text-lg bg-slate-50">
                     <p id="utrError" class="text-xs text-red-500 mt-1 hidden">Please enter a valid 12-digit number.</p>
                 </div>
 
-                <button id="confirmPaymentBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg mb-3 transition">
-                    Verify & Submit <i class="fa-solid fa-check ml-1"></i>
-                </button>
-                <button id="cancelPaymentBtn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 px-4 rounded-xl transition">Cancel</button>
+                <div class="flex gap-2">
+                    <button id="cancelStep1Btn" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 px-4 rounded-xl transition">Cancel</button>
+                    <button id="confirmPaymentBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition">
+                        Submit <i class="fa-solid fa-check ml-1"></i>
+                    </button>
+                </div>
             </div>
 
-            <div id="step3Success" class="hidden">
+            <div id="step3Success" class="hidden p-8 text-center">
                 <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
                     <i class="fa-solid fa-check-double"></i>
                 </div>
@@ -299,13 +297,15 @@
         import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyAcJgkQWpIW4dpgS_2NAJ4wotLsk3RQV5o",
-            authDomain: "donation-app-25cac.firebaseapp.com",
-            projectId: "donation-app-25cac",
-            storageBucket: "donation-app-25cac.firebasestorage.app",
-            messagingSenderId: "523938237581",
-            appId: "1:523938237581:web:5fe504c83db2af679da6c4"
-        };
+  apiKey: "AIzaSyAcJgkQWpIW4dpgS_2NAJ4wotLsk3RQV5o",
+  authDomain: "donation-app-25cac.firebaseapp.com",
+  databaseURL: "https://donation-app-25cac-default-rtdb.firebaseio.com",
+  projectId: "donation-app-25cac",
+  storageBucket: "donation-app-25cac.firebasestorage.app",
+  messagingSenderId: "523938237581",
+  appId: "1:523938237581:web:5fe504c83db2af679da6c4",
+  measurementId: "G-Q9LNF41K15"
+};
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -322,18 +322,16 @@
 
         const form = document.getElementById('donationForm');
         
-        // UI Elements
         const paymentModal = document.getElementById('paymentModal');
         const step1Confirm = document.getElementById('step1Confirm');
-        const step2Wait = document.getElementById('step2Wait');
         const step3Success = document.getElementById('step3Success');
-        const openUpiBtn = document.getElementById('openUpiBtn');
         const cancelStep1Btn = document.getElementById('cancelStep1Btn');
-        const cancelPaymentBtn = document.getElementById('cancelPaymentBtn');
         const confirmBtn = document.getElementById('confirmPaymentBtn');
         const closeSuccessBtn = document.getElementById('closeSuccessBtn');
         const shareWhatsappBtn = document.getElementById('shareWhatsappBtn');
         const copyUpiBtn = document.getElementById('copyUpiBtn');
+        const downloadQrBtn = document.getElementById('downloadQrBtn');
+        const qrCodeImage = document.getElementById('qrCodeImage');
         const loader = document.getElementById('progressLoader');
         const amtInput = document.getElementById('donationAmount');
         const msgInput = document.getElementById('donorMessage');
@@ -387,6 +385,7 @@
         });
 
         function timeAgo(timestamp) {
+            if(!timestamp) return "Just now";
             const seconds = Math.floor((new Date() - timestamp) / 1000);
             let interval = seconds / 31536000;
             if (interval > 1) return Math.floor(interval) + " years ago";
@@ -419,16 +418,9 @@
         copyUpiBtn.addEventListener('click', () => {
             navigator.clipboard.writeText(UPI_ID).then(() => {
                 const icon = copyUpiBtn.querySelector('i');
-                const text = copyUpiBtn.querySelector('span');
                 icon.className = 'fa-solid fa-check text-green-500';
-                text.innerText = 'Copied';
-                text.classList.add('text-green-500');
                 showToast("UPI ID Copied to Clipboard!", false);
-                setTimeout(() => {
-                    icon.className = 'fa-regular fa-copy';
-                    text.innerText = 'Copy';
-                    text.classList.remove('text-green-500');
-                }, 3000);
+                setTimeout(() => { icon.className = 'fa-regular fa-copy'; }, 3000);
             });
         });
 
@@ -446,17 +438,24 @@
             }, 250);
         }
 
+        // --- BULLETPROOF UPDATE UI ---
         function updateUI() {
             document.getElementById('targetAmountDisplay').innerText = TARGET_AMOUNT.toLocaleString('en-IN');
-            document.getElementById('raisedAmountDisplay').innerText = globalTotalRaised.toLocaleString('en-IN');
-            document.getElementById('donorCountDisplay').innerText = globalDonorCount;
-            let percent = (globalTotalRaised / TARGET_AMOUNT) * 100;
+            // Using || 0 to prevent NaN
+            let safeRaised = globalTotalRaised || 0; 
+            document.getElementById('raisedAmountDisplay').innerText = safeRaised.toLocaleString('en-IN');
+            document.getElementById('donorCountDisplay').innerText = globalDonorCount || 0;
+            
+            let percent = (safeRaised / TARGET_AMOUNT) * 100;
+            if (isNaN(percent)) percent = 0;
             if (percent > 100) percent = 100;
+            
             document.getElementById('percentageDisplay').innerText = percent.toFixed(0);
             document.getElementById('progressBar').style.width = percent + '%';
             if (loader) loader.style.display = 'none';
         }
 
+        // --- BULLETPROOF RENDER RECENT ---
         function renderRecentSupporters() {
             const container = document.getElementById('recentSupportersList');
             container.innerHTML = '';
@@ -468,9 +467,14 @@
 
             const recent = globalDonationsList.slice(0, 5); 
             recent.forEach(d => {
-                let firstName = d.name.split(' ')[0];
+                let safeName = String(d.name || "Well Wisher");
+                let firstName = safeName.split(' ')[0] || "A";
                 let msgHtml = d.message ? `<div class="message-bubble"><i class="fa-solid fa-quote-left text-slate-300 mr-1"></i> ${d.message}</div>` : '';
-                let badge = getBadgeInfo(d.amount);
+                
+                let safeAmount = Number(d.amount);
+                if(isNaN(safeAmount)) safeAmount = 0;
+                
+                let badge = getBadgeInfo(safeAmount);
                 let timeText = timeAgo(d.timestamp);
                 
                 container.innerHTML += `
@@ -485,7 +489,7 @@
                                     <div class="text-[10px] text-slate-400 font-medium">${timeText}</div>
                                 </div>
                             </div>
-                            <span class="font-bold text-teal-600 text-sm bg-white px-2 py-1 rounded-md border border-teal-100 shadow-sm">₹${d.amount.toLocaleString('en-IN')}</span>
+                            <span class="font-bold text-teal-600 text-sm bg-white px-2 py-1 rounded-md border border-teal-100 shadow-sm">₹${safeAmount.toLocaleString('en-IN')}</span>
                         </div>
                         ${msgHtml}
                     </div>
@@ -493,6 +497,7 @@
             });
         }
 
+        // --- BULLETPROOF RENDER TOP ---
         function renderTopSupporters() {
             const container = document.getElementById('topSupportersList');
             container.innerHTML = '';
@@ -502,11 +507,19 @@
                 return;
             }
 
-            let topList = [...globalDonationsList].sort((a, b) => b.amount - a.amount).slice(0, 5);
+            let topList = [...globalDonationsList].sort((a, b) => {
+                let amtA = Number(a.amount) || 0;
+                let amtB = Number(b.amount) || 0;
+                return amtB - amtA;
+            }).slice(0, 5);
             
             topList.forEach((d, index) => {
-                let firstName = d.name.split(' ')[0];
-                let badge = getBadgeInfo(d.amount);
+                let safeName = String(d.name || "Well Wisher");
+                let firstName = safeName.split(' ')[0] || "A";
+                let safeAmount = Number(d.amount);
+                if(isNaN(safeAmount)) safeAmount = 0;
+
+                let badge = getBadgeInfo(safeAmount);
                 let rankColors = ['text-amber-500 text-xl', 'text-slate-400 text-lg', 'text-amber-600 text-base', 'text-slate-300 text-sm', 'text-slate-300 text-sm'];
                 
                 container.innerHTML += `
@@ -518,7 +531,7 @@
                             </div>
                             <div class="font-bold text-slate-700 text-sm flex items-center gap-1">${firstName} ${badge.html}</div>
                         </div>
-                        <span class="font-bold text-teal-600 text-sm bg-white px-2 py-1 rounded-md border border-teal-100 shadow-sm">₹${d.amount.toLocaleString('en-IN')}</span>
+                        <span class="font-bold text-teal-600 text-sm bg-white px-2 py-1 rounded-md border border-teal-100 shadow-sm">₹${safeAmount.toLocaleString('en-IN')}</span>
                     </div>
                 `;
             });
@@ -548,12 +561,14 @@
                     
                     snapshot.forEach(doc => {
                         let data = doc.data();
-                        let amt = parseFloat(data.amount) || 0;
+                        let amt = Number(data.amount);
+                        if(isNaN(amt)) amt = 0; // Error prevention
+                        
                         globalTotalRaised += amt;
                         list.push({ id: doc.id, ...data });
                     });
                     
-                    list.sort((a, b) => b.timestamp - a.timestamp);
+                    list.sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0));
                     globalDonationsList = list;
                     
                     updateUI();
@@ -576,7 +591,6 @@
         startApp();
         setInterval(renderRecentSupporters, 60000);
 
-        // --- Form Submit (Added Minimum ₹200 Logic) ---
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const name = document.getElementById('donorName').value;
@@ -584,7 +598,6 @@
             const amount = parseFloat(document.getElementById('donationAmount').value);
             const message = document.getElementById('donorMessage').value.trim();
             
-            // SECURITY: Double checking if amount is less than 200
             if(amount < 200) {
                 alert("Minimum donation amount is ₹200. Please enter a valid amount.");
                 return;
@@ -593,37 +606,48 @@
             pendingDonation = { name, phone, amount, message };
             
             document.getElementById('step1Amount').innerText = amount.toLocaleString('en-IN');
-            document.getElementById('confirmAmountDisplay').innerText = amount.toLocaleString('en-IN');
             utrInput.value = ""; 
             utrError.classList.add('hidden');
             
+            const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${amount}&cu=INR`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiUrl)}`;
+            qrCodeImage.src = qrUrl;
+
             step1Confirm.classList.remove('hidden');
-            step2Wait.classList.add('hidden');
             step3Success.classList.add('hidden');
             paymentModal.classList.remove('hidden');
         });
 
-        // --- CLEAN UPI URL (Removed Fake transaction ID) ---
-        openUpiBtn.addEventListener('click', () => {
-            if (!pendingDonation) return;
-            
-            // Clean Intent URL without 'mc' and 'tr' to bypass strict UPI network block
-            const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${pendingDonation.amount}&cu=INR`;
-            
-            window.location.href = upiUrl;
-            step1Confirm.classList.add('hidden');
-            step2Wait.classList.remove('hidden');
+        downloadQrBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch(qrCodeImage.src);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `Donate_₹${pendingDonation.amount}_BeyondTheVerse.png`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                showToast("QR Code Downloaded!");
+            } catch (err) {
+                alert("Could not download automatically. Please take a screenshot or long-press the QR code to save it.");
+            }
         });
 
         cancelStep1Btn.addEventListener('click', () => { paymentModal.classList.add('hidden'); pendingDonation = null; });
-        cancelPaymentBtn.addEventListener('click', () => { paymentModal.classList.add('hidden'); pendingDonation = null; });
-        closeSuccessBtn.addEventListener('click', () => { paymentModal.classList.add('hidden'); });
+        
+        closeSuccessBtn.addEventListener('click', () => { 
+    paymentModal.classList.add('hidden'); 
+    window.location.reload(); // यह लाइन वेबसाइट को तुरंत रिफ्रेश करके नया डेटा ले आएगी
+});
+
 
         confirmBtn.addEventListener('click', async () => {
             if (!pendingDonation) return;
             
             const utrVal = utrInput.value.trim();
-            
             if(utrVal.length !== 12 || isNaN(utrVal)) {
                 utrError.classList.remove('hidden');
                 utrInput.focus();
@@ -649,7 +673,7 @@
                 presetBtns.forEach(b => b.classList.remove('active'));
                 presetBtns[0].classList.add('active');
                 
-                step2Wait.classList.add('hidden');
+                step1Confirm.classList.add('hidden');
                 step3Success.classList.remove('hidden');
                 
                 fireConfetti();
@@ -657,7 +681,7 @@
             } catch (error) {
                 alert("Failed to save. Please check your internet connection.");
             } finally {
-                confirmBtn.innerHTML = 'Verify & Submit <i class="fa-solid fa-check ml-1"></i>';
+                confirmBtn.innerHTML = 'Submit <i class="fa-solid fa-check ml-1"></i>';
                 confirmBtn.disabled = false;
                 pendingDonation = null;
             }
@@ -741,6 +765,40 @@
             }
         });
 
+        function renderAdminTable() {
+            document.getElementById('adminTotalRaised').innerText = globalTotalRaised.toLocaleString('en-IN');
+            const tbody = document.getElementById('donorTableBody');
+            tbody.innerHTML = '';
+            
+            globalDonationsList.forEach(d => {
+                let safeName = String(d.name || "Unknown");
+                let safeAmount = Number(d.amount);
+                if(isNaN(safeAmount)) safeAmount = 0;
+                
+                let dateStr = d.timestamp ? new Date(d.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : 'N/A';
+                
+                const utrDisplay = d.utr ? d.utr : '<span class="text-slate-300 italic">No UTR</span>';
+                const msgDisplay = d.message ? `<div class="text-[10px] text-slate-500 italic mt-1 leading-tight"><i class="fa-solid fa-quote-left mr-1"></i>${d.message}</div>` : '';
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 border-b border-slate-50">
+                        <td class="p-4 text-sm text-slate-500">${dateStr}</td>
+                        <td class="p-4">
+                            <div class="text-sm font-medium text-slate-800">${safeName}</div>
+                            <div class="text-xs text-slate-500 font-mono mt-0.5">${d.phone || '-'}</div>
+                            ${msgDisplay}
+                        </td>
+                        <td class="p-4 text-sm text-slate-600 font-mono font-bold tracking-wider">${utrDisplay}</td>
+                        <td class="p-4 text-sm font-bold text-teal-700 text-right">₹${safeAmount.toLocaleString('en-IN')}</td>
+                        <td class="p-4 text-center">
+                            <button class="delete-btn text-slate-300 hover:text-red-500 transition-colors p-2 rounded" data-id="${d.id}" title="Delete Fake Record">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
         document.getElementById('donorTableBody').addEventListener('click', async (e) => {
             const btn = e.target.closest('.delete-btn');
             if(btn) {
@@ -758,11 +816,12 @@
             if(globalDonationsList.length === 0) return alert("No donations to export!");
             let csvContent = "Date,Name,Phone,UTR Number,Amount (INR),Message\n"; 
             globalDonationsList.forEach(d => {
-                const dateStr = new Date(d.timestamp).toLocaleDateString('en-IN');
-                const cleanName = `"${d.name.replace(/"/g, '""')}"`;
-                const cleanMsg = d.message ? `"${d.message.replace(/"/g, '""')}"` : "None";
-                const utr = d.utr ? `"${d.utr}"` : "N/A";
-                csvContent += `${dateStr},${cleanName},${d.phone},${utr},${d.amount},${cleanMsg}\n`;
+                let safeName = d.name ? `"${d.name.replace(/"/g, '""')}"` : '"Unknown"';
+                let dateStr = d.timestamp ? new Date(d.timestamp).toLocaleDateString('en-IN') : 'N/A';
+                let cleanMsg = d.message ? `"${d.message.replace(/"/g, '""')}"` : "None";
+                let utr = d.utr ? `"${d.utr}"` : "N/A";
+                let amount = d.amount || 0;
+                csvContent += `${dateStr},${safeName},${d.phone || ''},${utr},${amount},${cleanMsg}\n`;
             });
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
@@ -773,35 +832,6 @@
             document.body.removeChild(link);
         });
 
-        function renderAdminTable() {
-            document.getElementById('adminTotalRaised').innerText = globalTotalRaised.toLocaleString('en-IN');
-            const tbody = document.getElementById('donorTableBody');
-            tbody.innerHTML = '';
-            
-            globalDonationsList.forEach(d => {
-                const dateObj = new Date(d.timestamp);
-                const dateStr = dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-                const utrDisplay = d.utr ? d.utr : '<span class="text-slate-300 italic">No UTR</span>';
-                const msgDisplay = d.message ? `<div class="text-[10px] text-slate-500 italic mt-1 leading-tight"><i class="fa-solid fa-quote-left mr-1"></i>${d.message}</div>` : '';
-                
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 border-b border-slate-50">
-                        <td class="p-4 text-sm text-slate-500">${dateStr}</td>
-                        <td class="p-4">
-                            <div class="text-sm font-medium text-slate-800">${d.name}</div>
-                            <div class="text-xs text-slate-500 font-mono mt-0.5">${d.phone}</div>
-                            ${msgDisplay}
-                        </td>
-                        <td class="p-4 text-sm text-slate-600 font-mono font-bold tracking-wider">${utrDisplay}</td>
-                        <td class="p-4 text-sm font-bold text-teal-700 text-right">₹${d.amount.toLocaleString('en-IN')}</td>
-                        <td class="p-4 text-center">
-                            <button class="delete-btn text-slate-300 hover:text-red-500 transition-colors p-2 rounded" data-id="${d.id}" title="Delete Fake Record">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>`;
-            });
-        }
     </script>
 </body>
-</html>
+                </html>
