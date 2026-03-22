@@ -291,12 +291,14 @@
         <i id="toastIcon" class="fa-solid fa-circle-check text-green-400 text-xl"></i><span id="toastMessage">Success</span>
     </div>
 
+
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // DHYAN DEIN: Yahan par aapki apni Firebase Config honi chahiye, warna data test server par jayega.
+        // Yahan par aapki apni Firebase Config honi chahiye
         const firebaseConfig = {
             apiKey: "AIzaSyAcJgkQWpIW4dpgS_2NAJ4wotLsk3RQV5o",
             authDomain: "donation-app-25cac.firebaseapp.com",
@@ -319,8 +321,12 @@
         let globalTotalRaised = 0;
         let globalDonorCount = 0;
 
+        // --- NEW: Smart Animation Flags ---
+        let isPaymentSuccessModalWaiting = false; 
+        let isSharingWhatsApp = false;
+        let pendingTargetWidth = 0;
+
         const form = document.getElementById('donationForm');
-        
         const paymentModal = document.getElementById('paymentModal');
         const step1Confirm = document.getElementById('step1Confirm');
         const step3Success = document.getElementById('step3Success');
@@ -333,7 +339,6 @@
         const qrCodeImage = document.getElementById('qrCodeImage');
         const loader = document.getElementById('progressLoader');
         const amtInput = document.getElementById('donationAmount');
-        const msgInput = document.getElementById('donorMessage');
         const presetBtns = document.querySelectorAll('.preset-btn');
         const utrInput = document.getElementById('utrInput');
         const utrError = document.getElementById('utrError');
@@ -448,28 +453,31 @@
             if (percent > 100) percent = 100;
             
             document.getElementById('percentageDisplay').innerText = percent.toFixed(0);
-            document.getElementById('progressBar').style.width = percent + '%';
+            
+            // MAGIC: Agar user popup par hai, toh background mein bar ko pause kardo
+            if(isPaymentSuccessModalWaiting) {
+                pendingTargetWidth = percent; 
+            } else {
+                document.getElementById('progressBar').style.width = percent + '%';
+            }
+
             if (loader) loader.style.display = 'none';
         }
 
         function renderRecentSupporters() {
             const container = document.getElementById('recentSupportersList');
             container.innerHTML = '';
-            
             if(globalDonationsList.length === 0) {
                 container.innerHTML = '<div class="text-sm text-slate-400 italic">Be the first to support!</div>';
                 return;
             }
-
             const recent = globalDonationsList.slice(0, 5); 
             recent.forEach(d => {
                 let safeName = String(d.name || "Well Wisher");
                 let firstName = safeName.split(' ')[0] || "A";
                 let msgHtml = d.message ? `<div class="message-bubble"><i class="fa-solid fa-quote-left text-slate-300 mr-1"></i> ${d.message}</div>` : '';
-                
                 let safeAmount = Number(d.amount);
                 if(isNaN(safeAmount)) safeAmount = 0;
-                
                 let badge = getBadgeInfo(safeAmount);
                 let timeText = timeAgo(d.timestamp);
                 
@@ -496,12 +504,10 @@
         function renderTopSupporters() {
             const container = document.getElementById('topSupportersList');
             container.innerHTML = '';
-            
             if(globalDonationsList.length === 0) {
                 container.innerHTML = '<div class="text-sm text-slate-400 italic">No donations yet.</div>';
                 return;
             }
-
             let topList = [...globalDonationsList].sort((a, b) => {
                 let amtA = Number(a.amount) || 0;
                 let amtB = Number(b.amount) || 0;
@@ -513,7 +519,6 @@
                 let firstName = safeName.split(' ')[0] || "A";
                 let safeAmount = Number(d.amount);
                 if(isNaN(safeAmount)) safeAmount = 0;
-
                 let badge = getBadgeInfo(safeAmount);
                 let rankColors = ['text-amber-500 text-xl', 'text-slate-400 text-lg', 'text-amber-600 text-base', 'text-slate-300 text-sm', 'text-slate-300 text-sm'];
                 
@@ -534,15 +539,11 @@
 
         const startApp = async () => {
             try {
-                if (!auth.currentUser) {
-                    await signInAnonymously(auth);
-                }
+                if (!auth.currentUser) { await signInAnonymously(auth); }
                 
                 onSnapshot(doc(db, 'settings', 'config'), (docSnap) => {
                     if (docSnap.exists() && docSnap.data().targetAmount) {
                         TARGET_AMOUNT = docSnap.data().targetAmount;
-                        document.getElementById('adminTargetInput').value = TARGET_AMOUNT;
-                    } else {
                         document.getElementById('adminTargetInput').value = TARGET_AMOUNT;
                     }
                     updateUI();
@@ -558,7 +559,6 @@
                         let data = doc.data();
                         let amt = Number(data.amount);
                         if(isNaN(amt)) amt = 0; 
-                        
                         globalTotalRaised += amt;
                         list.push({ id: doc.id, ...data });
                     });
@@ -572,15 +572,8 @@
                         renderTopSupporters();
                     }
                     renderAdminTable();
-                }, (error) => {
-                    console.error("Database error:", error);
-                    alert("Database Error: Check Firebase Firestore Rules.");
-                    if (loader) loader.style.display = 'none';
                 });
-            } catch (err) {
-                console.error("Auth error:", err);
-                if (loader) loader.style.display = 'none';
-            }
+            } catch (err) { console.error("Auth error:", err); }
         };
 
         startApp();
@@ -599,7 +592,6 @@
             }
             
             pendingDonation = { name, phone, amount, message };
-            
             document.getElementById('step1Amount').innerText = amount.toLocaleString('en-IN');
             utrInput.value = ""; 
             utrError.classList.add('hidden');
@@ -633,17 +625,45 @@
 
         cancelStep1Btn.addEventListener('click', () => { paymentModal.classList.add('hidden'); pendingDonation = null; });
         
-        // --- AUTO REFRESH FIX ADDED HERE ---
+        // --- SMART ANIMATION TRIGGER FUNCTION ---
+        function triggerSuccessAnimation() {
+            if (isPaymentSuccessModalWaiting) {
+                isPaymentSuccessModalWaiting = false;
+                // Popup hatne ke 300ms baad bar bharega aur patakhe phutenge (WOW effect)
+                setTimeout(() => {
+                    document.getElementById('progressBar').style.width = pendingTargetWidth + '%';
+                    fireConfetti(); 
+                }, 300);
+            }
+        }
+
+        // --- NEW CLOSE BUTTON LOGIC ---
         closeSuccessBtn.addEventListener('click', () => { 
-    // यह सिर्फ पॉपअप को छुपाएगा, पेज रिफ्रेश नहीं करेगा
-    paymentModal.classList.add('hidden'); 
-    
-    // यह स्मूथली पेज को ऊपर स्क्रॉल कर देगा ताकि यूज़र को नया प्रोग्रेस बार दिख जाए
-    window.scrollTo({ top: 0, behavior: 'smooth' }); 
-});
+            paymentModal.classList.add('hidden'); 
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            triggerSuccessAnimation(); // Call animation manually
+        });
+
+        // --- NEW SHARE BUTTON LOGIC (WhatsApp + Auto Return Detect) ---
+        shareWhatsappBtn.addEventListener('click', () => {
+            isSharingWhatsApp = true; // Mark user went to WhatsApp
+            const currentUrl = window.location.href;
+            const text = `Hey! I just supported Rohan's "Beyond The Verse" initiative. Join me in helping him upgrade his teaching setup! 🚀\n\nSupport here: ${currentUrl}`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
+        });
+
+        // Browser API: Jab user WhatsApp se tab par waapas aayega
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && isSharingWhatsApp) {
+                isSharingWhatsApp = false; 
+                paymentModal.classList.add('hidden'); // Modal automatically close
+                window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top
+                triggerSuccessAnimation(); // Bar animation start + Confetti
+            }
+        });
+
         confirmBtn.addEventListener('click', async () => {
             if (!pendingDonation) return;
-            
             const utrVal = utrInput.value.trim();
             if(utrVal.length !== 12 || isNaN(utrVal)) {
                 utrError.classList.remove('hidden');
@@ -665,6 +685,9 @@
                     timestamp: Date.now()
                 });
                 
+                // Lock animation while modal is open
+                isPaymentSuccessModalWaiting = true; 
+
                 form.reset();
                 document.getElementById('donationAmount').value = "500";
                 presetBtns.forEach(b => b.classList.remove('active'));
@@ -672,8 +695,7 @@
                 
                 step1Confirm.classList.add('hidden');
                 step3Success.classList.remove('hidden');
-                
-                fireConfetti();
+                // Confetti yahan se hata kar Animation function me daal diya hai!
 
             } catch (error) {
                 alert("Failed to save. Please check your internet connection.");
@@ -684,14 +706,7 @@
             }
         });
 
-        // --- AUTO REFRESH ON SHARE BUTTON TOO ---
-        shareWhatsappBtn.addEventListener('click', () => {
-    const currentUrl = window.location.href;
-    const text = `Hey! I just supported Rohan's "Beyond The Verse" initiative. Join me in helping him upgrade his teaching setup! 🚀\n\nSupport here: ${currentUrl}`;
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
-    // यहाँ से भी मैंने रीलोड वाला टाइमर हटा दिया है
-});
-
+        // --- ADMIN LOGIN LOGIC ---
         let clickCount = 0; let clickTimer;
         document.getElementById('appTitle').addEventListener('click', () => {
             clickCount++;
@@ -830,7 +845,13 @@
             link.click();
             document.body.removeChild(link);
         });
-
     </script>
+
+
+                
+                
+               
+                
+                
 </body>
     </html>
