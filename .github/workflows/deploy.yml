@@ -1,0 +1,49 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build_site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        # यहाँ हमने बताया कि इस फोल्डर के अंदर जाओ
+        run: npm install
+        working-directory: beyond-the-verse
+
+      - name: Build
+        # यहाँ भी फोल्डर का नाम दिया
+        run: npm run build
+        working-directory: beyond-the-verse
+
+      - name: Upload Artifacts
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # यहाँ बताया कि 'dist' फोल्डर कहाँ मिलेगा
+          path: 'beyond-the-verse/dist/'
+
+  deploy:
+    needs: build_site
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
