@@ -1,6 +1,22 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function StorySection() {
+  // 🌟 NAYA: Firebase se aane wale subjects ke liye State 🌟
+  const [subjects, setSubjects] = useState([]);
+  const [activeDef, setActiveDef] = useState(null);
+
+  // 🌟 NAYA: Real-time Database Listener 🌟
+  useEffect(() => {
+    const q = query(collection(db, "subjects"), orderBy("timestamp", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setSubjects(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+    });
+    // Cleanup listener on unmount
+    return () => unsubscribe();
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* 1. Hero Banner */}
@@ -16,7 +32,6 @@ export default function StorySection() {
             विज्ञान और दर्शन के कृत्रिम विभाजन को समाप्त कर, वास्तविकता को समझने का एक ईमानदार प्रयास।
           </p>
         </div>
-        {/* Abstract Background Icon */}
         <i className="fa-solid fa-atom absolute -bottom-10 -right-10 text-[180px] text-teal-600 opacity-20 rotate-12"></i>
       </div>
 
@@ -61,17 +76,47 @@ export default function StorySection() {
           </div>
         </div>
 
-        {/* Subjects Badges */}
-        <div>
-          <h4 className="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wider text-center">
-            विस्तृत अध्ययन क्षेत्र
+        {/* 🌟 NAYA: Dynamic Infinite Subjects Badges 🌟 */}
+        <div className="bg-slate-50 border border-slate-100 rounded-xl p-6">
+          <h4 className="font-bold text-slate-800 mb-2 text-sm uppercase tracking-wider text-center flex justify-center items-center gap-2">
+            <i className="fa-solid fa-globe text-teal-500"></i> अनंत अध्ययन क्षेत्र
           </h4>
-          <div className="flex flex-wrap justify-center gap-2">
-            {["भौतिकी (Physics)", "रसायन (Chemistry)", "जीवविज्ञान (Biology)", "मनोविज्ञान (Psychology)", "न्यूरोसाइंस (Neuroscience)", "समाजशास्त्र (Sociology)", "मानवशास्त्र (Anthropology)"].map((subject, idx) => (
-              <span key={idx} className="bg-slate-100 hover:bg-teal-50 border border-slate-200 text-slate-700 hover:text-teal-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-default">
-                {subject}
-              </span>
+          <p className="text-xs text-center text-slate-500 mb-5 max-w-2xl mx-auto">
+            ज्ञान की कोई सीमा नहीं होती। किसी भी विषय पर क्लिक करके उसका अर्थ समझें:
+          </p>
+          
+          <div className="flex flex-wrap justify-center gap-2.5">
+            {/* Database se aaye hue subjects map ho rahe hain */}
+            {subjects.map((sub) => (
+              <div key={sub.id} className="relative group">
+                <button 
+                  onClick={() => setActiveDef(activeDef === sub.id ? null : sub.id)}
+                  className="bg-white hover:bg-teal-50 border border-slate-200 text-slate-700 hover:text-teal-700 text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2 outline-none"
+                >
+                  {sub.name} <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${activeDef === sub.id ? 'rotate-180 text-teal-600' : ''}`}></i>
+                </button>
+
+                {/* Definition Tooltip Box */}
+                {activeDef === sub.id && (
+                  <div className="absolute z-50 mt-2 w-72 bg-slate-800 text-slate-200 text-xs p-4 rounded-xl shadow-2xl border border-slate-700 left-1/2 -translate-x-1/2">
+                    <p className="leading-relaxed">{sub.definition}</p>
+                    
+                    {/* Close button inside tooltip */}
+                    <button 
+                      onClick={() => setActiveDef(null)}
+                      className="mt-3 w-full bg-slate-700 hover:bg-slate-600 py-1.5 rounded text-slate-300 transition-colors"
+                    >
+                      Close
+                    </button>
+                  </div>
+                )}
+              </div>
             ))}
+            
+            {/* Infinity Badge */}
+            <span className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white border border-teal-500 text-xs font-bold px-4 py-2 rounded-lg shadow-md flex items-center gap-2 transform hover:scale-105 transition-transform cursor-default ml-1">
+              <i className="fa-solid fa-infinity"></i> ...और दुनिया भर के सभी विषय
+            </span>
           </div>
         </div>
 
@@ -128,7 +173,7 @@ export default function StorySection() {
             className="inline-flex items-center gap-3 bg-[#25D366] hover:bg-[#1EBE57] text-white font-bold py-3 px-6 rounded-xl transition-transform transform hover:scale-105 shadow-lg shadow-green-500/30"
           >
             <i className="fa-brands fa-whatsapp text-2xl"></i>
-            WhatsApp Group से जुड़ें
+            WhatsApp Group से जुड़ें
           </a>
         </div>
         <p className="text-xs text-slate-500 mt-2">
@@ -138,4 +183,4 @@ export default function StorySection() {
 
     </div>
   );
-        }
+      }
