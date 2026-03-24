@@ -3,6 +3,27 @@ import React, { useState, useEffect } from "react";
 export default function Header({ onAdminClick }) {
   const [clickCount, setClickCount] = useState(0);
 
+  // 🌟 NAYA: Google Translate Auto-Load Logic 🌟
+  useEffect(() => {
+    // Check if script is already there to prevent duplicates
+    if (!document.getElementById("google-translate-script")) {
+      window.googleTranslateElementInit = () => {
+        new window.google.translate.TranslateElement(
+          { 
+            pageLanguage: 'hi', // Base language Hindi/English jo bhi aapka text hai
+            layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE 
+          },
+          'google_translate_element'
+        );
+      };
+      const script = document.createElement("script");
+      script.id = "google-translate-script";
+      script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
   useEffect(() => {
     if (clickCount >= 3) {
       onAdminClick();
@@ -33,7 +54,7 @@ export default function Header({ onAdminClick }) {
 
   return (
     <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-slate-100 transition-all duration-300">
-      <div className="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center flex-wrap gap-3">
         
         {/* Logo & Secret Admin Trigger */}
         <div
@@ -58,8 +79,8 @@ export default function Header({ onAdminClick }) {
             </div>
           </div>
 
-          {/* Title & Tagline */}
-          <div className="flex flex-col">
+          {/* 🌟 NAYA: 'notranslate' class lagayi hai taaki logo translate na ho 🌟 */}
+          <div className="flex flex-col notranslate">
             <h1 className="text-xl font-extrabold text-slate-800 leading-tight">
               Beyond The <span className="text-teal-600">Verse</span>
             </h1>
@@ -72,6 +93,9 @@ export default function Header({ onAdminClick }) {
         {/* Right Side Actions */}
         <div className="flex items-center gap-3">
           
+          {/* 🌟 NAYA: Google Translate Dropdown Container 🌟 */}
+          <div id="google_translate_element" className="overflow-hidden rounded-lg"></div>
+
           {/* Live Indicator (Blinking Dot) */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold border border-emerald-100">
             <span className="relative flex h-2 w-2">
@@ -97,4 +121,4 @@ export default function Header({ onAdminClick }) {
       </div>
     </header>
   );
-    }
+          }
