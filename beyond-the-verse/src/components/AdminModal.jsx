@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { doc, setDoc, deleteDoc } from "firebase/firestore";
+import { doc, setDoc, deleteDoc, collection, addDoc } from "firebase/firestore"; // collection aur addDoc add kiya
 import { auth, db } from "../firebase";
 
 export default function AdminModal({
@@ -16,6 +16,10 @@ export default function AdminModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [newTarget, setNewTarget] = useState(targetAmount);
+  
+  // Naye State Variables Scholarship Link ke liye
+  const [scholarshipAmount, setScholarshipAmount] = useState("");
+  const [generatedLink, setGeneratedLink] = useState("");
 
   useEffect(() => {
     if (auth.currentUser && auth.currentUser.email) {
@@ -72,6 +76,27 @@ export default function AdminModal({
       } catch (err) {
         alert("Permission Denied: Ensure you are logged in as Admin.");
       }
+    }
+  };
+
+  // Naya Function: Scholarship Link Banane ke liye
+  const handleCreateLink = async () => {
+    if (!scholarshipAmount || scholarshipAmount < 1) {
+      showToast("Please enter a valid amount!");
+      return;
+    }
+    try {
+      const docRef = await addDoc(collection(db, "special_links"), {
+        amount: Number(scholarshipAmount),
+        active: true,
+        createdAt: Date.now()
+      });
+      const link = `${window.location.origin}?scholarship=${docRef.id}`;
+      setGeneratedLink(link);
+      navigator.clipboard.writeText(link);
+      showToast("Special Link Copied to Clipboard!");
+    } catch (err) {
+      alert("Error creating link: Ensure you are admin.");
     }
   };
 
@@ -146,7 +171,7 @@ export default function AdminModal({
               <div>
                 <h3 className="text-xl font-bold text-slate-800">
                   <i className="fa-solid fa-list-check text-teal-600 mr-2"></i>{" "}
-                  Supporter List
+                  Admin Dashboard
                 </h3>
                 <p className="text-sm text-slate-500 mt-1">
                   Total Collections: ₹
@@ -171,7 +196,10 @@ export default function AdminModal({
               </div>
             </div>
 
-            <div className="p-4 bg-white border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
+            {/* CONTROL PANEL: Goal Target + Scholarship Link */}
+            <div className="p-4 bg-white border-b border-slate-100 flex items-center justify-between flex-wrap gap-4">
+              
+              {/* Target Goal Section */}
               <div className="flex items-center gap-3">
                 <label className="text-sm font-bold text-slate-700">
                   Goal Target (₹):
@@ -189,6 +217,33 @@ export default function AdminModal({
                   Save
                 </button>
               </div>
+
+              {/* NEW: Scholarship Link Section */}
+              <div className="flex items-center gap-3 bg-teal-50/50 p-2 rounded-lg border border-teal-100">
+                <label className="text-sm font-bold text-teal-800">
+                  Special Link (₹):
+                </label>
+                <input
+                  type="number"
+                  value={scholarshipAmount}
+                  onChange={(e) => setScholarshipAmount(e.target.value)}
+                  placeholder="Amt"
+                  className="border border-teal-200 rounded-lg px-3 py-1.5 w-24 outline-none focus:border-teal-500 font-semibold text-teal-900 bg-white"
+                />
+                <button
+                  onClick={handleCreateLink}
+                  className="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm transition"
+                  title="Generate & Copy Link"
+                >
+                  <i className="fa-solid fa-link"></i> Create
+                </button>
+                {generatedLink && (
+                  <span className="text-xs font-bold text-teal-600 bg-teal-100 px-2 py-1 rounded max-w-[150px] truncate" title={generatedLink}>
+                    Copied!
+                  </span>
+                )}
+              </div>
+
             </div>
 
             <div className="overflow-y-auto p-0 max-h-[50vh]">
@@ -265,4 +320,4 @@ export default function AdminModal({
       </div>
     </div>
   );
-}
+         }
