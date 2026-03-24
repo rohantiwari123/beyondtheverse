@@ -116,27 +116,45 @@ export default function AdminModal({
     }
   };
 
-  // 🌟 NAYA: Subject Add karna aur Wikipedia se definition lana 🌟
+  // 🌟 NAYA: Smart Double-Engine Fetch Logic 🌟
   const handleAddSubject = async () => {
     if (!newSubject.trim()) {
       showToast("Please enter a subject name!");
       return;
     }
+    
     setIsFetchingDef(true);
-    try {
-      // Wikipedia API (Hindi/English dono samajh leta hai)
-      const response = await fetch(`https://hi.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(newSubject.trim())}`);
-      const data = await response.json();
-      
-      const definition = data.extract || "इस विषय की विस्तृत परिभाषा अभी उपलब्ध नहीं है।";
+    let definition = "";
+    let term = newSubject.trim();
 
+    try {
+      // 1. Pehle Hindi Wikipedia par try karega
+      let resHi = await fetch(`https://hi.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`);
+      let dataHi = await resHi.json();
+      
+      if (dataHi.extract) {
+        definition = dataHi.extract;
+      } else {
+        // 2. Agar Hindi mein nahi mila, toh English Wikipedia par try karega
+        let resEn = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`);
+        let dataEn = await resEn.json();
+        
+        if (dataEn.extract) {
+          definition = dataEn.extract;
+        } else {
+          // 3. Agar dono jagah fail hua, toh custom message
+          definition = "इस विषय की सटीक परिभाषा Wikipedia पर नहीं मिली। कृपया नाम सही से लिखें (जैसे: Psychology या मनोविज्ञान)।";
+        }
+      }
+
+      // Firebase mein save karna
       await addDoc(collection(db, "subjects"), {
-        name: newSubject.trim(),
+        name: term,
         definition: definition,
         timestamp: Date.now()
       });
 
-      showToast(`Subject Added: ${newSubject.trim()}`);
+      showToast(`Subject Added: ${term}`);
       setNewSubject("");
     } catch (err) {
       alert("Error saving subject! Database error.");
