@@ -91,12 +91,24 @@ export default function AdminModal({
         active: true,
         createdAt: Date.now()
       });
-      const link = `${window.location.origin}?scholarship=${docRef.id}`;
-      setGeneratedLink(link);
-      navigator.clipboard.writeText(link);
-      showToast("Special Link Copied to Clipboard!");
+      
+      // NAYA CODE YAHAN HAI 👇
+      const baseUrl = window.location.href.split('?')[0]; 
+      const link = `${baseUrl}?scholarship=${docRef.id}`;
+      // NAYA CODE YAHAN TAK HAI 👆
+
+      setGeneratedLink(link); 
+
+      try {
+        await navigator.clipboard.writeText(link);
+        showToast("Special Link Copied to Clipboard!");
+      } catch (clipboardError) {
+        console.log("Auto-copy blocked by browser.");
+        showToast("Link Generated! (Please copy it manually)");
+      }
+      
     } catch (err) {
-      alert("Error creating link: Ensure you are admin.");
+      alert("Database Error: " + err.message);
     }
   };
 
