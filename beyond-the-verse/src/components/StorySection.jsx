@@ -3,17 +3,14 @@ import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../firebase";
 
 export default function StorySection() {
-  // 🌟 NAYA: Firebase se aane wale subjects ke liye State 🌟
   const [subjects, setSubjects] = useState([]);
   const [activeDef, setActiveDef] = useState(null);
 
-  // 🌟 NAYA: Real-time Database Listener 🌟
   useEffect(() => {
     const q = query(collection(db, "subjects"), orderBy("timestamp", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setSubjects(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     });
-    // Cleanup listener on unmount
     return () => unsubscribe();
   }, []);
 
@@ -38,7 +35,6 @@ export default function StorySection() {
       {/* 2. Main Philosophy Section */}
       <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-8">
         
-        {/* The Problem */}
         <div>
           <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
             <i className="fa-solid fa-eye-low-vision text-teal-600"></i> पहल के पीछे का उद्देश्य
@@ -56,7 +52,6 @@ export default function StorySection() {
           </div>
         </div>
 
-        {/* Core Perspective */}
         <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-white border border-slate-200 p-5 rounded-xl hover:border-teal-300 transition-colors shadow-sm">
             <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
@@ -76,53 +71,50 @@ export default function StorySection() {
           </div>
         </div>
 
-        {/* 🌟 NAYA: Dynamic Infinite Subjects Badges 🌟 */}
+        {/* 🌟 Dynamic Subjects Area (Infinite badge removed) 🌟 */}
         <div className="bg-slate-50 border border-slate-100 rounded-xl p-6">
           <h4 className="font-bold text-slate-800 mb-2 text-sm uppercase tracking-wider text-center flex justify-center items-center gap-2">
-            <i className="fa-solid fa-globe text-teal-500"></i> अनंत अध्ययन क्षेत्र
+            <i className="fa-solid fa-globe text-teal-500"></i> अध्ययन क्षेत्र
           </h4>
           <p className="text-xs text-center text-slate-500 mb-5 max-w-2xl mx-auto">
-            ज्ञान की कोई सीमा नहीं होती। किसी भी विषय पर क्लिक करके उसका अर्थ समझें:
+            किसी भी विषय पर क्लिक करके उसका अर्थ समझें:
           </p>
           
           <div className="flex flex-wrap justify-center gap-2.5">
-            {/* Database se aaye hue subjects map ho rahe hain */}
-            {subjects.map((sub) => (
-              <div key={sub.id} className="relative group">
-                <button 
-                  onClick={() => setActiveDef(activeDef === sub.id ? null : sub.id)}
-                  className="bg-white hover:bg-teal-50 border border-slate-200 text-slate-700 hover:text-teal-700 text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2 outline-none"
-                >
-                  {sub.name} <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${activeDef === sub.id ? 'rotate-180 text-teal-600' : ''}`}></i>
-                </button>
+            {subjects.length === 0 ? (
+               <p className="text-sm text-slate-400 italic">No subjects added yet.</p>
+            ) : (
+              subjects.map((sub) => (
+                <div key={sub.id} className="relative group">
+                  <button 
+                    onClick={() => setActiveDef(activeDef === sub.id ? null : sub.id)}
+                    className="bg-white hover:bg-teal-50 border border-slate-200 text-slate-700 hover:text-teal-700 text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2 outline-none"
+                  >
+                    {sub.name} <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${activeDef === sub.id ? 'rotate-180 text-teal-600' : ''}`}></i>
+                  </button>
 
-                {/* Definition Tooltip Box */}
-                {activeDef === sub.id && (
-                  <div className="absolute z-50 mt-2 w-72 bg-slate-800 text-slate-200 text-xs p-4 rounded-xl shadow-2xl border border-slate-700 left-1/2 -translate-x-1/2">
-                    <p className="leading-relaxed">{sub.definition}</p>
-                    
-                    {/* Close button inside tooltip */}
-                    <button 
-                      onClick={() => setActiveDef(null)}
-                      className="mt-3 w-full bg-slate-700 hover:bg-slate-600 py-1.5 rounded text-slate-300 transition-colors"
-                    >
-                      Close
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-            
-            {/* Infinity Badge */}
-            <span className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white border border-teal-500 text-xs font-bold px-4 py-2 rounded-lg shadow-md flex items-center gap-2 transform hover:scale-105 transition-transform cursor-default ml-1">
-              <i className="fa-solid fa-infinity"></i> ...और दुनिया भर के सभी विषय
-            </span>
+                  {/* Definition Tooltip Box */}
+                  {activeDef === sub.id && (
+                    <div className="absolute z-50 mt-2 w-72 bg-slate-800 text-slate-200 text-xs p-4 rounded-xl shadow-2xl border border-slate-700 left-1/2 -translate-x-1/2">
+                      <p className="leading-relaxed">{sub.definition}</p>
+                      
+                      <button 
+                        onClick={() => setActiveDef(null)}
+                        className="mt-3 w-full bg-slate-700 hover:bg-slate-600 py-1.5 rounded text-slate-300 transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
 
       </div>
 
-      {/* 3. Rules & Ethics (Grid) */}
+      {/* 3. Rules & Ethics */}
       <div className="bg-slate-900 rounded-2xl p-6 md:p-8 text-white shadow-lg">
         <h3 className="text-xl font-bold mb-6 text-center text-teal-400">
           आचार संहिता एवं बौद्धिक दृष्टि
@@ -159,7 +151,7 @@ export default function StorySection() {
         </div>
       </div>
 
-      {/* 4. Call to Action / Invitation */}
+      {/* 4. Call to Action */}
       <div className="bg-teal-50 border border-teal-100 rounded-2xl p-6 text-center space-y-4">
         <p className="text-teal-800 font-medium italic">
           "यह एक निमंत्रण है—सिर्फ जानकारी इकट्ठा करने का नहीं, बल्कि देखने, परखने और समझने की एक ईमानदार प्रक्रिया में शामिल होने का।"
@@ -183,4 +175,4 @@ export default function StorySection() {
 
     </div>
   );
-      }
+                                                                                                                                                                                          }
