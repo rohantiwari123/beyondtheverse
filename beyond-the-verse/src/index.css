@@ -1,22 +1,15 @@
 @import "tailwindcss";
-/* Google Translate Custom Design */
-.skiptranslate iframe {
-  display: none !important;
-}
-body {
-  top: 0px !important;
-}
-#google_translate_element select {
-  background-color: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  padding: 6px 12px;
-  color: #334155;
-  font-size: 12px;
-  font-weight: bold;
-  outline: none;
-  cursor: pointer;
-}
-.VIpgJd-ZVi9od-ORHb-OEVmcd {
-  display: none !important;
-}
+/* =========================================
+   KILL GOOGLE TRANSLATE UI (Ninja Mode) 
+========================================= */
+.skiptranslate > iframe { display: none !important; }
+body { top: 0 !important; position: static !important; }
+#goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
+.goog-text-highlight { background-color: transparent !important; box-shadow: none !important; }
+#google_translate_element { display: none !important; }
+
+/* Custom Scrollbar Dropdown ke liye */
+.lang-scrollbar::-webkit-scrollbar { width: 6px; }
+.lang-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+.lang-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+.lang-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
