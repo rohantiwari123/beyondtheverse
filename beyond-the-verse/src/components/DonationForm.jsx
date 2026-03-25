@@ -14,27 +14,47 @@ export default function DonationForm({ onInitiate }) {
   const [isLoading, setIsLoading] = useState(true); // Link check hone tak form chhipane ke liye
 
   // URL check karne ka logic
+  // 🌟 NAYA: Bulletproof URL Checker 🌟
   useEffect(() => {
     const checkSpecialLink = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const scholarshipId = urlParams.get('scholarship');
+      try {
+        // 1. Har tarah ke URL format ko pakadne ka jugaad
+        const fullUrl = window.location.href;
+        let scholarshipId = null;
 
-      if (scholarshipId) {
-        try {
+        // Agar URL mein '?scholarship=' likha hai, toh uske aage ka hissa nikal lo
+        if (fullUrl.includes("?scholarship=")) {
+          scholarshipId = fullUrl.split("?scholarship=")[1].split("&")[0];
+        }
+
+        console.log("1. URL se ID nikali:", scholarshipId); // Debugging ke liye
+
+        if (scholarshipId) {
           const docRef = doc(db, "special_links", scholarshipId);
           const snap = await getDoc(docRef);
           
-          if (snap.exists() && snap.data().active) {
-            const specialLimit = snap.data().amount;
-            setMinAmount(specialLimit);
-            setAmount(specialLimit); 
-            setIsScholarship(true);
+          console.log("2. Kya DB mein ID mili?", snap.exists()); // Debugging ke liye
+
+          if (snap.exists()) {
+            console.log("3. Data kya hai:", snap.data()); // Debugging ke liye
+            
+            if (snap.data().active) {
+              const specialLimit = snap.data().amount;
+              setMinAmount(specialLimit);
+              setAmount(specialLimit); 
+              setIsScholarship(true);
+            } else {
+              console.log("Link inactive (band) ho chuka hai.");
+            }
+          } else {
+            console.log("Yeh ID database mein hai hi nahi! (Shayad purana link hai)");
           }
-        } catch (error) {
-          console.error("Firebase read error (Check Rules!):", error);
         }
+      } catch (error) {
+        console.error("Firebase Read Error:", error);
+      } finally {
+        setIsLoading(false); 
       }
-      setIsLoading(false); // Checking complete
     };
     checkSpecialLink();
   }, []);
