@@ -22,7 +22,8 @@ export default function StorySection() {
           <span className="bg-teal-500/20 text-teal-200 border border-teal-400/30 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-widest mb-4">
             एक बौद्धिक एवं शैक्षिक पहल
           </span>
-          <h2 className="text-3xl md:text-5xl font-extrabold mb-3 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-teal-200">
+          {/* 🌟 Yahan 'notranslate' add kiya hai 🌟 */}
+          <h2 className="text-3xl md:text-5xl font-extrabold mb-3 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-teal-200 notranslate">
             Beyond The Verse
           </h2>
           <p className="text-teal-100 text-lg md:text-xl font-medium max-w-xl leading-relaxed">
@@ -46,7 +47,8 @@ export default function StorySection() {
             <p>
               एक ओर वह व्यक्ति है जो विज्ञान को केवल बाहरी वस्तुओं तक सीमित मानता है, और दूसरी ओर वह व्यक्ति है जो अध्यात्म या दर्शन के नाम पर विज्ञान को नकार देता है। 
               <span className="block mt-2 font-semibold text-teal-700 bg-teal-50 p-2 rounded-lg border border-teal-100">
-                Beyond The Verse का उद्देश्य इसी कृत्रिम विभाजन को समाप्त करना है। यदि वास्तविकता एक ही है, तो उसे समझने के सभी प्रयास भी परस्पर विरोधी नहीं, बल्कि पूरक होने चाहिए।
+                {/* 🌟 Yahan 'notranslate' add kiya hai 🌟 */}
+                <span className="notranslate font-bold">Beyond The Verse</span> का उद्देश्य इसी कृत्रिम विभाजन को समाप्त करना है। यदि वास्तविकता एक ही है, तो उसे समझने के सभी प्रयास भी परस्पर विरोधी नहीं, बल्कि पूरक होने चाहिए।
               </span>
             </p>
           </div>
@@ -71,7 +73,7 @@ export default function StorySection() {
           </div>
         </div>
 
-        {/* 🌟 Dynamic Subjects Area (Infinite badge removed) 🌟 */}
+        {/* 🌟 Dynamic Subjects Area 🌟 */}
         <div className="bg-slate-50 border border-slate-100 rounded-xl p-6">
           <h4 className="font-bold text-slate-800 mb-2 text-sm uppercase tracking-wider text-center flex justify-center items-center gap-2">
             <i className="fa-solid fa-globe text-teal-500"></i> अध्ययन क्षेत्र
@@ -175,4 +177,4 @@ export default function StorySection() {
 
     </div>
   );
-                                                                                                                                                                                          }
+            }
