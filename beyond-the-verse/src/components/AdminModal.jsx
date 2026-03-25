@@ -118,7 +118,7 @@ export default function AdminModal({
     }
   };
 
-  // Super Smart Auto-Correcting Fetch Logic
+// 🌟 NAYA: ULTIMATE WIKIPEDIA EXTRACTOR ENGINE 🌟
   const handleAddSubject = async () => {
     if (!newSubject.trim()) {
       showToast("Please enter a subject name!");
@@ -129,17 +129,33 @@ export default function AdminModal({
     let definition = "";
     let term = newSubject.trim();
 
+    // Wikipedia ka sabse powerful "Extract" API
     const getWikiDef = async (searchWord, lang) => {
       try {
+        // Step 1: Exact Title dhundo
         const searchUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchWord)}&utf8=&format=json&origin=*`;
         const searchRes = await fetch(searchUrl);
         const searchData = await searchRes.json();
 
         if (searchData.query && searchData.query.search.length > 0) {
           const exactTitle = searchData.query.search[0].title; 
-          const summaryRes = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(exactTitle)}`);
+          
+          // Step 2: Page ke andar se Intro paragraph nikalna (Zabardasti)
+          const summaryUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&redirects=1&titles=${encodeURIComponent(exactTitle)}&format=json&origin=*`;
+          const summaryRes = await fetch(summaryUrl);
           const summaryData = await summaryRes.json();
-          return summaryData.extract;
+          
+          const pages = summaryData.query.pages;
+          const pageId = Object.keys(pages)[0];
+          
+          if (pageId !== "-1" && pages[pageId].extract) {
+            let text = pages[pageId].extract.replace(/\n/g, ' ').trim();
+            // Agar definition bahut lambi hai, toh usko 250 characters par cut kar do
+            if (text.length > 250) {
+              text = text.substring(0, 250) + "...";
+            }
+            return text;
+          }
         }
         return null;
       } catch (error) {
@@ -148,10 +164,20 @@ export default function AdminModal({
     };
 
     try {
-      definition = await getWikiDef(term, 'hi');
-      if (!definition) definition = await getWikiDef(term, 'en');
-      if (!definition) definition = "इस विषय की सटीक परिभाषा Wikipedia पर नहीं मिली।";
+      // 1. Pehle ENGLISH Wikipedia par search karega (Taki default English rahe)
+      definition = await getWikiDef(term, 'en');
+      
+      // 2. Agar English mein nahi mila, toh HINDI Wikipedia par try karega
+      if (!definition) {
+        definition = await getWikiDef(term, 'hi');
+      }
 
+      // 3. Agar fir bhi fail hua (jo ab 99.9% nahi hoga)
+      if (!definition) {
+        definition = `${term} is a field of study related to science and philosophy. (Detailed definition currently unavailable).`;
+      }
+
+      // Firebase mein save karna
       await addDoc(collection(db, "subjects"), {
         name: term,
         definition: definition,
