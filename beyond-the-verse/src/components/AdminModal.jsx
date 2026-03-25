@@ -118,7 +118,7 @@ export default function AdminModal({
     }
   };
 
-// 🌟 NAYA: ULTIMATE WIKIPEDIA EXTRACTOR ENGINE 🌟
+// 🌟 NAYA: FORCE ENGLISH ENGINE 🌟
   const handleAddSubject = async () => {
     if (!newSubject.trim()) {
       showToast("Please enter a subject name!");
@@ -129,19 +129,19 @@ export default function AdminModal({
     let definition = "";
     let term = newSubject.trim();
 
-    // Wikipedia ka sabse powerful "Extract" API
-    const getWikiDef = async (searchWord, lang) => {
+    // Wikipedia ka Engine (Jo English par force kiya gaya hai)
+    const getWikiDef = async (searchWord) => {
       try {
-        // Step 1: Exact Title dhundo
-        const searchUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchWord)}&utf8=&format=json&origin=*`;
+        // Step 1: Hum default ENGLISH ('en') Wikipedia mein hi search karenge
+        const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchWord)}&utf8=&format=json&origin=*`;
         const searchRes = await fetch(searchUrl);
         const searchData = await searchRes.json();
 
         if (searchData.query && searchData.query.search.length > 0) {
           const exactTitle = searchData.query.search[0].title; 
           
-          // Step 2: Page ke andar se Intro paragraph nikalna (Zabardasti)
-          const summaryUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&redirects=1&titles=${encodeURIComponent(exactTitle)}&format=json&origin=*`;
+          // Step 2: English Title ka Extract Nikalo
+          const summaryUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&redirects=1&titles=${encodeURIComponent(exactTitle)}&format=json&origin=*`;
           const summaryRes = await fetch(summaryUrl);
           const summaryData = await summaryRes.json();
           
@@ -150,7 +150,6 @@ export default function AdminModal({
           
           if (pageId !== "-1" && pages[pageId].extract) {
             let text = pages[pageId].extract.replace(/\n/g, ' ').trim();
-            // Agar definition bahut lambi hai, toh usko 250 characters par cut kar do
             if (text.length > 250) {
               text = text.substring(0, 250) + "...";
             }
@@ -164,23 +163,18 @@ export default function AdminModal({
     };
 
     try {
-      // 1. Pehle ENGLISH Wikipedia par search karega (Taki default English rahe)
-      definition = await getWikiDef(term, 'en');
+      // Direct call karo, sirf aur sirf English api par
+      definition = await getWikiDef(term);
       
-      // 2. Agar English mein nahi mila, toh HINDI Wikipedia par try karega
+      // Agar fail hua, toh ek basic English line de do
       if (!definition) {
-        definition = await getWikiDef(term, 'hi');
-      }
-
-      // 3. Agar fir bhi fail hua (jo ab 99.9% nahi hoga)
-      if (!definition) {
-        definition = `${term} is a field of study related to science and philosophy. (Detailed definition currently unavailable).`;
+        definition = `${term} is a significant field of study. (Detailed definition currently unavailable on Wikipedia).`;
       }
 
       // Firebase mein save karna
       await addDoc(collection(db, "subjects"), {
-        name: term,
-        definition: definition,
+        name: term, // Button pe wahi aayega jo aapne type kiya hai
+        definition: definition, // Tooltip mein hamesha English aayegi
         timestamp: Date.now()
       });
 
@@ -192,7 +186,6 @@ export default function AdminModal({
       setIsFetchingDef(false);
     }
   };
-
   // Subject Delete karna
   const handleDeleteSubject = async (id, name) => {
     if (window.confirm(`Are you sure you want to delete '${name}'?`)) {
