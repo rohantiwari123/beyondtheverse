@@ -69,7 +69,7 @@ export default function App() {
     setPendingDonation(data);
     setIsPaymentModalOpen(true);
   };
-
+throw new Error("Testing my awesome error boundary!");
   return (
     <div className="relative min-h-screen bg-[#f8fafc] font-[Poppins] text-slate-800 antialiased overflow-hidden">
       
