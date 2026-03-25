@@ -3,29 +3,28 @@ import React, { useState, useEffect, useRef } from "react";
 export default function Header({ onAdminClick }) {
   const [clickCount, setClickCount] = useState(0);
   
-  // 🌟 NAYA: Custom Language State 🌟
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState("English");
   const dropdownRef = useRef(null);
 
-  // 🌍 Duniya bhar ki 50+ Bhashayein (All Major Languages)
+  // 🌍 Duniya bhar ki Bhashayein
   const languages = [
-    { code: 'en', name: 'English' }, { code: 'hi', name: 'हिंदी (Hindi)' }, 
-    { code: 'mr', name: 'मराठी (Marathi)' }, { code: 'gu', name: 'ગુજરાતી (Gujarati)' },
-    { code: 'bn', name: 'বাংলা (Bengali)' }, { code: 'ta', name: 'தமிழ் (Tamil)' },
-    { code: 'te', name: 'తెలుగు (Telugu)' }, { code: 'kn', name: 'ಕನ್ನಡ (Kannada)' },
-    { code: 'ml', name: 'മലയാളം (Malayalam)' }, { code: 'pa', name: 'ਪੰਜਾਬੀ (Punjabi)' },
-    { code: 'ur', name: 'اردو (Urdu)' }, { code: 'sa', name: 'संस्कृत (Sanskrit)' },
-    { code: 'ne', name: 'नेपाली (Nepali)' }, { code: 'es', name: 'Español (Spanish)' }, 
-    { code: 'fr', name: 'Français (French)' }, { code: 'de', name: 'Deutsch (German)' }, 
-    { code: 'it', name: 'Italiano (Italian)' }, { code: 'pt', name: 'Português (Portuguese)' }, 
-    { code: 'ru', name: 'Русский (Russian)' }, { code: 'zh-CN', name: '中文 (Chinese)' }, 
-    { code: 'ja', name: '日本語 (Japanese)' }, { code: 'ko', name: '한국어 (Korean)' }, 
-    { code: 'ar', name: 'العربية (Arabic)' }, { code: 'tr', name: 'Türkçe (Turkish)' },
-    { code: 'nl', name: 'Nederlands (Dutch)' }, { code: 'sv', name: 'Svenska (Swedish)' },
-    { code: 'pl', name: 'Polski (Polish)' }, { code: 'id', name: 'Bahasa Indonesia' },
-    { code: 'th', name: 'ไทย (Thai)' }, { code: 'vi', name: 'Tiếng Việt (Vietnamese)' },
-    { code: 'el', name: 'Ελληνικά (Greek)' }, { code: 'he', name: 'עברית (Hebrew)' }
+    { code: 'en', name: 'English (Default)' }, 
+    { code: 'hi', name: 'हिंदी (Hindi)' }, 
+    { code: 'mr', name: 'मराठी (Marathi)' }, 
+    { code: 'gu', name: 'ગુજરાતી (Gujarati)' },
+    { code: 'bn', name: 'বাংলা (Bengali)' }, 
+    { code: 'ta', name: 'தமிழ் (Tamil)' },
+    { code: 'te', name: 'తెలుగు (Telugu)' }, 
+    { code: 'kn', name: 'ಕನ್ನಡ (Kannada)' },
+    { code: 'ml', name: 'മലയാളം (Malayalam)' }, 
+    { code: 'pa', name: 'ਪੰਜਾਬੀ (Punjabi)' },
+    { code: 'ur', name: 'اردو (Urdu)' }, 
+    { code: 'sa', name: 'संस्कृत (Sanskrit)' },
+    { code: 'es', name: 'Español (Spanish)' }, 
+    { code: 'fr', name: 'Français (French)' }, 
+    { code: 'de', name: 'Deutsch (German)' }, 
+    { code: 'ar', name: 'العربية (Arabic)' }
   ];
 
   // Secret Admin Logic
@@ -38,12 +37,15 @@ export default function Header({ onAdminClick }) {
     return () => clearTimeout(timer);
   }, [clickCount, onAdminClick]);
 
-  // Google Script Load karna (Invisible mode mein)
+  // Google Script Load (English Default ke sath)
   useEffect(() => {
     if (!document.getElementById("google-translate-script")) {
       window.googleTranslateElementInit = () => {
         new window.google.translate.TranslateElement(
-          { pageLanguage: 'en', autoDisplay: false }, // Base language 'hi' 
+          { 
+            pageLanguage: 'en', // Yahan base language ENGLISH set ki hai
+            autoDisplay: false 
+          }, 
           'google_translate_element'
         );
       };
@@ -64,14 +66,45 @@ export default function Header({ onAdminClick }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 🌟 NAYA: Custom Trigger jo Google ko background me chalayega 🌟
+  // Sync Google Translate State on Load 
+  useEffect(() => {
+    const checkCookie = () => {
+      const match = document.cookie.match(/(?:^|;)\s*googtrans=([^;]*)/);
+      if (match) {
+        const langCode = match[1].split('/')[2];
+        const activeLang = languages.find(l => l.code === langCode);
+        if (activeLang) setCurrentLang(activeLang.name.split(' ')[0]);
+      }
+    };
+    setTimeout(checkCookie, 1000);
+  }, []);
+
+  // 🌟 NAYA: Smart Translation Trigger (With Cookie Deletion for English) 🌟
   const translatePage = (langCode, langName) => {
     const selectElement = document.querySelector('.goog-te-combo');
+    
     if (selectElement) {
+      // 1. Agar user ne 'English (Default)' select kiya hai:
+      if(langCode === 'en') {
+        // A) Google ki Translation Cookies Delete karo (Memory saaf)
+        document.cookie = `googtrans=/en/en; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname}`;
+        
+        // B) Dropdown update karo
+        setCurrentLang("English");
+        setIsLangOpen(false);
+        
+        // C) Page refresh karke original English state laao
+        window.location.reload(); 
+        return; 
+      }
+
+      // 2. Agar koi aur bhasha chuni hai (jaise Hindi):
       selectElement.value = langCode;
-      selectElement.dispatchEvent(new Event('change')); // Google ko trigger karo
+      selectElement.dispatchEvent(new Event('change')); // Google ko background me trigger karo
       setCurrentLang(langName.split(' ')[0]); // UI mein chota naam dikhane ke liye
       setIsLangOpen(false); // Dropdown band karo
+      
     } else {
       alert("Translation system is loading, please wait a second...");
     }
@@ -100,7 +133,7 @@ export default function Header({ onAdminClick }) {
         <div
           className="group flex items-center gap-3 cursor-pointer select-none"
           onClick={() => setClickCount((prev) => prev + 1)}
-          title="Beyond The Verse"
+          title="Admin Login"
         >
           <div className="relative flex items-center justify-center h-10 w-10 bg-teal-50 rounded-xl group-hover:bg-teal-100 transition-colors">
             <i className={`fa-solid fa-atom text-xl text-teal-600 transition-transform duration-300 ${clickCount > 0 ? 'rotate-45 scale-110' : ''}`}></i>
@@ -126,7 +159,7 @@ export default function Header({ onAdminClick }) {
         {/* Right Side Actions */}
         <div className="flex items-center gap-3">
           
-          {/* 🌟 NAYA: Custom Native Language Dropdown (Scrollable) 🌟 */}
+          {/* Custom Native Language Dropdown (Scrollable) */}
           <div className="relative" ref={dropdownRef}>
             <button 
               onClick={() => setIsLangOpen(!isLangOpen)}
@@ -137,7 +170,6 @@ export default function Header({ onAdminClick }) {
               <i className={`fa-solid fa-chevron-down text-xs transition-transform ${isLangOpen ? 'rotate-180' : ''}`}></i>
             </button>
 
-            {/* Dropdown Menu (Screen ke andar rahega + Scroll aayega) */}
             {isLangOpen && (
               <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden py-1 z-[100] notranslate">
                 <div className="max-h-[60vh] overflow-y-auto lang-scrollbar flex flex-col">
