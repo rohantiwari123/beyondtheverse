@@ -11,8 +11,9 @@ export default function DonationForm({ onInitiate }) {
   const [amount, setAmount] = useState(500);
   const [minAmount, setMinAmount] = useState(200); // Default 200
   const [isScholarship, setIsScholarship] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Link check hone tak form chhipane ke liye
 
-  // URL check karne ka logic (Page load hote hi)
+  // URL check karne ka logic
   useEffect(() => {
     const checkSpecialLink = async () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -20,124 +21,137 @@ export default function DonationForm({ onInitiate }) {
 
       if (scholarshipId) {
         try {
-          // Firebase se link verify karo
           const docRef = doc(db, "special_links", scholarshipId);
           const snap = await getDoc(docRef);
           
           if (snap.exists() && snap.data().active) {
             const specialLimit = snap.data().amount;
             setMinAmount(specialLimit);
-            setAmount(specialLimit); // Form default amount bhi special wala set kar do
+            setAmount(specialLimit); 
             setIsScholarship(true);
           }
         } catch (error) {
-          console.error("Invalid or expired scholarship link", error);
+          console.error("Firebase read error (Check Rules!):", error);
         }
       }
+      setIsLoading(false); // Checking complete
     };
     checkSpecialLink();
   }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Validation dynamic ho gaya hai
     if (amount < minAmount) return alert(`Minimum donation is ₹${minAmount}`);
+    if (phone.length < 10) return alert("Please enter a valid 10-digit phone number.");
     onInitiate({ name, phone, message, amount: Number(amount) });
   };
+
+  if (isLoading) {
+    return <div className="text-center py-10 text-slate-400 font-bold animate-pulse">Verifying secure link...</div>;
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       
-      {/* NAYA: Scholarship Banner agar link active hai */}
+      {/* 🌟 PREMIUM SCHOLARSHIP BANNER 🌟 */}
       {isScholarship && (
-        <div className="bg-teal-50 border border-teal-200 text-teal-800 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-3 shadow-sm">
-          <i className="fa-solid fa-gift text-teal-600 text-lg"></i>
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm mb-6 animate-fade-in-up">
+          <div className="h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+            <i className="fa-solid fa-gift text-emerald-600 text-lg"></i>
+          </div>
           <div>
-            <p>Special Scholarship Link Active!</p>
-            <p className="text-xs font-normal opacity-80">Minimum amount reduced to ₹{minAmount}</p>
+            <p className="font-bold text-sm">Special Link Applied!</p>
+            <p className="text-xs text-emerald-600 font-medium mt-0.5">Your minimum contribution is set to ₹{minAmount}</p>
           </div>
         </div>
       )}
 
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
-          Full Name *
-        </label>
-        <input
-          type="text"
-          required
-          placeholder="Aapka Naam"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full pl-3 pr-3 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-500"
-        />
+      {/* Input Fields with Modern Icons */}
+      <div className="space-y-3">
+        <div className="relative">
+          <i className="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input
+            type="text"
+            required
+            placeholder="Full Name *"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all font-medium text-slate-700"
+          />
+        </div>
+
+        <div className="relative">
+          <i className="fa-brands fa-whatsapp absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+          <input
+            type="tel"
+            required
+            placeholder="WhatsApp Number *"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+            className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all font-medium text-slate-700"
+          />
+        </div>
+
+        <div className="relative">
+          <i className="fa-solid fa-message absolute left-4 top-4 text-slate-400"></i>
+          <textarea
+            placeholder="Leave a message of support... (Optional)"
+            rows="2"
+            maxLength="100"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all font-medium text-slate-700 resize-none"
+          ></textarea>
+        </div>
       </div>
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
-          WhatsApp Number *
-        </label>
-        <input
-          type="tel"
-          pattern="[0-9]{10}"
-          placeholder="10 Digit Number"
-          required
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="w-full pl-3 pr-3 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-500"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
-          Message (Optional)
-        </label>
-        <textarea
-          placeholder="Write a short message of support..."
-          rows="2"
-          maxLength="100"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="w-full pl-3 pr-3 py-3 border border-slate-200 rounded-xl resize-none outline-none focus:ring-2 focus:ring-teal-500"
-        ></textarea>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">
+
+      {/* Amount Selection Area */}
+      <div className="pt-2">
+        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">
           Select Amount (₹) *
         </label>
+        
+        {/* Preset Buttons */}
         <div className="flex gap-2 mb-3">
-          {/* Agar scholarship hai, toh pehla button special amount ka hoga */}
           {[isScholarship ? minAmount : 500, 1000, 2000].map((preset, index) => (
             <button
               type="button"
               key={index}
               onClick={() => setAmount(preset)}
-              className={`flex-1 border py-2 rounded-xl font-bold transition shadow-sm ${
-                amount === preset
-                  ? "bg-teal-100 text-teal-800 border-teal-500"
-                  : "bg-white text-slate-600 border-slate-200"
+              className={`flex-1 py-3 rounded-xl font-bold transition-all ${
+                Number(amount) === preset
+                  ? "bg-teal-600 text-white shadow-md shadow-teal-500/30 scale-[1.02]"
+                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-teal-300"
               }`}
             >
               ₹{preset}
             </button>
           ))}
         </div>
-        <input
-          type="number"
-          min={minAmount} 
-          required
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="w-full px-3 py-3 border-2 border-teal-100 rounded-xl font-bold text-lg bg-teal-50/30 outline-none focus:border-teal-500"
-        />
-        <p className="text-[10px] text-slate-500 mt-1 pl-1">
-          * Minimum donation is ₹{minAmount}
+
+        {/* Custom Amount Input */}
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-lg">₹</span>
+          <input
+            type="number"
+            min={minAmount} 
+            required
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className={`w-full pl-10 pr-4 py-4 rounded-xl outline-none transition-all font-black text-xl text-slate-800 border-2 ${isScholarship ? 'bg-emerald-50/50 border-emerald-200 focus:border-emerald-500' : 'bg-teal-50/30 border-teal-100 focus:border-teal-500'}`}
+          />
+        </div>
+        <p className="text-[10px] text-slate-400 font-medium mt-2 pl-1 flex items-center gap-1">
+          <i className="fa-solid fa-circle-info text-teal-500"></i> Minimum contribution is ₹{minAmount}
         </p>
       </div>
+
       <button
         type="submit"
-        className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-xl shadow-lg mt-2 flex justify-center items-center transition"
+        className="w-full mt-2 bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
       >
-        Generate QR to Donate <i className="fa-solid fa-qrcode ml-2"></i>
+        Generate QR to Donate <i className="fa-solid fa-qrcode ml-1"></i>
       </button>
     </form>
   );
-}      
+        }
