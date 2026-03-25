@@ -43,7 +43,7 @@ export default function Header({ onAdminClick }) {
     if (!document.getElementById("google-translate-script")) {
       window.googleTranslateElementInit = () => {
         new window.google.translate.TranslateElement(
-          { pageLanguage: 'hi', autoDisplay: false }, // Base language 'hi' 
+          { pageLanguage: 'en', autoDisplay: false }, // Base language 'hi' 
           'google_translate_element'
         );
       };
