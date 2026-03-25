@@ -116,7 +116,7 @@ export default function AdminModal({
     }
   };
 
-  // 🌟 NAYA: Smart Double-Engine Fetch Logic 🌟
+// 🌟 NAYA: Super Smart Auto-Correcting Fetch Logic 🌟
   const handleAddSubject = async () => {
     if (!newSubject.trim()) {
       showToast("Please enter a subject name!");
@@ -127,24 +127,42 @@ export default function AdminModal({
     let definition = "";
     let term = newSubject.trim();
 
-    try {
-      // 1. Pehle Hindi Wikipedia par try karega
-      let resHi = await fetch(`https://hi.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`);
-      let dataHi = await resHi.json();
-      
-      if (dataHi.extract) {
-        definition = dataHi.extract;
-      } else {
-        // 2. Agar Hindi mein nahi mila, toh English Wikipedia par try karega
-        let resEn = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`);
-        let dataEn = await resEn.json();
-        
-        if (dataEn.extract) {
-          definition = dataEn.extract;
-        } else {
-          // 3. Agar dono jagah fail hua, toh custom message
-          definition = "इस विषय की सटीक परिभाषा Wikipedia पर नहीं मिली। कृपया नाम सही से लिखें (जैसे: Psychology या मनोविज्ञान)।";
+    // Wikipedia se dhoondhne ka "Master Function"
+    const getWikiDef = async (searchWord, lang) => {
+      try {
+        // Step 1: Pehle Wikipedia ki Search API se sahi spelling/title nikalenge
+        const searchUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchWord)}&utf8=&format=json&origin=*`;
+        const searchRes = await fetch(searchUrl);
+        const searchData = await searchRes.json();
+
+        // Agar Wikipedia ko koi bhi milta-julta topic mil gaya
+        if (searchData.query && searchData.query.search.length > 0) {
+          const exactTitle = searchData.query.search[0].title; // Sahi naam yahan se mil gaya
+          
+          // Step 2: Ab us exact title ki definition nikalenge
+          const summaryRes = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(exactTitle)}`);
+          const summaryData = await summaryRes.json();
+          
+          return summaryData.extract;
         }
+        return null;
+      } catch (error) {
+        return null;
+      }
+    };
+
+    try {
+      // 1. Pehle Hindi Wikipedia par search karega
+      definition = await getWikiDef(term, 'hi');
+      
+      // 2. Agar Hindi mein nahi mila, toh English Wikipedia par try karega
+      if (!definition) {
+        definition = await getWikiDef(term, 'en');
+      }
+
+      // 3. Agar kuch bhi nahi mila duniya mein
+      if (!definition) {
+        definition = "इस विषय की सटीक परिभाषा Wikipedia पर नहीं मिली।";
       }
 
       // Firebase mein save karna
@@ -162,6 +180,8 @@ export default function AdminModal({
       setIsFetchingDef(false);
     }
   };
+
+
 
   // 🌟 NAYA: Subject Delete karna 🌟
   const handleDeleteSubject = async (id, name) => {
