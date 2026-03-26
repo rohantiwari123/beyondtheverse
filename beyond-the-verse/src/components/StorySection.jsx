@@ -83,7 +83,7 @@ export default function StorySection() {
           </div>
         </div>
 
-        {/* 🌟 NAYA: DYNAMIC CAROUSEL SECTION 🌟 */}
+        {/* 🌟 NAYA: DYNAMIC CAROUSEL SECTION (100% Working Images) 🌟 */}
         <div className="bg-slate-50 border border-slate-100 rounded-xl pt-6 pb-2 overflow-hidden">
           <div className="px-6 mb-4">
             <h4 className="font-bold text-slate-800 mb-1 text-sm uppercase tracking-wider flex items-center gap-2">
@@ -104,15 +104,16 @@ export default function StorySection() {
                   key={sub.id} 
                   className="snap-center shrink-0 w-72 sm:w-80 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-all group"
                 >
-                  {/* Dynamic Auto-Image Header based on Subject Name */}
-                  <div className="h-36 bg-slate-200 relative overflow-hidden">
+                  {/* Super Fast Seed Image Engine */}
+                  <div className="h-36 bg-slate-800 relative overflow-hidden">
                     <img 
-                      src={`https://image.pollinations.ai/prompt/${encodeURIComponent(sub.name + " realistic educational concept background no text")}?width=400&height=200&nologo=true`} 
+                      src={`https://picsum.photos/seed/${encodeURIComponent(sub.name)}/400/200`} 
                       alt={sub.name} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => { e.target.src = 'https://picsum.photos/400/200?blur=2'; }}
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
                     <div className="absolute bottom-3 left-4 right-4">
                       <h4 className="text-white font-extrabold text-lg leading-tight shadow-sm notranslate">
                         {sub.name}
@@ -120,7 +121,7 @@ export default function StorySection() {
                     </div>
                   </div>
 
-                  {/* Scrollable Text Body */}
+                  {/* Scrollable Text Body (Full Text) */}
                   <div className="p-5 flex-1 flex flex-col bg-white">
                     <div className="max-h-36 overflow-y-auto pr-3 card-text-scroll">
                       <p className="text-sm text-slate-600 leading-relaxed">
@@ -197,4 +198,4 @@ export default function StorySection() {
 
     </div>
   );
-                  }
+      }
