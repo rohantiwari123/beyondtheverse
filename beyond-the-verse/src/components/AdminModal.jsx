@@ -150,9 +150,7 @@ export default function AdminModal({
           
           if (pageId !== "-1" && pages[pageId].extract) {
             let text = pages[pageId].extract.replace(/\n/g, ' ').trim();
-            if (text.length > 250) {
-              text = text.substring(0, 250) + "...";
-            }
+            
             return text;
           }
         }
