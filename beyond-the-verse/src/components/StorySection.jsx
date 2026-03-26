@@ -4,7 +4,6 @@ import { db } from "../firebase";
 
 export default function StorySection() {
   const [subjects, setSubjects] = useState([]);
-  const [activeDef, setActiveDef] = useState(null);
 
   useEffect(() => {
     const q = query(collection(db, "subjects"), orderBy("timestamp", "asc"));
@@ -16,13 +15,26 @@ export default function StorySection() {
 
   return (
     <div className="space-y-6">
+      
+      {/* 🌟 Custom Scrollbar Styles for Cards 🌟 */}
+      <style>{`
+        .carousel-container::-webkit-scrollbar { height: 8px; }
+        .carousel-container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .carousel-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .carousel-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .card-text-scroll::-webkit-scrollbar { width: 4px; }
+        .card-text-scroll::-webkit-scrollbar-track { background: transparent; }
+        .card-text-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .card-text-scroll::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+      `}</style>
+
       {/* 1. Hero Banner */}
       <div className="bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900 rounded-2xl p-8 md:p-10 text-white shadow-xl overflow-hidden relative border border-teal-700/50">
         <div className="relative z-10 flex flex-col items-start">
           <span className="bg-teal-500/20 text-teal-200 border border-teal-400/30 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-widest mb-4">
             An Intellectual & Educational Initiative
           </span>
-          {/* 🌟 'notranslate' applied here 🌟 */}
           <h2 className="text-3xl md:text-5xl font-extrabold mb-3 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-teal-200 notranslate">
             Beyond The Verse
           </h2>
@@ -35,7 +47,6 @@ export default function StorySection() {
 
       {/* 2. Main Philosophy Section */}
       <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-8">
-        
         <div>
           <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
             <i className="fa-solid fa-eye-low-vision text-teal-600"></i> The Purpose Behind This Initiative
@@ -47,7 +58,6 @@ export default function StorySection() {
             <p>
               On one hand, there is a person who limits science only to external objects, and on the other, someone who rejects science in the name of spirituality or philosophy.
               <span className="block mt-2 font-semibold text-teal-700 bg-teal-50 p-2 rounded-lg border border-teal-100">
-                {/* 🌟 'notranslate' applied here 🌟 */}
                 <span className="notranslate font-bold">Beyond The Verse</span> aims to end this artificial division. If reality is one, then all attempts to understand it must be complementary, not contradictory.
               </span>
             </p>
@@ -73,41 +83,51 @@ export default function StorySection() {
           </div>
         </div>
 
-        {/* 🌟 Dynamic Subjects Area 🌟 */}
-        <div className="bg-slate-50 border border-slate-100 rounded-xl p-6">
-          <h4 className="font-bold text-slate-800 mb-2 text-sm uppercase tracking-wider text-center flex justify-center items-center gap-2">
-            <i className="fa-solid fa-globe text-teal-500"></i> Fields of Study
-          </h4>
-          <p className="text-xs text-center text-slate-500 mb-5 max-w-2xl mx-auto">
-            Click on any subject to understand its meaning:
-          </p>
+        {/* 🌟 NAYA: DYNAMIC CAROUSEL SECTION 🌟 */}
+        <div className="bg-slate-50 border border-slate-100 rounded-xl pt-6 pb-2 overflow-hidden">
+          <div className="px-6 mb-4">
+            <h4 className="font-bold text-slate-800 mb-1 text-sm uppercase tracking-wider flex items-center gap-2">
+              <i className="fa-solid fa-layer-group text-teal-500"></i> Fields of Study
+            </h4>
+            <p className="text-xs text-slate-500">
+              Swipe left to explore and read the full definitions.
+            </p>
+          </div>
           
-          <div className="flex flex-wrap justify-center gap-2.5">
+          {/* Carousel Wrapper */}
+          <div className="flex overflow-x-auto snap-x snap-mandatory gap-5 px-6 pb-6 carousel-container">
             {subjects.length === 0 ? (
-               <p className="text-sm text-slate-400 italic">No subjects added yet.</p>
+               <p className="text-sm text-slate-400 italic w-full text-center py-10">No subjects added yet.</p>
             ) : (
               subjects.map((sub) => (
-                <div key={sub.id} className="relative group">
-                  <button 
-                    onClick={() => setActiveDef(activeDef === sub.id ? null : sub.id)}
-                    className="bg-white hover:bg-teal-50 border border-slate-200 text-slate-700 hover:text-teal-700 text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2 outline-none"
-                  >
-                    {sub.name} <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${activeDef === sub.id ? 'rotate-180 text-teal-600' : ''}`}></i>
-                  </button>
-
-                  {/* Definition Tooltip Box */}
-                  {activeDef === sub.id && (
-                    <div className="absolute z-50 mt-2 w-72 bg-slate-800 text-slate-200 text-xs p-4 rounded-xl shadow-2xl border border-slate-700 left-1/2 -translate-x-1/2">
-                      <p className="leading-relaxed">{sub.definition}</p>
-                      
-                      <button 
-                        onClick={() => setActiveDef(null)}
-                        className="mt-3 w-full bg-slate-700 hover:bg-slate-600 py-1.5 rounded text-slate-300 transition-colors"
-                      >
-                        Close
-                      </button>
+                <div 
+                  key={sub.id} 
+                  className="snap-center shrink-0 w-72 sm:w-80 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-all group"
+                >
+                  {/* Dynamic Auto-Image Header based on Subject Name */}
+                  <div className="h-36 bg-slate-200 relative overflow-hidden">
+                    <img 
+                      src={`https://image.pollinations.ai/prompt/${encodeURIComponent(sub.name + " realistic educational concept background no text")}?width=400&height=200&nologo=true`} 
+                      alt={sub.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent"></div>
+                    <div className="absolute bottom-3 left-4 right-4">
+                      <h4 className="text-white font-extrabold text-lg leading-tight shadow-sm notranslate">
+                        {sub.name}
+                      </h4>
                     </div>
-                  )}
+                  </div>
+
+                  {/* Scrollable Text Body */}
+                  <div className="p-5 flex-1 flex flex-col bg-white">
+                    <div className="max-h-36 overflow-y-auto pr-3 card-text-scroll">
+                      <p className="text-sm text-slate-600 leading-relaxed">
+                        {sub.definition}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ))
             )}
@@ -177,4 +197,4 @@ export default function StorySection() {
 
     </div>
   );
-            }
+                  }
