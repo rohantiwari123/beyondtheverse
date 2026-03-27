@@ -1,31 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom'; // 🌟 NAYA: Router Imports 🌟
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { onSnapshot, collection, doc } from 'firebase/firestore';
-import { db } from './firebase'; // Check kijiye firebase.js isi folder me hai na
+import { db } from './firebase';
 
 // Global Components
 import Header from './components/Header';
 import AdminModal from './components/AdminModal';
 import Toast from './components/Toast';
 
-// Pages - Paths ekdum dhyan se check kijiye
+// Pages - Ekdum sahi paths
 import HomePage from './components/HomePage/HomePage';
 import DonationPage from './components/DonationPage/DonationPage';
 
 export default function App() {
-  // 🌟 NAYA: URL badalne ka Remote Control 🌟
   const navigate = useNavigate();
-
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', isSuccess: true });
 
-  // 🌟 Admin Dashboard ke liye Data yahin fetch hoga 🌟
+  // Admin Dashboard & Progress Bar Data
   const [donations, setDonations] = useState([]);
   const [totalRaised, setTotalRaised] = useState(0);
   const [targetAmount, setTargetAmount] = useState(50000);
 
   useEffect(() => {
-    // 1. Live Donations fetch karna
+    // Fetch Live Donations
     const unsubDonations = onSnapshot(collection(db, 'donations'), (snapshot) => {
       let total = 0;
       let list = [];
@@ -39,7 +37,7 @@ export default function App() {
       setTotalRaised(total);
     });
 
-    // 2. Goal Target fetch karna
+    // Fetch Goal Target
     const unsubConfig = onSnapshot(doc(db, 'settings', 'config'), (docSnap) => {
       if (docSnap.exists()) setTargetAmount(docSnap.data().targetAmount);
     });
@@ -55,30 +53,25 @@ export default function App() {
   return (
     <div className="relative min-h-screen bg-[#f8fafc] font-[Poppins] text-slate-800 antialiased overflow-hidden">
       
-      {/* Glow Effects */}
+      {/* Premium Background Glow */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none"></div>
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-teal-400/20 rounded-full blur-[100px] pointer-events-none"></div>
       
       <Header onAdminClick={() => setIsAdminModalOpen(true)} />
 
       <main className="relative z-10 max-w-6xl mx-auto px-4 py-8 md:py-12">
-        {/* 🌟 NAYA: Routes System (Jadoo yahin hoga) 🌟 */}
         <Routes>
-          {/* Main URL '/' par HomePage dikhega */}
-          <Route 
-            path="/" 
-            element={<HomePage onNavigateToDonate={() => navigate('/donate')} />} 
-          />
+          {/* Home Route */}
+          <Route path="/" element={<HomePage onNavigateToDonate={() => navigate('/donate')} />} />
           
-          {/* '/donate' URL par DonationPage dikhega */}
-          <Route 
-            path="/donate" 
-            element={<DonationPage showToast={showToast} onBack={() => navigate('/')} />} 
-          />
+          {/* Donate Route */}
+          <Route path="/donate" element={<DonationPage showToast={showToast} onBack={() => navigate('/')} />} />
+          
+          {/* 🌟 CATCH-ALL ROUTE: Agar URL ajeeb ho, toh Home par bhej do (Blank Screen Fix) 🌟 */}
+          <Route path="*" element={<HomePage onNavigateToDonate={() => navigate('/donate')} />} />
         </Routes>
       </main>
 
-      {/* 🌟 AdminModal ko saare data props de rahe hain 🌟 */}
       {isAdminModalOpen && (
         <AdminModal 
           onClose={() => setIsAdminModalOpen(false)} 
@@ -92,4 +85,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-}
+        }
