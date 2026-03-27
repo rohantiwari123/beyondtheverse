@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { onSnapshot, collection, query, doc } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
-import { auth, db } from './firebase';
+import { auth, db } from '../../firebase';
 
 // Components
 import Header from './components/Header';
