@@ -1,9 +1,10 @@
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom'; // 🌟 NAYA IMPORT: Router ke liye 🌟
 import './index.css';
 import App from './App.jsx';
 
-// 🌟 NAYA: Advanced Error Boundary 🌟
+// 🌟 Advanced Error Boundary 🌟
 // Agar app mein koi fatal error aata hai, toh yeh white screen aane se rokega
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -46,7 +47,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// 🌟 NAYA: Pro-level Console Message 🌟
+// 🌟 Pro-level Console Message 🌟
 // Jab koi developer aapki site inspect karega, toh use yeh cool message dikhega
 console.log(
   "%c🌌 Beyond The Verse is Active!", 
@@ -61,7 +62,10 @@ console.log(
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      {/* 🌟 NAYA: App ko BrowserRouter ke andar lapet (wrap) diya hai 🌟 */}
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </ErrorBoundary>
   </StrictMode>
 );
