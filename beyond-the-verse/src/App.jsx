@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom'; // 🌟 NAYA: Router Imports 🌟
 import { onSnapshot, collection, doc } from 'firebase/firestore';
 import { db } from './firebase'; // Check kijiye firebase.js isi folder me hai na
 
@@ -12,7 +13,9 @@ import HomePage from './components/HomePage/HomePage';
 import DonationPage from './components/DonationPage/DonationPage';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('home');
+  // 🌟 NAYA: URL badalne ka Remote Control 🌟
+  const navigate = useNavigate();
+
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', isSuccess: true });
 
@@ -59,11 +62,20 @@ export default function App() {
       <Header onAdminClick={() => setIsAdminModalOpen(true)} />
 
       <main className="relative z-10 max-w-6xl mx-auto px-4 py-8 md:py-12">
-        {currentPage === 'home' ? (
-          <HomePage onNavigateToDonate={() => setCurrentPage('donate')} />
-        ) : (
-          <DonationPage showToast={showToast} onBack={() => setCurrentPage('home')} />
-        )}
+        {/* 🌟 NAYA: Routes System (Jadoo yahin hoga) 🌟 */}
+        <Routes>
+          {/* Main URL '/' par HomePage dikhega */}
+          <Route 
+            path="/" 
+            element={<HomePage onNavigateToDonate={() => navigate('/donate')} />} 
+          />
+          
+          {/* '/donate' URL par DonationPage dikhega */}
+          <Route 
+            path="/donate" 
+            element={<DonationPage showToast={showToast} onBack={() => navigate('/')} />} 
+          />
+        </Routes>
       </main>
 
       {/* 🌟 AdminModal ko saare data props de rahe hain 🌟 */}
@@ -80,4 +92,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-                       }
+}
