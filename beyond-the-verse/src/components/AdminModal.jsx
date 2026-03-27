@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
-import { auth, db } from "../../firebase";
+import { auth, db } from "../firebase";
 
 export default function AdminModal({
   onClose,
