@@ -1,6 +1,7 @@
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom'; // 🌟 NAYA IMPORT: Router ke liye 🌟
+// 🌟 NAYA IMPORT: GitHub aur Codespaces ke liye HashRouter sabse safe hai 🌟
+import { HashRouter } from 'react-router-dom'; 
 import './index.css';
 import App from './App.jsx';
 
@@ -62,10 +63,10 @@ console.log(
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      {/* 🌟 NAYA: App ko BrowserRouter ke andar lapet (wrap) diya hai 🌟 */}
-      <BrowserRouter>
+      {/* 🌟 NAYA: App ko HashRouter ke andar lapet (wrap) diya hai 🌟 */}
+      <HashRouter>
         <App />
-      </BrowserRouter>
+      </HashRouter>
     </ErrorBoundary>
   </StrictMode>
 );
