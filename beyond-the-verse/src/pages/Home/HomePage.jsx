@@ -4,15 +4,16 @@ import { signInAnonymously } from 'firebase/auth';
 import { auth, db } from '../../firebase';
 
 // Components
-import Header from './components/Header';
-import StorySection from './components/StorySection';
-import FAQ from './components/FAQ';
-import ProgressSection from './components/ProgressSection';
-import DonationForm from './components/DonationForm';
-import SupportersList from './components/SupportersList';
-import PaymentModal from './components/PaymentModal';
-import AdminModal from './components/AdminModal';
-import Toast from './components/Toast';
+// Components
+import Header from '../../components/Header';
+import StorySection from '../../components/StorySection';
+import FAQ from '../../components/FAQ';
+import ProgressSection from '../../components/ProgressSection';
+import DonationForm from '../../components/DonationForm';
+import SupportersList from '../../components/SupportersList';
+import PaymentModal from '../../components/PaymentModal';
+import AdminModal from '../../components/AdminModal';
+import Toast from '../../components/Toast';
 
 export default function App() {
   // States
