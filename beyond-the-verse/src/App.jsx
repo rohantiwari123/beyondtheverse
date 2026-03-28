@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
-// 🌟 NAYA: getDoc और Firebase Auth के फंक्शन इम्पोर्ट किये
 import { onSnapshot, collection, doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth'; 
-import { auth, db } from './firebase'; // ध्यान दें: auth भी इम्पोर्ट होना चाहिए
+import { auth, db } from './firebase'; 
 
 // Global Components
 import Header from './components/Header';
@@ -18,11 +17,13 @@ import DonationPage from './components/DonationPage/DonationPage';
 export default function App() {
   const navigate = useNavigate();
   
-  // 🌟 NAYA: Authentication States
+  // 🌟 Authentication States
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   
-  // 🌟 NAYA: Loading State (ताकि लॉगिन चेक होते वक़्त पेज फ्लैश न हो)
+  // 🌟 NAYA: User का नाम स्टोर करने के लिए State 🌟
+  const [userName, setUserName] = useState(""); 
+  
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
@@ -33,21 +34,23 @@ export default function App() {
   const [totalRaised, setTotalRaised] = useState(0);
   const [targetAmount, setTargetAmount] = useState(50000);
 
-  // 🌟 JADOO: Auto-Login Check (जब भी वेबसाइट खुलेगी, ये चलेगा) 🌟
+  // 🌟 Auto-Login Check & Fetching User Name 🌟
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // यूज़र लॉगिन है, अब उसका रोल (Role) पता करो
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
             const role = userDoc.data().role;
+            const name = userDoc.data().name || "User"; // 🌟 NAYA: डेटाबेस से नाम निकाला
+            
             setIsAuthenticated(true);
-            setIsAdmin(role === 'admin'); // अगर role 'admin' है, तो Admin Dashboard दिखेगा
+            setIsAdmin(role === 'admin');
+            setUserName(name); // 🌟 NAYA: नाम State में सेव किया
           } else {
-            // अगर डेटाबेस में रोल नहीं मिला, तो बाहर निकाल दो
             setIsAuthenticated(false);
             setIsAdmin(false);
+            setUserName("");
             await signOut(auth);
           }
         } catch (error) {
@@ -55,19 +58,19 @@ export default function App() {
           setIsAuthenticated(false);
         }
       } else {
-        // कोई लॉगिन नहीं है
         setIsAuthenticated(false);
         setIsAdmin(false);
+        setUserName("");
       }
-      setIsCheckingAuth(false); // लोडिंग खत्म
+      setIsCheckingAuth(false);
     });
 
     return () => unsubscribeAuth();
   }, []);
 
-  // Live Donations & Goal Fetch (पुराना वाला)
+  // Live Donations & Goal Fetch
   useEffect(() => {
-    if (!isAuthenticated) return; // जब तक लॉगिन न हो, डेटा फेच मत करो (डेटा बचाने के लिए)
+    if (!isAuthenticated) return; 
 
     const unsubDonations = onSnapshot(collection(db, 'donations'), (snapshot) => {
       let total = 0; let list = [];
@@ -88,23 +91,22 @@ export default function App() {
     setTimeout(() => setToast({ show: false, message: '', isSuccess: true }), 3500);
   };
 
-  // Login Handler (अब इसे LoginPage से सीधा कॉल किया जाएगा)
   const handleLogin = (role) => {
     setIsAuthenticated(true);
     setIsAdmin(role === 'admin');
     navigate('/');
+    // (नोट: नाम useEffect के जरिये खुद ही अपडेट हो जाएगा जब डेटाबेस सिंक होगा)
   };
 
-  // 🌟 NAYA: Logout Handler (Firebase से भी लॉगआउट करेगा) 🌟
   const handleLogout = async () => {
-    await signOut(auth); // Firebase को बोलो लॉगआउट कर दे
+    await signOut(auth);
     setIsAuthenticated(false);
     setIsAdmin(false);
+    setUserName(""); // लॉगआउट पर नाम भी हटा दो
     navigate('/login');
     showToast("Logged out successfully!");
   };
 
-  // 🌟 NAYA: अगर अभी Firebase चेक कर रहा है, तो लोडिंग स्क्रीन दिखाओ 🌟
   if (isCheckingAuth) {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center">
@@ -128,6 +130,7 @@ export default function App() {
       {isAuthenticated && (
         <Header 
           isAdmin={isAdmin} 
+          userName={userName} // 🌟 NAYA: Header को नाम भेज दिया
           onAdminClick={() => setIsAdminModalOpen(true)} 
           onLogout={handleLogout}
         />
@@ -164,4 +167,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-                                                 }
+      }
