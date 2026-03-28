@@ -143,8 +143,8 @@ export default function App() {
           } />
 
           <Route path="/" element={
-            isAuthenticated ? <HomePage onNavigateToDonate={() => navigate('/donate')} /> : <Navigate to="/login" />
-          } />
+  isAuthenticated ? <HomePage isAdmin={isAdmin} onNavigateToDonate={() => navigate('/donate')} /> : <Navigate to="/login" />
+} />
           
           <Route path="/donate" element={
             isAuthenticated ? <DonationPage showToast={showToast} onBack={() => navigate('/')} /> : <Navigate to="/login" />
