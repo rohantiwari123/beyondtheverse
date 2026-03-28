@@ -20,33 +20,41 @@ export default function App() {
   // 🌟 Authentication States
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  
-  // 🌟 NAYA: User का नाम स्टोर करने के लिए State 🌟
-  const [userName, setUserName] = useState(""); 
+  const [userName, setUserName] = useState(""); // नाम स्टोर करने के लिए
   
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', isSuccess: true });
 
-  // Admin Dashboard & Progress Bar Data
   const [donations, setDonations] = useState([]);
   const [totalRaised, setTotalRaised] = useState(0);
   const [targetAmount, setTargetAmount] = useState(50000);
 
-  // 🌟 Auto-Login Check & Fetching User Name 🌟
+  // 🌟 THE FIX: Gatekeeper (Email Verification + Name Fetching) 🌟
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        
+        // 🚨 NAYA: सबसे बड़ा पहरेदार (Email Verification Check) 🚨
+        if (!user.emailVerified) {
+          // अगर फायरबेस ने गलती से लॉगिन कर भी दिया, तो हम अंदर नहीं आने देंगे!
+          setIsAuthenticated(false);
+          setIsAdmin(false);
+          setUserName("");
+          setIsCheckingAuth(false);
+          return; // यहीं से वापस भेज दो
+        }
+
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
             const role = userDoc.data().role;
-            const name = userDoc.data().name || "User"; // 🌟 NAYA: डेटाबेस से नाम निकाला
+            const name = userDoc.data().name || "User"; 
             
             setIsAuthenticated(true);
             setIsAdmin(role === 'admin');
-            setUserName(name); // 🌟 NAYA: नाम State में सेव किया
+            setUserName(name); 
           } else {
             setIsAuthenticated(false);
             setIsAdmin(false);
@@ -95,14 +103,13 @@ export default function App() {
     setIsAuthenticated(true);
     setIsAdmin(role === 'admin');
     navigate('/');
-    // (नोट: नाम useEffect के जरिये खुद ही अपडेट हो जाएगा जब डेटाबेस सिंक होगा)
   };
 
   const handleLogout = async () => {
     await signOut(auth);
     setIsAuthenticated(false);
     setIsAdmin(false);
-    setUserName(""); // लॉगआउट पर नाम भी हटा दो
+    setUserName(""); 
     navigate('/login');
     showToast("Logged out successfully!");
   };
@@ -130,7 +137,7 @@ export default function App() {
       {isAuthenticated && (
         <Header 
           isAdmin={isAdmin} 
-          userName={userName} // 🌟 NAYA: Header को नाम भेज दिया
+          userName={userName} // 🌟 Header को नाम भेज दिया
           onAdminClick={() => setIsAdminModalOpen(true)} 
           onLogout={handleLogout}
         />
@@ -167,4 +174,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-      }
+        }
