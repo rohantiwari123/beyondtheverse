@@ -35,42 +35,37 @@ export default function LoginPage({ onLogin, showToast }) {
     return ""; 
   };
 
-  // 🌟 Signup के लिए Email OTP भेजना (EmailJS) 🌟
-  // 🌟 Signup के लिए Email OTP भेजना (EmailJS) 🌟
+  // 🌟 Signup के लिए Email OTP भेजना 🌟
   const handleSendEmailOtp = async (e) => {
     e.preventDefault();
+    
+    // 🚨 MASTER SECURITY LOCK: कोई एडमिन साइनअप नहीं कर सकता 🚨
+    if (activeTab === 'admin') {
+      return showToast("Admin accounts cannot be created publicly!", false);
+    }
+
     if (!fullName.trim() || !email.trim() || !password) return showToast("Please fill all fields!", false);
     
     const errorMsg = validatePassword(password);
     if (errorMsg) { setPasswordError(errorMsg); return; }
     
     setIsLoading(true);
-    
-    // 6-digit का रैंडम OTP बनाओ
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedEmailOtp(newOtp);
 
     try {
-      // ⚠️ ध्यान दें: यहाँ अपने EmailJS के असली IDs डालें ⚠️
       await emailjs.send(
-        'service_2cyd1id', // उदा: service_abcd123
-        'template_2x68oex', // उदा: template_xyz456
-        {
-          to_name: fullName,
-          to_email: email,
-          otp_code: newOtp, // यह OTP आपके ईमेल टेम्प्लेट में जाएगा
-        },
-        'HZr8hKSA5jdTwvwVK' // उदा: aBcDeF123456789
+        'service_wdi6gpu', // अपनी असली Service ID
+        'template_2x68oex', // अपनी असली Template ID
+        { to_name: fullName, to_email: email, otp_code: newOtp },
+        'HZr8hKSA5jdTwvwVK' // अपनी असली Public Key
       );
       
       setEmailOtpSent(true);
       showToast("6-Digit OTP sent to your email! Check inbox/spam.");
     } catch (error) {
       console.error("EmailJS Error:", error);
-      
-      // 🌟 NAYA JUGAAD: मोबाइल स्क्रीन पर असली EmailJS एरर देखने के लिए 🌟
       alert("EmailJS Error: " + JSON.stringify(error));
-      
       showToast("Failed to send OTP email. Please try again.", false);
     } finally {
       setIsLoading(false);
@@ -80,25 +75,22 @@ export default function LoginPage({ onLogin, showToast }) {
   // 🌟 Email OTP वेरीफाई करना और अकाउंट बनाना 🌟
   const handleVerifyEmailAndSignup = async (e) => {
     e.preventDefault();
-    if (enteredEmailOtp !== generatedEmailOtp) {
-      return showToast("Invalid OTP! Please check your email.", false);
-    }
+    if (enteredEmailOtp !== generatedEmailOtp) return showToast("Invalid OTP! Please check your email.", false);
 
     setIsLoading(true);
     try {
-      // OTP सही है, अब फायरबेस में असली अकाउंट बनाओ
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
       await setDoc(doc(db, 'users', user.uid), {
         name: fullName, 
         email: user.email, 
-        role: activeTab, 
+        role: 'client', // 🚨 SECURITY: अब हमेशा 'client' ही सेव होगा (ताकि हैकर्स भी एडमिन न बन पाएं)
         createdAt: Date.now()
       });
       
       showToast(`Welcome ${fullName}! Account created successfully.`);
-      onLogin(activeTab);
+      onLogin('client');
     } catch (error) {
       let msg = "Signup failed!";
       if (error.code === 'auth/email-already-in-use') msg = "This email is already registered!";
@@ -123,7 +115,7 @@ export default function LoginPage({ onLogin, showToast }) {
         if (userDoc.exists()) {
           if (userDoc.data().role !== activeTab) { 
             await signOut(auth); 
-            showToast(`Access Denied! You are registered as ${userDoc.data().role.toUpperCase()}.`, false); 
+            showToast(`Access Denied! You are not registered as an ${activeTab.toUpperCase()}.`, false); 
             setIsLoading(false); 
             return; 
           }
@@ -151,13 +143,9 @@ export default function LoginPage({ onLogin, showToast }) {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab); 
-    setAuthMode('login'); 
-    setFullName(''); 
-    setEmail(''); 
-    setPassword(''); 
-    setPasswordError(''); 
-    setEmailOtpSent(false); 
-    setEnteredEmailOtp(''); 
+    setAuthMode('login'); // 🌟 हमेशा लॉगिन मोड में लाओ
+    setFullName(''); setEmail(''); setPassword(''); setPasswordError(''); 
+    setEmailOtpSent(false); setEnteredEmailOtp(''); 
   };
 
   return (
@@ -188,12 +176,11 @@ export default function LoginPage({ onLogin, showToast }) {
           <div className="text-center mb-4">
             <h2 className="text-lg font-extrabold text-slate-800">
               {authMode === 'login' && `Login to ${activeTab === 'admin' ? 'Admin' : 'Client'}`}
-              {authMode === 'signup' && (emailOtpSent ? 'Verify Email OTP' : `Create ${activeTab === 'admin' ? 'Admin' : 'Client'} Account`)}
+              {authMode === 'signup' && (emailOtpSent ? 'Verify Email OTP' : `Create Client Account`)}
               {authMode === 'forgot' && `Reset Password`}
             </h2>
           </div>
 
-          {/* अगर OTP नहीं भेजा है, तो फॉर्म दिखाओ */}
           {!emailOtpSent && (
             <>
               {authMode === 'signup' && (
@@ -220,7 +207,6 @@ export default function LoginPage({ onLogin, showToast }) {
             </>
           )}
 
-          {/* 🌟 अगर OTP भेज दिया है, तो सिर्फ OTP बॉक्स दिखाओ 🌟 */}
           {emailOtpSent && authMode === 'signup' && (
             <div className="relative animate-fade-in">
               <i className="fa-solid fa-message absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
@@ -240,19 +226,19 @@ export default function LoginPage({ onLogin, showToast }) {
           </button>
         </form>
 
-        {/* 🌟 TOGGLE LOGIN / SIGNUP 🌟 */}
-        {authMode !== 'forgot' ? (
+        {/* 🚨 UI SECURITY: Admin टैब में Signup का बटन ही मत दिखाओ 🚨 */}
+        {authMode !== 'forgot' && activeTab === 'client' ? (
           <div className="text-center mt-6 text-sm font-medium text-slate-500">
             {authMode === 'login' ? "New here? " : "Already have an account? "}
             <button onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')} className="text-teal-600 font-bold hover:underline">
               {authMode === 'login' ? 'Create an Account' : 'Login'}
             </button>
           </div>
-        ) : (
+        ) : authMode === 'forgot' ? (
           <div className="text-center mt-6 text-sm font-medium text-slate-500">
             Remember your password? <button onClick={() => setAuthMode('login')} className="text-teal-600 font-bold hover:underline">Back to Login</button>
           </div>
-        )}
+        ) : null}
 
       </div>
     </div>
