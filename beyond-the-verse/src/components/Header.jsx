@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 
-// 🌟 NAYA: Props में isAdmin और onLogout ऐड किया गया है 🌟
 export default function Header({ isAdmin, onAdminClick, onLogout }) {
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState("English");
@@ -104,7 +103,7 @@ export default function Header({ isAdmin, onAdminClick, onLogout }) {
     <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-slate-100 transition-all duration-300">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 flex justify-between items-center gap-2 sm:gap-3">
         
-        {/* 🌟 NAYA: Logo Section (अब यह सिर्फ डिज़ाइन है, कोई क्लिक इवेंट नहीं) 🌟 */}
+        {/* Logo Section */}
         <div className="flex items-center gap-2 sm:gap-3 select-none shrink-0">
           <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 bg-teal-50 rounded-lg sm:rounded-xl">
             <i className="fa-solid fa-atom text-base sm:text-xl text-teal-600"></i>
@@ -154,15 +153,16 @@ export default function Header({ isAdmin, onAdminClick, onLogout }) {
             )}
           </div>
 
-          {/* 🌟 JADOO: Admin Dashboard Button (सिर्फ Admin को दिखेगा) 🌟 */}
+          {/* 🌟 NAYA: Admin Dashboard Button (अब हर स्क्रीन पर दिखेगा) 🌟 */}
           {isAdmin && (
             <button
               onClick={onAdminClick}
-              className="hidden sm:flex items-center justify-center gap-1.5 sm:gap-2 bg-teal-600 hover:bg-teal-700 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all shadow-sm active:scale-95"
+              className="flex items-center justify-center gap-1.5 sm:gap-2 bg-teal-600 hover:bg-teal-700 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all shadow-sm active:scale-95"
               title="Open Admin Dashboard"
             >
               <i className="fa-solid fa-shield-halved text-xs sm:text-base"></i>
-              <span className="hidden lg:inline">Dashboard</span>
+              {/* शब्द "Dashboard" सिर्फ बड़ी स्क्रीन पर दिखेगा ताकि मोबाइल पर जगह न घेरे */}
+              <span className="hidden sm:inline">Dashboard</span>
             </button>
           )}
 
@@ -175,7 +175,7 @@ export default function Header({ isAdmin, onAdminClick, onLogout }) {
             <i className="fa-solid fa-share-nodes text-xs sm:text-base"></i>
           </button>
 
-          {/* 🌟 NAYA: Logout Button (सबके लिए) 🌟 */}
+          {/* Logout Button */}
           <button
             onClick={onLogout}
             className="flex items-center justify-center gap-1.5 sm:gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all active:scale-95 border border-rose-100"
@@ -189,4 +189,4 @@ export default function Header({ isAdmin, onAdminClick, onLogout }) {
       </div>
     </header>
   );
-      }
+    }
