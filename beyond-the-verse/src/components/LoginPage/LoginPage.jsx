@@ -53,7 +53,7 @@ export default function LoginPage({ onLogin, showToast }) {
     try {
       // ⚠️ ध्यान दें: यहाँ अपने EmailJS के असली IDs डालें ⚠️
       await emailjs.send(
-        'service_wdi6gpu', // उदा: service_abcd123
+        'service_2cyd1id', // उदा: service_abcd123
         'template_2x68oex', // उदा: template_xyz456
         {
           to_name: fullName,
