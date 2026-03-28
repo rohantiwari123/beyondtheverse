@@ -31,30 +31,23 @@ export default function App() {
   const [totalRaised, setTotalRaised] = useState(0);
   const [targetAmount, setTargetAmount] = useState(50000);
 
-  // 🌟 THE FIX: Gatekeeper (Email Verification + Name Fetching) 🌟
+  // 🌟 Auto-Login Check & Name Fetching 🌟
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         
-        // 🚨 NAYA: सबसे बड़ा पहरेदार (Email Verification Check) 🚨
-        if (!user.emailVerified) {
-          // अगर फायरबेस ने गलती से लॉगिन कर भी दिया, तो हम अंदर नहीं आने देंगे!
-          setIsAuthenticated(false);
-          setIsAdmin(false);
-          setUserName("");
-          setIsCheckingAuth(false);
-          return; // यहीं से वापस भेज दो
-        }
+        // हमने यहाँ से पुराना emailVerified वाला पहरेदार हटा दिया है 
+        // क्योंकि अब EmailJS पहले ही OTP वेरीफाई कर लेता है!
 
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
             const role = userDoc.data().role;
-            const name = userDoc.data().name || "User"; 
+            const name = userDoc.data().name || "User"; // 🌟 नाम निकाला
             
             setIsAuthenticated(true);
             setIsAdmin(role === 'admin');
-            setUserName(name); 
+            setUserName(name); // 🌟 नाम State में सेट किया
           } else {
             setIsAuthenticated(false);
             setIsAdmin(false);
@@ -174,4 +167,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-        }
+}
