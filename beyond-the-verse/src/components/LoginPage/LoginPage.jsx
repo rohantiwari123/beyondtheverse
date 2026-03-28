@@ -30,7 +30,7 @@ export default function LoginPage({ onLogin, showToast }) {
   
   const [isLoading, setIsLoading] = useState(false);
 
-  // 🌟 JADOO: Recaptcha Setup (useEffect से निकालकर यहाँ डाल दिया ताकि क्रैश न हो) 🌟
+  // Recaptcha Setup
   const setupRecaptcha = () => {
     if (!window.recaptchaVerifier) {
       window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
@@ -52,10 +52,8 @@ export default function LoginPage({ onLogin, showToast }) {
     
     setIsLoading(true);
     try {
-      // 1. बटन क्लिक होने पर Recaptcha चालू करो
       setupRecaptcha();
 
-      // भारत का कोड +91 जोड़ना ज़रूरी है
       const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+91${phoneNumber}`;
       const appVerifier = window.recaptchaVerifier;
       
@@ -65,11 +63,15 @@ export default function LoginPage({ onLogin, showToast }) {
       showToast("OTP sent successfully via SMS!");
     } catch (error) {
       console.error("SMS Error:", error);
-      // अगर एरर आये तो Recaptcha को क्लियर करना पड़ता है ताकि दोबारा ट्राई कर सकें
+      
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.clear();
         window.recaptchaVerifier = null;
       }
+      
+      // 🌟 NAYA JUGAAD: मोबाइल स्क्रीन पर एरर देखने के लिए Alert 🌟
+      alert("Firebase Error Code: " + error.code + "\nMessage: " + error.message);
+      
       showToast("Failed to send OTP. Try again.", false);
     } finally {
       setIsLoading(false);
@@ -86,13 +88,11 @@ export default function LoginPage({ onLogin, showToast }) {
       const result = await confirmationResult.confirm(otp);
       const user = result.user;
 
-      // चेक करें कि क्या यह नया यूजर है या पुराना
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       
       if (!userDoc.exists()) {
-        // नया यूजर: डेटाबेस में सेव करें
         await setDoc(doc(db, 'users', user.uid), {
-          name: fullName || "Phone User", // अगर नाम नहीं डाला तो डिफ़ॉल्ट नाम
+          name: fullName || "Phone User",
           phone: user.phoneNumber,
           role: activeTab, 
           createdAt: Date.now()
@@ -100,7 +100,6 @@ export default function LoginPage({ onLogin, showToast }) {
         showToast(`Account created successfully via Phone!`);
         onLogin(activeTab);
       } else {
-        // पुराना यूजर: रोल चेक करें
         const userRole = userDoc.data().role;
         if (userRole !== activeTab) {
           await signOut(auth);
@@ -112,6 +111,8 @@ export default function LoginPage({ onLogin, showToast }) {
         onLogin(activeTab);
       }
     } catch (error) {
+      // अगर OTP गलत हो तो यहाँ भी अलर्ट लगा देते हैं टेस्टिंग के लिए
+      alert("OTP Error Code: " + error.code + "\nMessage: " + error.message);
       showToast("Invalid OTP entered!", false);
     } finally {
       setIsLoading(false);
@@ -191,7 +192,6 @@ export default function LoginPage({ onLogin, showToast }) {
           </h1>
         </div>
 
-        {/* 🌟 TABS (Client/Admin) 🌟 */}
         <div className="flex bg-slate-100 p-1 rounded-xl mb-6 relative z-10">
           <button onClick={() => handleTabChange('client')} className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'client' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
             <i className="fa-solid fa-users mr-1.5"></i> Client
@@ -201,7 +201,6 @@ export default function LoginPage({ onLogin, showToast }) {
           </button>
         </div>
 
-        {/* 🌟 Email vs Phone Toggle 🌟 */}
         {authMode !== 'forgot' && (
           <div className="flex justify-center gap-4 mb-6">
             <button onClick={() => {setAuthMethod('email'); setOtpSent(false);}} className={`text-sm font-bold pb-1 border-b-2 transition-all ${authMethod === 'email' ? 'border-teal-600 text-teal-700' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
@@ -213,7 +212,6 @@ export default function LoginPage({ onLogin, showToast }) {
           </div>
         )}
 
-        {/* ----------------- PHONE OTP FORM ----------------- */}
         {authMethod === 'phone' ? (
           <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} className="space-y-4 animate-fade-in">
             <div className="text-center mb-4">
@@ -247,7 +245,6 @@ export default function LoginPage({ onLogin, showToast }) {
           </form>
         ) : (
           
-        /* ----------------- EMAIL FORM ----------------- */
           <form onSubmit={handleEmailAuth} className="space-y-4 animate-fade-in" noValidate>
             <div className="text-center mb-4">
               <h2 className="text-lg font-extrabold text-slate-800">
@@ -293,7 +290,6 @@ export default function LoginPage({ onLogin, showToast }) {
           </form>
         )}
 
-        {/* 🌟 TOGGLE LOGIN / SIGNUP 🌟 */}
         {authMode !== 'forgot' ? (
           <div className="text-center mt-6 text-sm font-medium text-slate-500">
             {authMode === 'login' ? "New here? " : "Already have an account? "}
