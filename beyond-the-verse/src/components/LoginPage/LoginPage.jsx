@@ -9,19 +9,47 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 
 export default function LoginPage({ onLogin, showToast }) {
-  const [activeTab, setActiveTab] = useState('client'); // 'client' या 'admin'
-  const [authMode, setAuthMode] = useState('login'); // 'login', 'signup', 'forgot'
+  const [activeTab, setActiveTab] = useState('client'); 
+  const [authMode, setAuthMode] = useState('login'); 
   
+  // Form States
+  const [fullName, setFullName] = useState(''); // 🌟 NAYA: सिर्फ Signup के लिए
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // 🌟 NAYA: Eye Icon के लिए
+  
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState(''); // 🌟 NAYA: Custom Error
 
-  // 🌟 Authentication (Login & Signup) Logic 🌟
+  // 🌟 NAYA: Password Validate करने का फंक्शन 🌟
+  const validatePassword = (pass) => {
+    if (pass.length < 6) return "Password must be at least 6 characters long.";
+    if (!/[A-Z]/.test(pass)) return "Must contain at least one uppercase letter (A-Z).";
+    if (!/[0-9]/.test(pass)) return "Must contain at least one number (0-9).";
+    return ""; // सब सही है
+  };
+
   const handleAuth = async (e) => {
-    e.preventDefault();
-    if (!email) return showToast("Please enter your email!", false);
-    if (authMode !== 'forgot' && !password) return showToast("Please enter your password!", false);
+    e.preventDefault(); // Browser का डिफ़ॉल्ट एक्शन रोकें
+    
+    // Custom Validations (ब्राउज़र के एरर की जगह हमारे खुद के Toasts)
+    if (authMode === 'signup' && !fullName.trim()) return showToast("Please enter your Full Name!", false);
+    if (!email.trim()) return showToast("Please enter your Email Address!", false);
+    
+    if (authMode !== 'forgot') {
+      if (!password) return showToast("Please enter your Password!", false);
+      
+      // Signup के वक़्त Strict Password चेक
+      if (authMode === 'signup') {
+        const errorMsg = validatePassword(password);
+        if (errorMsg) {
+          setPasswordError(errorMsg);
+          return;
+        }
+      }
+    }
 
+    setPasswordError(''); // पुराने एरर हटा दो
     setIsLoading(true);
 
     try {
@@ -30,117 +58,122 @@ export default function LoginPage({ onLogin, showToast }) {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
-        // 2. डेटाबेस में रोल (Role) सेव करना
+        // 2. डेटाबेस में नाम और रोल (Role) सेव करना
         await setDoc(doc(db, 'users', user.uid), {
+          name: fullName, // 🌟 NAYA: नाम भी सेव हो रहा है
           email: user.email,
-          role: activeTab, // जिस टैब से अकाउंट बनाया, वही रोल मिलेगा
+          role: activeTab, 
           createdAt: Date.now()
         });
         
-        showToast(`Account created successfully as ${activeTab.toUpperCase()}!`);
+        showToast(`Welcome ${fullName}! Account created successfully.`);
         onLogin(activeTab);
 
       } else if (authMode === 'login') {
-        // 1. लॉगिन करना
+        // लॉगिन करना
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // 2. चेक करना कि क्या यह सही पोर्टल (टैब) है?
+        // रोल चेक करना
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         
         if (userDoc.exists()) {
           const userRole = userDoc.data().role;
           
           if (userRole !== activeTab) {
-            // गलत टैब से लॉगिन किया है! उसे बाहर निकालो (Sign Out)
             await signOut(auth);
-            showToast(`Error: You are registered as ${userRole.toUpperCase()}, not ${activeTab.toUpperCase()}!`, false);
+            showToast(`Access Denied! You are registered as ${userRole.toUpperCase()}.`, false);
             setIsLoading(false);
             return;
           }
-          
-          showToast(`Logged in successfully as ${activeTab.toUpperCase()}!`);
+          showToast(`Logged in successfully!`);
           onLogin(activeTab);
         } else {
-          showToast("User role not found! Contact support.", false);
+          showToast("User role not found in database!", false);
+          await signOut(auth);
         }
       } else if (authMode === 'forgot') {
-        // पासवर्ड रिसेट करना
+        // पासवर्ड रिसेट
         await sendPasswordResetEmail(auth, email);
-        showToast("Password reset email sent! Check your inbox.");
+        showToast("Password reset link sent to your email!");
         setAuthMode('login');
       }
     } catch (error) {
-      // Firebase के एरर मैसेज को सुंदर बनाना
       let msg = "Authentication failed!";
-      if (error.code === 'auth/email-already-in-use') msg = "Email already registered!";
-      if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') msg = "Invalid Email or Password!";
-      if (error.code === 'auth/weak-password') msg = "Password must be at least 6 characters!";
+      if (error.code === 'auth/email-already-in-use') msg = "This email is already registered!";
+      else if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') msg = "Invalid Email or Password!";
       showToast(msg, false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // टैब बदलते वक़्त फॉर्म रिसेट करें
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setAuthMode('login');
+    setFullName('');
     setEmail('');
     setPassword('');
+    setPasswordError('');
   };
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center p-4 relative z-10">
-      
-      {/* 🎨 Premium Glassmorphism Card */}
-      <div className="bg-white/80 backdrop-blur-xl p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-teal-500/10 max-w-md w-full border border-white/60 relative animate-fade-in-up">
+      <div className="bg-white/90 backdrop-blur-xl p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-teal-500/10 max-w-md w-full border border-white relative animate-fade-in-up">
         
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-teal-50 to-transparent rounded-bl-[100px] pointer-events-none opacity-60"></div>
-
-        {/* Logo & Title */}
-        <div className="flex flex-col items-center justify-center mb-8 relative">
-          <div className="h-16 w-16 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl flex items-center justify-center mb-4 shadow-inner border border-teal-100/50">
-            <i className="fa-solid fa-atom text-4xl text-teal-600"></i>
+        {/* Header Section */}
+        <div className="flex flex-col items-center justify-center mb-6 relative">
+          <div className="h-14 w-14 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl flex items-center justify-center mb-3 shadow-inner border border-teal-100/50">
+            <i className="fa-solid fa-atom text-3xl text-teal-600"></i>
           </div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight text-center">
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight text-center">
             Beyond The <span className="text-teal-600">Verse</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase mt-2">Secure Portal</p>
         </div>
 
-        {/* 🌟 TABS (Client vs Admin) 🌟 */}
-        <div className="flex bg-slate-100/80 p-1.5 rounded-2xl mb-8 relative z-10">
+        {/* 🌟 TABS 🌟 */}
+        <div className="flex bg-slate-100 p-1 rounded-xl mb-6 relative z-10">
           <button 
             onClick={() => handleTabChange('client')}
-            className={`flex-1 py-3 text-xs md:text-sm font-bold rounded-xl transition-all duration-300 ${activeTab === 'client' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+            className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'client' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
-            <i className="fa-solid fa-users mr-1.5"></i> Client Portal
+            <i className="fa-solid fa-users mr-1.5"></i> Client
           </button>
           <button 
             onClick={() => handleTabChange('admin')}
-            className={`flex-1 py-3 text-xs md:text-sm font-bold rounded-xl transition-all duration-300 ${activeTab === 'admin' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+            className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'admin' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
-            <i className="fa-solid fa-shield-halved mr-1.5"></i> Admin Portal
+            <i className="fa-solid fa-shield-halved mr-1.5"></i> Admin
           </button>
         </div>
 
         {/* 🌟 DYNAMIC FORM 🌟 */}
-        <form onSubmit={handleAuth} className="space-y-4 animate-fade-in relative z-10">
+        <form onSubmit={handleAuth} className="space-y-4 animate-fade-in" noValidate>
           
-          {/* Header Text */}
-          <div className="text-center mb-6">
-            <h2 className="text-lg font-bold text-slate-800">
-              {authMode === 'login' && `Login to ${activeTab.toUpperCase()}`}
-              {authMode === 'signup' && `Create ${activeTab.toUpperCase()} Account`}
+          <div className="text-center mb-4">
+            <h2 className="text-lg font-extrabold text-slate-800">
+              {authMode === 'login' && `Login to ${activeTab === 'admin' ? 'Admin Portal' : 'Client Portal'}`}
+              {authMode === 'signup' && `Create ${activeTab === 'admin' ? 'Admin' : 'Client'} Account`}
               {authMode === 'forgot' && `Reset Password`}
             </h2>
           </div>
 
+          {/* 🌟 NAYA: Full Name सिर्फ Signup में दिखेगा 🌟 */}
+          {authMode === 'signup' && (
+            <div className="relative animate-fade-in">
+              <i className="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input 
+                type="text" placeholder="Full Name" 
+                value={fullName} onChange={(e) => setFullName(e.target.value)} 
+                className="w-full bg-slate-50 border border-slate-200 pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+              />
+            </div>
+          )}
+
           <div className="relative">
             <i className="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
             <input 
-              type="email" required placeholder="Email Address" 
+              type="email" placeholder="Email Address" 
               value={email} onChange={(e) => setEmail(e.target.value)} 
               className="w-full bg-slate-50 border border-slate-200 pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
             />
@@ -150,11 +183,31 @@ export default function LoginPage({ onLogin, showToast }) {
             <div className="relative">
               <i className="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
               <input 
-                type="password" required placeholder="Password" 
-                value={password} onChange={(e) => setPassword(e.target.value)} 
-                className="w-full bg-slate-50 border border-slate-200 pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                type={showPassword ? "text" : "password"} // 🌟 NAYA: Eye Toggle Logic
+                placeholder="Password" 
+                value={password} 
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if(passwordError) setPasswordError(''); // टाइप करते वक़्त एरर हटा दें
+                }} 
+                className={`w-full bg-slate-50 border ${passwordError ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-teal-500 focus:ring-teal-500/20'} pl-11 pr-12 py-3.5 rounded-xl text-sm font-medium outline-none focus:ring-2 transition-all`}
               />
+              {/* 🌟 NAYA: Eye Icon Button 🌟 */}
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600 transition-colors"
+              >
+                <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+              </button>
             </div>
+          )}
+
+          {/* 🌟 NAYA: Inline Password Error Message 🌟 */}
+          {passwordError && authMode === 'signup' && (
+            <p className="text-xs font-bold text-rose-500 animate-fade-in flex items-start gap-1">
+              <i className="fa-solid fa-circle-exclamation mt-0.5"></i> {passwordError}
+            </p>
           )}
 
           {authMode === 'login' && (
@@ -167,7 +220,7 @@ export default function LoginPage({ onLogin, showToast }) {
           
           <button 
             type="submit" disabled={isLoading}
-            className={`w-full text-white font-extrabold py-4 px-6 rounded-xl transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2 outline-none disabled:opacity-70 mt-2 ${activeTab === 'admin' ? 'bg-slate-800 hover:bg-slate-900 shadow-slate-800/20' : 'bg-teal-600 hover:bg-teal-700 shadow-teal-500/30'}`}
+            className={`w-full text-white font-extrabold py-3.5 px-6 rounded-xl transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2 outline-none disabled:opacity-70 mt-2 ${activeTab === 'admin' ? 'bg-slate-800 hover:bg-slate-900 shadow-slate-800/20' : 'bg-teal-600 hover:bg-teal-700 shadow-teal-500/30'}`}
           >
             {isLoading ? (
               <><i className="fa-solid fa-circle-notch fa-spin"></i> Processing...</>
@@ -184,17 +237,17 @@ export default function LoginPage({ onLogin, showToast }) {
 
         {/* 🌟 TOGGLE LOGIN / SIGNUP 🌟 */}
         {authMode !== 'forgot' ? (
-          <div className="text-center mt-6 text-sm font-medium text-slate-500 relative z-10">
-            {authMode === 'login' ? "Don't have an account? " : "Already have an account? "}
+          <div className="text-center mt-6 text-sm font-medium text-slate-500">
+            {authMode === 'login' ? "New here? " : "Already have an account? "}
             <button 
               onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
               className="text-teal-600 font-bold hover:underline"
             >
-              {authMode === 'login' ? 'Sign Up' : 'Login'}
+              {authMode === 'login' ? 'Create an Account' : 'Login'}
             </button>
           </div>
         ) : (
-          <div className="text-center mt-6 text-sm font-medium text-slate-500 relative z-10">
+          <div className="text-center mt-6 text-sm font-medium text-slate-500">
             Remember your password? <button onClick={() => setAuthMode('login')} className="text-teal-600 font-bold hover:underline">Back to Login</button>
           </div>
         )}
@@ -202,4 +255,4 @@ export default function LoginPage({ onLogin, showToast }) {
       </div>
     </div>
   );
-        }
+  }
