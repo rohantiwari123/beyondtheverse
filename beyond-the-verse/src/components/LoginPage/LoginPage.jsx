@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   sendPasswordResetEmail,
-  RecaptchaVerifier, // 🌟 NAYA: Phone Auth के लिए
-  signInWithPhoneNumber, // 🌟 NAYA: SMS OTP भेजने के लिए
+  RecaptchaVerifier, 
+  signInWithPhoneNumber, 
   signOut
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -22,7 +22,7 @@ export default function LoginPage({ onLogin, showToast }) {
   const [showPassword, setShowPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
 
-  // 🌟 NAYA: Phone OTP States 🌟
+  // Phone OTP States
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
@@ -30,26 +30,32 @@ export default function LoginPage({ onLogin, showToast }) {
   
   const [isLoading, setIsLoading] = useState(false);
 
-  // Phone Auth के लिए Recaptcha सेटअप (बॉट रोकने के लिए)
-  useEffect(() => {
+  // 🌟 JADOO: Recaptcha Setup (useEffect से निकालकर यहाँ डाल दिया ताकि क्रैश न हो) 🌟
+  const setupRecaptcha = () => {
     if (!window.recaptchaVerifier) {
       window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
         size: 'invisible',
         callback: (response) => {
           // reCAPTCHA solved
+        },
+        'expired-callback': () => {
+          showToast("Recaptcha expired. Please try again.", false);
         }
       });
     }
-  }, []);
+  };
 
-  // 🌟 JADOO: Phone OTP भेजने का फंक्शन 🌟
+  // 🌟 Phone OTP भेजने का फंक्शन 🌟
   const handleSendOtp = async (e) => {
     e.preventDefault();
     if (!phoneNumber || phoneNumber.length < 10) return showToast("Enter a valid 10-digit phone number!", false);
     
     setIsLoading(true);
     try {
-      // भारत का कोड +91 जोड़ना ज़रूरी है
+      // 1. बटन क्लिक होने पर Recaptcha चालू करो
+      setupRecaptcha();
+
+      // भारत का कोड +91 जोड़ना ज़रूरी है
       const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+91${phoneNumber}`;
       const appVerifier = window.recaptchaVerifier;
       
@@ -58,14 +64,19 @@ export default function LoginPage({ onLogin, showToast }) {
       setOtpSent(true);
       showToast("OTP sent successfully via SMS!");
     } catch (error) {
-      console.error(error);
+      console.error("SMS Error:", error);
+      // अगर एरर आये तो Recaptcha को क्लियर करना पड़ता है ताकि दोबारा ट्राई कर सकें
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
       showToast("Failed to send OTP. Try again.", false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 🌟 JADOO: Phone OTP वेरीफाई करने का फंक्शन 🌟
+  // 🌟 Phone OTP वेरीफाई करने का फंक्शन 🌟
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     if (!otp || otp.length !== 6) return showToast("Enter the 6-digit OTP!", false);
@@ -81,7 +92,7 @@ export default function LoginPage({ onLogin, showToast }) {
       if (!userDoc.exists()) {
         // नया यूजर: डेटाबेस में सेव करें
         await setDoc(doc(db, 'users', user.uid), {
-          name: fullName || "Phone User", // अगर नाम नहीं डाला तो डिफ़ॉल्ट नाम
+          name: fullName || "Phone User", // अगर नाम नहीं डाला तो डिफ़ॉल्ट नाम
           phone: user.phoneNumber,
           role: activeTab, 
           createdAt: Date.now()
@@ -107,7 +118,7 @@ export default function LoginPage({ onLogin, showToast }) {
     }
   };
 
-  // --- (पुराना Email वाला कोड नीचे है) ---
+  // --- (Email Auth Logic) ---
   const validatePassword = (pass) => {
     if (pass.length < 6) return "Password must be at least 6 characters long.";
     if (!/[A-Z]/.test(pass)) return "Must contain at least one uppercase letter (A-Z).";
@@ -168,7 +179,7 @@ export default function LoginPage({ onLogin, showToast }) {
     <div className="min-h-[85vh] flex items-center justify-center p-4 relative z-10">
       <div className="bg-white/90 backdrop-blur-xl p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-teal-500/10 max-w-md w-full border border-white relative animate-fade-in-up">
         
-        {/* Firebase Phone Auth के लिए अदृश्य Recaptcha */}
+        {/* Firebase Phone Auth के लिए अदृश्य Recaptcha Container */}
         <div id="recaptcha-container"></div>
 
         <div className="flex flex-col items-center justify-center mb-6 relative">
@@ -190,7 +201,7 @@ export default function LoginPage({ onLogin, showToast }) {
           </button>
         </div>
 
-        {/* 🌟 NAYA: Email vs Phone Toggle 🌟 */}
+        {/* 🌟 Email vs Phone Toggle 🌟 */}
         {authMode !== 'forgot' && (
           <div className="flex justify-center gap-4 mb-6">
             <button onClick={() => {setAuthMethod('email'); setOtpSent(false);}} className={`text-sm font-bold pb-1 border-b-2 transition-all ${authMethod === 'email' ? 'border-teal-600 text-teal-700' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
@@ -238,7 +249,6 @@ export default function LoginPage({ onLogin, showToast }) {
           
         /* ----------------- EMAIL FORM ----------------- */
           <form onSubmit={handleEmailAuth} className="space-y-4 animate-fade-in" noValidate>
-            {/* ... (यहाँ आपका पिछला पूरा Email वाला फॉर्म है, मैंने इसे सुरक्षित रखा है) ... */}
             <div className="text-center mb-4">
               <h2 className="text-lg font-extrabold text-slate-800">
                 {authMode === 'login' && `Login to ${activeTab === 'admin' ? 'Admin' : 'Client'}`}
@@ -300,4 +310,4 @@ export default function LoginPage({ onLogin, showToast }) {
       </div>
     </div>
   );
-         }
+}
