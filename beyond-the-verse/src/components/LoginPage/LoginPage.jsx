@@ -36,6 +36,7 @@ export default function LoginPage({ onLogin, showToast }) {
   };
 
   // 🌟 Signup के लिए Email OTP भेजना (EmailJS) 🌟
+  // 🌟 Signup के लिए Email OTP भेजना (EmailJS) 🌟
   const handleSendEmailOtp = async (e) => {
     e.preventDefault();
     if (!fullName.trim() || !email.trim() || !password) return showToast("Please fill all fields!", false);
@@ -66,6 +67,10 @@ export default function LoginPage({ onLogin, showToast }) {
       showToast("6-Digit OTP sent to your email! Check inbox/spam.");
     } catch (error) {
       console.error("EmailJS Error:", error);
+      
+      // 🌟 NAYA JUGAAD: मोबाइल स्क्रीन पर असली EmailJS एरर देखने के लिए 🌟
+      alert("EmailJS Error: " + JSON.stringify(error));
+      
       showToast("Failed to send OTP email. Please try again.", false);
     } finally {
       setIsLoading(false);
