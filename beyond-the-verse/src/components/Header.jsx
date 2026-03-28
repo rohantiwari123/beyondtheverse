@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 
-export default function Header({ onAdminClick }) {
-  const [clickCount, setClickCount] = useState(0);
-  
+// 🌟 NAYA: Props में isAdmin और onLogout ऐड किया गया है 🌟
+export default function Header({ isAdmin, onAdminClick, onLogout }) {
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState("English");
   const dropdownRef = useRef(null);
@@ -27,15 +26,7 @@ export default function Header({ onAdminClick }) {
     { code: 'ar', name: 'العربية (Arabic)' }
   ];
 
-  useEffect(() => {
-    if (clickCount >= 3) {
-      onAdminClick();
-      setClickCount(0);
-    }
-    const timer = setTimeout(() => setClickCount(0), 1000);
-    return () => clearTimeout(timer);
-  }, [clickCount, onAdminClick]);
-
+  // Google Translate Init
   useEffect(() => {
     if (!document.getElementById("google-translate-script")) {
       window.googleTranslateElementInit = () => {
@@ -60,6 +51,7 @@ export default function Header({ onAdminClick }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Check language cookie
   useEffect(() => {
     const checkCookie = () => {
       const match = document.cookie.match(/(?:^|;)\s*googtrans=([^;]*)/);
@@ -110,26 +102,14 @@ export default function Header({ onAdminClick }) {
 
   return (
     <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-slate-100 transition-all duration-300">
-      {/* 🌟 NAYA: Responsive Container Padding (px-3 mobile pe, md:px-6 bade pe) 🌟 */}
       <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 flex justify-between items-center gap-2 sm:gap-3">
         
-        {/* Logo Section */}
-        <div
-          className="group flex items-center gap-2 sm:gap-3 cursor-pointer select-none shrink-0"
-          onClick={() => setClickCount((prev) => prev + 1)}
-          title="Admin Login"
-        >
-          {/* Responsive Icon Box */}
-          <div className="relative flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 bg-teal-50 rounded-lg sm:rounded-xl group-hover:bg-teal-100 transition-colors">
-            <i className={`fa-solid fa-atom text-base sm:text-xl text-teal-600 transition-transform duration-300 ${clickCount > 0 ? 'rotate-45 scale-110' : ''}`}></i>
-            <div className="absolute -bottom-1.5 flex gap-[2px] sm:gap-1">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className={`h-1 w-1 rounded-full transition-all duration-200 ${i < clickCount ? 'bg-teal-500 scale-100' : 'bg-transparent scale-0'}`} />
-              ))}
-            </div>
+        {/* 🌟 NAYA: Logo Section (अब यह सिर्फ डिज़ाइन है, कोई क्लिक इवेंट नहीं) 🌟 */}
+        <div className="flex items-center gap-2 sm:gap-3 select-none shrink-0">
+          <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 bg-teal-50 rounded-lg sm:rounded-xl">
+            <i className="fa-solid fa-atom text-base sm:text-xl text-teal-600"></i>
           </div>
           
-          {/* Responsive Typography */}
           <div className="flex flex-col notranslate">
             <h1 className="text-[17px] sm:text-xl font-extrabold text-slate-800 leading-tight tracking-tight">
               Beyond The <span className="text-teal-600">Verse</span>
@@ -148,13 +128,11 @@ export default function Header({ onAdminClick }) {
           
           {/* Custom Native Language Dropdown */}
           <div className="relative" ref={dropdownRef}>
-            {/* Responsive Dropdown Button */}
             <button 
               onClick={() => setIsLangOpen(!isLangOpen)}
               className="flex items-center gap-1.5 sm:gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-semibold transition-all notranslate"
             >
               <i className="fa-solid fa-globe text-teal-600 text-sm sm:text-base"></i>
-              {/* Desktop par poora naam, mobile par chupa hua */}
               <span className="hidden md:inline">{currentLang}</span>
               <i className={`fa-solid fa-chevron-down text-[9px] sm:text-xs transition-transform ${isLangOpen ? 'rotate-180' : ''}`}></i>
             </button>
@@ -176,26 +154,38 @@ export default function Header({ onAdminClick }) {
             )}
           </div>
 
-          {/* Live Indicator (Chhote mobile par hide taaki jagah bache) */}
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold border border-emerald-100">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            Live
-          </div>
+          {/* 🌟 JADOO: Admin Dashboard Button (सिर्फ Admin को दिखेगा) 🌟 */}
+          {isAdmin && (
+            <button
+              onClick={onAdminClick}
+              className="hidden sm:flex items-center justify-center gap-1.5 sm:gap-2 bg-teal-600 hover:bg-teal-700 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all shadow-sm active:scale-95"
+              title="Open Admin Dashboard"
+            >
+              <i className="fa-solid fa-shield-halved text-xs sm:text-base"></i>
+              <span className="hidden lg:inline">Dashboard</span>
+            </button>
+          )}
 
-          {/* Responsive Share Button */}
+          {/* Share Button */}
           <button
-            onClick={(e) => { e.stopPropagation(); handleShare(); }}
-            className="flex items-center justify-center gap-1.5 sm:gap-2 bg-slate-800 hover:bg-slate-900 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all shadow-sm active:scale-95"
+            onClick={handleShare}
+            className="hidden sm:flex items-center justify-center gap-1.5 sm:gap-2 bg-slate-800 hover:bg-slate-900 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all shadow-sm active:scale-95"
+            title="Share Website"
           >
             <i className="fa-solid fa-share-nodes text-xs sm:text-base"></i>
-            {/* Share word sirf bade screen par dikhega */}
-            <span className="hidden sm:inline">Share</span>
           </button>
-        </div>
 
+          {/* 🌟 NAYA: Logout Button (सबके लिए) 🌟 */}
+          <button
+            onClick={onLogout}
+            className="flex items-center justify-center gap-1.5 sm:gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all active:scale-95 border border-rose-100"
+            title="Logout"
+          >
+            <i className="fa-solid fa-right-from-bracket text-xs sm:text-base"></i>
+            <span className="hidden md:inline">Logout</span>
+          </button>
+
+        </div>
       </div>
     </header>
   );
