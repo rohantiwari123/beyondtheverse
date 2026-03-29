@@ -152,16 +152,18 @@ export default function App() {
       {/* Premium Background Glow */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none"></div>
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-teal-400/20 rounded-full blur-[100px] pointer-events-none"></div>
-      
-      {/* Header ab sabko dikhega, chahe login ho ya nahi (Professional look) */}
-      <Header 
-        isAdmin={isAdmin} 
-        userName={userName} 
-        isAuthenticated={isAuthenticated} // 🌟 Naya prop bheja ja sakta hai aage chalkar login button dikhane ke liye
-        onAdminClick={() => setIsAdminModalOpen(true)} 
-        onLogout={handleLogout}
-        onLoginClick={() => navigate('/login')}
-      />
+
+      {/* 🌟 NAYA: Agar user '/login' page par hai, to Header hide kar do! 🌟 */}
+      {location.pathname !== '/login' && (
+        <Header 
+          isAdmin={isAdmin} 
+          userName={userName} 
+          isAuthenticated={isAuthenticated} 
+          onAdminClick={() => setIsAdminModalOpen(true)} 
+          onLogout={handleLogout}
+          onLoginClick={() => navigate('/login')}
+        />
+      )}
 
       <main className={`relative z-10 ${isPublicPage ? 'max-w-6xl mx-auto px-4 py-8 md:py-12' : ''}`}>
         <Routes>
