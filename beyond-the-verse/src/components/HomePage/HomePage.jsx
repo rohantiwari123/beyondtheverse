@@ -6,9 +6,9 @@ import FAQ from './FAQ';
 
 export default function HomePage({ onNavigateToDonate, isAdmin, isAuthenticated, userName }) {
   return (
-    {/* 🌟 NAYA: Container me smart padding (px-4 sm:px-6 lg:px-8) aur responsive gap add kiya hai */}
+
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16 space-y-16 sm:space-y-20 lg:space-y-24 animate-fade-in-up">
-      
+          {/* 🌟 NAYA: Container me smart padding (px-4 sm:px-6 lg:px-8) aur responsive gap add kiya hai */}
       {/* 👑 1. VIP ADMIN DASHBOARD (Premium Dark Layout) 👑 */}
       {isAdmin && (
         <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-[2rem] p-6 sm:p-8 lg:p-10 shadow-2xl shadow-indigo-500/10 relative overflow-hidden animate-fade-in border border-indigo-500/20">
