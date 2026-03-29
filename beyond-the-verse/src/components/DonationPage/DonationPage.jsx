@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { onSnapshot, collection, query, doc } from 'firebase/firestore';
-import { signInAnonymously } from 'firebase/auth';
-import { auth, db } from '../../firebase'; // Dhyan rakhiye path ../../ hai
+// 🌟 BUG KILLED: signInAnonymously wala import hata diya gaya hai
+import { auth, db } from '../../firebase'; 
 
 // Saare Premium Components jo humne abhi upgrade kiye hain
 import ProgressSection from './ProgressSection';
@@ -10,7 +10,7 @@ import SupportersList from './SupportersList';
 import PaymentModal from './PaymentModal';
 
 export default function DonationPage({ showToast, onBack }) {
-  const [targetAmount, setTargetAmount] = useState(50000); // Default Goal
+  const [targetAmount, setTargetAmount] = useState(50000); 
   const [donations, setDonations] = useState([]);
   const [totalRaised, setTotalRaised] = useState(0);
   
@@ -19,8 +19,7 @@ export default function DonationPage({ showToast, onBack }) {
 
   // 🌟 NAYA: Firebase Live Listeners (Real-time updates ke liye) 🌟
   useEffect(() => {
-    // Bina login kiye read access ke liye
-    signInAnonymously(auth).catch(console.error);
+    // 🌟 BUG KILLED: Yahan se signInAnonymously() hata diya hai! Ab koi logout nahi hoga!
 
     // 1. Goal Amount fetch karna
     const unsubConfig = onSnapshot(doc(db, 'settings', 'config'), (docSnap) => {
@@ -59,7 +58,7 @@ export default function DonationPage({ showToast, onBack }) {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in-up">
       
-      {/* 🌟 NAYA: Premium Back Button 🌟 */}
+      {/* 🌟 Premium Back Button 🌟 */}
       <button 
         onClick={onBack}
         className="group flex items-center gap-2 text-slate-500 hover:text-teal-600 font-bold text-sm transition-all outline-none bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200 hover:border-teal-200 hover:shadow-md w-max"
@@ -154,4 +153,4 @@ export default function DonationPage({ showToast, onBack }) {
       )}
     </div>
   );
-}
+            }
