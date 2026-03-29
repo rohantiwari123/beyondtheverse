@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 
-// 🌟 NAYA: Props में `userName` ऐड किया गया है 🌟
-export default function Header({ isAdmin, onAdminClick, onLogout, userName }) {
+// 🌟 NAYA: Props me isAuthenticated aur onLoginClick add kiya gaya hai
+export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogout, onLoginClick, userName }) {
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState("English");
+  
+  // 🌟 NAYA: Mobile Hamburger Menu State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   const dropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
-  // 🌍 Duniya bhar ki Bhashayein
   const languages = [
     { code: 'en', name: 'English (Default)' }, { code: 'hi', name: 'हिंदी (Hindi)' }, 
     { code: 'mr', name: 'मराठी (Marathi)' }, { code: 'gu', name: 'ગુજરાતી (Gujarati)' },
@@ -29,7 +33,10 @@ export default function Header({ isAdmin, onAdminClick, onLogout, userName }) {
       script.async = true;
       document.body.appendChild(script);
     }
-    const handleClickOutside = (event) => { if (dropdownRef.current && !dropdownRef.current.contains(event.target)) setIsLangOpen(false); };
+    const handleClickOutside = (event) => { 
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) setIsLangOpen(false); 
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target) && !event.target.closest('.hamburger-btn')) setIsMobileMenuOpen(false);
+    };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -55,29 +62,24 @@ export default function Header({ isAdmin, onAdminClick, onLogout, userName }) {
         setCurrentLang("English"); setIsLangOpen(false); window.location.reload(); return; 
       }
       selectElement.value = langCode; selectElement.dispatchEvent(new Event('change'));
-      setCurrentLang(langName.split(' ')[0]); setIsLangOpen(false); 
+      setCurrentLang(langName.split(' ')[0]); setIsLangOpen(false); setIsMobileMenuOpen(false);
     } else { alert("Translation system is loading, please wait a second..."); }
   };
 
-  const handleShare = async () => {
-    const shareData = { title: "Beyond The Verse", text: "Support this amazing educational initiative!", url: window.location.href };
-    try { if (navigator.share) await navigator.share(shareData); else { await navigator.clipboard.writeText(window.location.href); alert("Link copied to clipboard!"); } } catch (err) { console.log("Error sharing:", err); }
-  };
-
   return (
-    <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-slate-100 transition-all duration-300">
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 flex justify-between items-center gap-2 sm:gap-3">
+    <header className="bg-white/90 backdrop-blur-xl shadow-sm sticky top-0 z-50 border-b border-slate-100 transition-all duration-300">
+      <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center gap-3 relative">
         
-        {/* Logo Section */}
-        <div className="flex items-center gap-2 sm:gap-3 select-none shrink-0">
-          <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 bg-teal-50 rounded-lg sm:rounded-xl">
-            <i className="fa-solid fa-atom text-base sm:text-xl text-teal-600"></i>
+        {/* 🌟 Logo Section */}
+        <div className="flex items-center gap-2.5 select-none shrink-0">
+          <div className="flex items-center justify-center h-9 w-9 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100/50 rounded-xl shadow-inner">
+            <i className="fa-solid fa-atom text-lg text-teal-600"></i>
           </div>
           <div className="flex flex-col notranslate">
-            <h1 className="text-[17px] sm:text-xl font-extrabold text-slate-800 leading-tight tracking-tight">
+            <h1 className="text-lg md:text-xl font-extrabold text-slate-800 leading-tight tracking-tight">
               Beyond The <span className="text-teal-600">Verse</span>
             </h1>
-            <span className="text-[7.5px] sm:text-[9px] font-bold text-slate-400 tracking-[0.15em] sm:tracking-[0.2em] uppercase mt-[1px] sm:mt-0">
+            <span className="text-[8px] md:text-[9px] font-bold text-slate-400 tracking-[0.2em] uppercase mt-[1px] md:mt-0">
               Empowering Education
             </span>
           </div>
@@ -85,32 +87,28 @@ export default function Header({ isAdmin, onAdminClick, onLogout, userName }) {
 
         <div id="google_translate_element" className="hidden"></div>
 
-        {/* Right Side Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        {/* 🌟 Right Side (Desktop Navbar) */}
+        <div className="hidden md:flex items-center gap-4 shrink-0">
           
-          {/* 🌟 JADOO: User Name Capsule (सभी स्क्रीन पर दिखेगा) 🌟 */}
-          {userName && (
-            <div className="flex items-center gap-1.5 bg-indigo-50 border border-indigo-100 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full text-indigo-700 shadow-sm transition-all" title={userName}>
-              <i className="fa-solid fa-circle-user text-xs sm:text-sm"></i>
-              {/* हम सिर्फ First Name दिखा रहे हैं ताकि मोबाइल पर डिज़ाइन खराब न हो */}
-              <span className="text-[10px] sm:text-xs font-bold truncate max-w-[50px] sm:max-w-[100px] notranslate">
-                {userName.split(' ')[0]}
-              </span>
+          {isAuthenticated && userName && (
+            <div className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full text-indigo-700 shadow-sm" title={userName}>
+              <i className="fa-solid fa-circle-user text-sm"></i>
+              <span className="text-xs font-bold truncate max-w-[120px] notranslate">{userName.split(' ')[0]}</span>
             </div>
           )}
 
-          {/* Language Dropdown */}
+          {/* Language Dropdown (Desktop) */}
           <div className="relative" ref={dropdownRef}>
-            <button onClick={() => setIsLangOpen(!isLangOpen)} className="flex items-center gap-1.5 sm:gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-semibold transition-all notranslate">
-              <i className="fa-solid fa-globe text-teal-600 text-sm sm:text-base"></i>
-              <span className="hidden md:inline">{currentLang}</span>
-              <i className={`fa-solid fa-chevron-down text-[9px] sm:text-xs transition-transform ${isLangOpen ? 'rotate-180' : ''}`}></i>
+            <button onClick={() => setIsLangOpen(!isLangOpen)} className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all notranslate">
+              <i className="fa-solid fa-globe text-teal-600"></i>
+              <span>{currentLang}</span>
+              <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${isLangOpen ? 'rotate-180' : ''}`}></i>
             </button>
             {isLangOpen && (
-              <div className="absolute top-full right-0 mt-2 w-44 sm:w-48 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden py-1 z-[100] notranslate">
-                <div className="max-h-[50vh] sm:max-h-[60vh] overflow-y-auto lang-scrollbar flex flex-col">
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden py-1 z-[100] notranslate animate-fade-in-up">
+                <div className="max-h-[60vh] overflow-y-auto lang-scrollbar flex flex-col">
                   {languages.map((lang) => (
-                    <button key={lang.code} onClick={() => translatePage(lang.code, lang.name)} className={`w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors ${currentLang === lang.name.split(' ')[0] ? 'bg-teal-50 text-teal-700 font-bold' : 'text-slate-600 font-medium'}`}>
+                    <button key={lang.code} onClick={() => translatePage(lang.code, lang.name)} className={`w-full text-left px-4 py-2 text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors ${currentLang === lang.name.split(' ')[0] ? 'bg-teal-50 text-teal-700 font-bold' : 'text-slate-600 font-medium'}`}>
                       {lang.name}
                     </button>
                   ))}
@@ -119,22 +117,93 @@ export default function Header({ isAdmin, onAdminClick, onLogout, userName }) {
             )}
           </div>
 
-          {/* Admin Dashboard Button */}
           {isAdmin && (
-            <button onClick={onAdminClick} className="flex items-center justify-center gap-1.5 sm:gap-2 bg-teal-600 hover:bg-teal-700 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all shadow-sm active:scale-95" title="Open Admin Dashboard">
-              <i className="fa-solid fa-shield-halved text-xs sm:text-base"></i>
-              <span className="hidden sm:inline">Dashboard</span>
+            <button onClick={onAdminClick} className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-4 py-1.5 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95">
+              <i className="fa-solid fa-shield-halved"></i> Dashboard
             </button>
           )}
 
-          {/* Logout Button */}
-          <button onClick={onLogout} className="flex items-center justify-center gap-1.5 sm:gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all active:scale-95 border border-rose-100" title="Logout">
-            <i className="fa-solid fa-right-from-bracket text-xs sm:text-base"></i>
-            <span className="hidden md:inline">Logout</span>
-          </button>
-
+          {/* 🌟 Conditional Auth Button (Login or Logout) */}
+          {isAuthenticated ? (
+            <button onClick={onLogout} className="flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-4 py-1.5 rounded-xl text-sm font-bold transition-all active:scale-95">
+              <i className="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+          ) : (
+            <button onClick={onLoginClick} className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-1.5 rounded-xl text-sm font-bold transition-all shadow-md shadow-teal-500/30 active:scale-95">
+              <i className="fa-solid fa-user-plus"></i> Join Us
+            </button>
+          )}
         </div>
+
+        {/* 🌟 Right Side (Mobile Navbar) */}
+        <div className="flex md:hidden items-center gap-2 shrink-0">
+          {/* Mobile Language Button (Quick access) */}
+          <button onClick={() => setIsLangOpen(!isLangOpen)} className="h-9 w-9 flex items-center justify-center bg-slate-50 border border-slate-200 text-teal-600 rounded-lg active:scale-95">
+            <i className="fa-solid fa-globe text-sm"></i>
+          </button>
+          
+          {/* Hamburger Menu Toggle */}
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="hamburger-btn h-9 w-9 flex items-center justify-center bg-slate-800 text-white rounded-lg shadow-sm active:scale-95 transition-all">
+            <i className={`fa-solid ${isMobileMenuOpen ? 'fa-xmark' : 'fa-bars'} text-lg`}></i>
+          </button>
+        </div>
+
+        {/* 🌟 Mobile Language Dropdown (Overlay) */}
+        {isLangOpen && (
+          <div className="absolute md:hidden top-[110%] right-4 w-48 bg-white border border-slate-100 rounded-xl shadow-xl overflow-hidden py-1 z-[100] notranslate animate-fade-in-up">
+            <div className="max-h-[50vh] overflow-y-auto lang-scrollbar flex flex-col">
+              {languages.map((lang) => (
+                <button key={lang.code} onClick={() => translatePage(lang.code, lang.name)} className={`w-full text-left px-4 py-2 text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors ${currentLang === lang.name.split(' ')[0] ? 'bg-teal-50 text-teal-700 font-bold' : 'text-slate-600 font-medium'}`}>
+                  {lang.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
+
+      {/* 🌟 Mobile Hamburger Menu Dropdown 🌟 */}
+      {isMobileMenuOpen && (
+        <div ref={mobileMenuRef} className="md:hidden absolute top-full left-0 w-full bg-white border-b border-slate-100 shadow-xl z-40 animate-fade-in">
+          <div className="p-4 flex flex-col gap-3">
+            
+            {isAuthenticated ? (
+              <div className="flex items-center gap-3 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50">
+                <div className="h-10 w-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-lg shadow-inner">
+                  <i className="fa-solid fa-user-astronaut"></i>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Logged In As</p>
+                  <p className="text-sm font-black text-slate-800 notranslate">{userName}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <p className="text-sm font-bold text-slate-600">Welcome, Explorer!</p>
+                <p className="text-xs text-slate-400 mt-1">Join the community to unlock features.</p>
+              </div>
+            )}
+
+            {isAdmin && (
+              <button onClick={() => { onAdminClick(); setIsMobileMenuOpen(false); }} className="w-full flex items-center justify-center gap-2 bg-slate-800 text-white py-3 rounded-xl text-sm font-bold shadow-md active:scale-95">
+                <i className="fa-solid fa-shield-halved"></i> Admin Dashboard
+              </button>
+            )}
+
+            {isAuthenticated ? (
+              <button onClick={() => { onLogout(); setIsMobileMenuOpen(false); }} className="w-full flex items-center justify-center gap-2 bg-rose-50 text-rose-600 border border-rose-200 py-3 rounded-xl text-sm font-bold active:scale-95">
+                <i className="fa-solid fa-right-from-bracket"></i> Secure Logout
+              </button>
+            ) : (
+              <button onClick={() => { onLoginClick(); setIsMobileMenuOpen(false); }} className="w-full flex items-center justify-center gap-2 bg-teal-600 text-white py-3 rounded-xl text-sm font-bold shadow-md shadow-teal-500/30 active:scale-95">
+                <i className="fa-solid fa-user-plus"></i> Login / Create Account
+              </button>
+            )}
+
+          </div>
+        </div>
+      )}
     </header>
   );
-      }
+  }
