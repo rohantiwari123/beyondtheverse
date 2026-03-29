@@ -20,7 +20,7 @@ export default function App() {
   // 🌟 Authentication States
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [userName, setUserName] = useState(""); // नाम स्टोर करने के लिए
+  const [userName, setUserName] = useState(""); 
   
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
@@ -31,34 +31,35 @@ export default function App() {
   const [totalRaised, setTotalRaised] = useState(0);
   const [targetAmount, setTargetAmount] = useState(50000);
 
-  // 🌟 Auto-Login Check & Name Fetching 🌟
+  // 🌟 Auto-Login Check & Name Fetching (With Detective Alerts) 🌟
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        
-        // हमने यहाँ से पुराना emailVerified वाला पहरेदार हटा दिया है 
-        // क्योंकि अब EmailJS पहले ही OTP वेरीफाई कर लेता है!
-
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
+          
           if (userDoc.exists()) {
             const role = userDoc.data().role;
-            const name = userDoc.data().name || "User"; // 🌟 नाम निकाला
+            const name = userDoc.data().name || "User"; 
             
             setIsAuthenticated(true);
             setIsAdmin(role === 'admin');
-            setUserName(name); // 🌟 नाम State में सेट किया
+            setUserName(name); 
           } else {
+            // 🚨 जासूस 1: डेटाबेस में यूज़र नहीं मिला!
+            alert("🚨 Busted 1: Firestore mein user ka data nahi mila! Signing out...");
             setIsAuthenticated(false);
             setIsAdmin(false);
             setUserName("");
             await signOut(auth);
           }
         } catch (error) {
-          console.error("Error fetching user role:", error);
+          // 🚨 जासूस 2: फायरबेस ने डेटा पढ़ने से मना कर दिया!
+          alert("🚨 Busted 2: Database Rules Error -> " + error.message);
           setIsAuthenticated(false);
         }
       } else {
+        // अगर फायरबेस को ब्राउज़र में कोई लॉगिन नहीं मिला
         setIsAuthenticated(false);
         setIsAdmin(false);
         setUserName("");
@@ -130,7 +131,7 @@ export default function App() {
       {isAuthenticated && (
         <Header 
           isAdmin={isAdmin} 
-          userName={userName} // 🌟 Header को नाम भेज दिया
+          userName={userName} 
           onAdminClick={() => setIsAdminModalOpen(true)} 
           onLogout={handleLogout}
         />
@@ -143,8 +144,16 @@ export default function App() {
           } />
 
           <Route path="/" element={
-  isAuthenticated ? <HomePage isAdmin={isAdmin} onNavigateToDonate={() => navigate('/donate')} /> : <Navigate to="/login" />
-} />
+            isAuthenticated ? (
+              <HomePage 
+                isAdmin={isAdmin} 
+                donations={donations} 
+                totalRaised={totalRaised} 
+                targetAmount={targetAmount} 
+                onNavigateToDonate={() => navigate('/donate')} 
+              />
+            ) : <Navigate to="/login" />
+          } />
           
           <Route path="/donate" element={
             isAuthenticated ? <DonationPage showToast={showToast} onBack={() => navigate('/')} /> : <Navigate to="/login" />
@@ -167,4 +176,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-}
+      }
