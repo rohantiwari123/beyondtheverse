@@ -173,6 +173,8 @@ export default function App() {
           <Route path="/" element={
             <HomePage 
               isAdmin={isAdmin} 
+              isAuthenticated={isAuthenticated} // 🌟 NAYA: Isse pata chalega client logged in hai ya nahi
+              userName={userName} // 🌟 NAYA: User ka naam dikhane ke liye
               donations={donations} 
               totalRaised={totalRaised} 
               targetAmount={targetAmount} 
