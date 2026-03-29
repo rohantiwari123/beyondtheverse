@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from '../../firebase';
+// 🌟 NAYA: useNavigate import kiya taaki login page par bhej sakein
+import { useNavigate } from 'react-router-dom';
 
-export default function StorySection() {
+// 🌟 NAYA: Props me 'isAuthenticated' receive kar rahe hain
+export default function StorySection({ isAuthenticated }) {
   const [subjects, setSubjects] = useState([]);
+  const navigate = useNavigate(); // 🌟 Navigation hook
 
   useEffect(() => {
     const q = query(collection(db, "subjects"), orderBy("timestamp", "asc"));
@@ -83,7 +87,7 @@ export default function StorySection() {
           </div>
         </div>
 
-        {/* 🌟 NAYA: DYNAMIC CAROUSEL SECTION (100% Working Images) 🌟 */}
+        {/* Dynamic Carousel Section */}
         <div className="bg-slate-50 border border-slate-100 rounded-xl pt-6 pb-2 overflow-hidden">
           <div className="px-6 mb-4">
             <h4 className="font-bold text-slate-800 mb-1 text-sm uppercase tracking-wider flex items-center gap-2">
@@ -94,17 +98,12 @@ export default function StorySection() {
             </p>
           </div>
           
-          {/* Carousel Wrapper */}
           <div className="flex overflow-x-auto snap-x snap-mandatory gap-5 px-6 pb-6 carousel-container">
             {subjects.length === 0 ? (
                <p className="text-sm text-slate-400 italic w-full text-center py-10">No subjects added yet.</p>
             ) : (
               subjects.map((sub) => (
-                <div 
-                  key={sub.id} 
-                  className="snap-center shrink-0 w-72 sm:w-80 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-all group"
-                >
-                  {/* Super Fast Seed Image Engine */}
+                <div key={sub.id} className="snap-center shrink-0 w-72 sm:w-80 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-all group">
                   <div className="h-36 bg-slate-800 relative overflow-hidden">
                     <img 
                       src={`https://picsum.photos/seed/${encodeURIComponent(sub.name)}/400/200`} 
@@ -115,18 +114,12 @@ export default function StorySection() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
                     <div className="absolute bottom-3 left-4 right-4">
-                      <h4 className="text-white font-extrabold text-lg leading-tight shadow-sm notranslate">
-                        {sub.name}
-                      </h4>
+                      <h4 className="text-white font-extrabold text-lg leading-tight shadow-sm notranslate">{sub.name}</h4>
                     </div>
                   </div>
-
-                  {/* Scrollable Text Body (Full Text) */}
                   <div className="p-5 flex-1 flex flex-col bg-white">
                     <div className="max-h-36 overflow-y-auto pr-3 card-text-scroll">
-                      <p className="text-sm text-slate-600 leading-relaxed">
-                        {sub.definition}
-                      </p>
+                      <p className="text-sm text-slate-600 leading-relaxed">{sub.definition}</p>
                     </div>
                   </div>
                 </div>
@@ -134,7 +127,6 @@ export default function StorySection() {
             )}
           </div>
         </div>
-
       </div>
 
       {/* 3. Rules & Ethics */}
@@ -157,45 +149,46 @@ export default function StorySection() {
               <p className="text-xs text-slate-400 mt-1">No conclusion will be accepted without adequate investigation and observation.</p>
             </div>
           </div>
-          <div className="flex gap-4 items-start bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-            <i className="fa-solid fa-comments text-teal-400 text-xl mt-1"></i>
-            <div>
-              <h5 className="font-bold text-slate-200">Purpose of Dialogue</h5>
-              <p className="text-xs text-slate-400 mt-1">Our goal is to develop clarity and understanding—not to win arguments.</p>
-            </div>
-          </div>
-          <div className="flex gap-4 items-start bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-            <i className="fa-solid fa-ban text-teal-400 text-xl mt-1"></i>
-            <div>
-              <h5 className="font-bold text-slate-200">No-Spam Policy</h5>
-              <p className="text-xs text-slate-400 mt-1">Irrelevant messages, promotional content, and emotional reactions will not be encouraged.</p>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* 4. Call to Action */}
+      {/* 4. Call to Action (🔒 SECURED WITH LOGIN CHECK) */}
       <div className="bg-teal-50 border border-teal-100 rounded-2xl p-6 text-center space-y-4">
         <p className="text-teal-800 font-medium italic">
           "This is an invitation—not just to gather information, but to join an honest process of seeing, testing, and understanding."
         </p>
         
         <div className="flex justify-center pt-2">
-          <a 
-            href="https://chat.whatsapp.com/EXTq8cGEOcwAcrZN8fr4qw?mode=gi_t_" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 bg-[#25D366] hover:bg-[#1EBE57] text-white font-bold py-3 px-6 rounded-xl transition-transform transform hover:scale-105 shadow-lg shadow-green-500/30"
-          >
-            <i className="fa-brands fa-whatsapp text-2xl"></i>
-            Join WhatsApp Group
-          </a>
+          {isAuthenticated ? (
+            // 🔓 AGAR LOGGED IN HAI: Asli WhatsApp Button Dikhao
+            <a 
+              href="https://chat.whatsapp.com/EXTq8cGEOcwAcrZN8fr4qw?mode=gi_t_" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 bg-[#25D366] hover:bg-[#1EBE57] text-white font-bold py-3 px-6 rounded-xl transition-transform transform hover:scale-105 shadow-lg shadow-green-500/30"
+            >
+              <i className="fa-brands fa-whatsapp text-2xl"></i>
+              Join WhatsApp Group
+            </a>
+          ) : (
+            // 🔒 AGAR LOGGED IN NAHI HAI: Login Button Dikhao
+            <button 
+              onClick={() => navigate('/login')}
+              className="inline-flex items-center gap-3 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-6 rounded-xl transition-transform transform hover:scale-105 shadow-lg shadow-slate-900/20"
+            >
+              <i className="fa-solid fa-lock text-xl text-teal-400"></i>
+              Login to Join Community
+            </button>
+          )}
         </div>
+        
         <p className="text-xs text-slate-500 mt-2">
-          This initiative is non-commercial. Your voluntary contribution is accepted through the form below.
+          {isAuthenticated 
+            ? "Thank you for being a part of Beyond The Verse." 
+            : "Create a free account to unlock community access and premium features."}
         </p>
       </div>
 
     </div>
   );
-      }
+            }
