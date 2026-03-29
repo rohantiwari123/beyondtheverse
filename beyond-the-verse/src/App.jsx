@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
-// 🌟 NAYA: setDoc ko import kiya gaya hai Auto-Heal ke liye 🌟
+// 🌟 NAYA: useLocation import kiya gaya hai
+import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { onSnapshot, collection, doc, getDoc, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth'; 
 import { auth, db } from './firebase'; 
@@ -17,6 +17,7 @@ import DonationPage from './components/DonationPage/DonationPage';
 
 export default function App() {
   const navigate = useNavigate();
+  const location = useLocation(); // 🌟 करंट पेज चेक करने के लिए
   
   // 🌟 Authentication States
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -47,11 +48,10 @@ export default function App() {
             setIsAdmin(role === 'admin');
             setUserName(name); 
           } else {
-            // 🌟 AUTO-HEAL JADOO: अलर्ट हटा दिया। अगर यूज़र नहीं मिला तो चुपचाप नया बना दो!
             await setDoc(doc(db, 'users', user.uid), {
-              name: "User", // डिफ़ॉल्ट नाम
+              name: "User", 
               email: user.email,
-              role: 'client', // हमेशा क्लाइंट रोल दो सिक्योरिटी के लिए
+              role: 'client', 
               createdAt: Date.now()
             });
             
@@ -60,12 +60,10 @@ export default function App() {
             setUserName("User");
           }
         } catch (error) {
-          // अगर रूल्स या नेटवर्क की वजह से एरर आए तो अलर्ट मत दिखाओ, बस कंसोल में प्रिंट कर दो
           console.error("Database or Auth Error:", error);
           setIsAuthenticated(false);
         }
       } else {
-        // अगर फायरबेस को ब्राउज़र में कोई लॉगिन नहीं मिला
         setIsAuthenticated(false);
         setIsAdmin(false);
         setUserName("");
@@ -76,10 +74,8 @@ export default function App() {
     return () => unsubscribeAuth();
   }, []);
 
-  // Live Donations & Goal Fetch
+  // Live Donations & Goal Fetch (Ab ye bina login ke bhi chalega taaki donation page par live goal dikhe)
   useEffect(() => {
-    if (!isAuthenticated) return; 
-
     const unsubDonations = onSnapshot(collection(db, 'donations'), (snapshot) => {
       let total = 0; let list = [];
       snapshot.forEach(doc => { total += (Number(doc.data().amount) || 0); list.push({ id: doc.id, ...doc.data() }); });
@@ -92,7 +88,7 @@ export default function App() {
     });
 
     return () => { unsubDonations(); unsubConfig(); };
-  }, [isAuthenticated]);
+  }, []); // 🌟 NAYA: Yahan se [isAuthenticated] hata diya taaki public page par bhi graph chale
 
   const showToast = (message, isSuccess = true) => {
     setToast({ show: true, message, isSuccess });
@@ -143,7 +139,8 @@ export default function App() {
         />
       )}
 
-      <main className={`relative z-10 ${isAuthenticated ? 'max-w-6xl mx-auto px-4 py-8 md:py-12' : ''}`}>
+      {/* 🌟 NAYA: Donation page par styling set karne ka logic */}
+      <main className={`relative z-10 ${isAuthenticated || location.pathname === '/donate' ? 'max-w-6xl mx-auto px-4 py-8 md:py-12' : ''}`}>
         <Routes>
           <Route path="/login" element={
             !isAuthenticated ? <LoginPage onLogin={handleLogin} showToast={showToast} /> : <Navigate to="/" />
@@ -161,8 +158,9 @@ export default function App() {
             ) : <Navigate to="/login" />
           } />
           
+          {/* 🔓 🌟 MASTER UNLOCK: Donation Page sabke liye Public kar diya! 🌟 🔓 */}
           <Route path="/donate" element={
-            isAuthenticated ? <DonationPage showToast={showToast} onBack={() => navigate('/')} /> : <Navigate to="/login" />
+            <DonationPage showToast={showToast} onBack={() => navigate('/')} />
           } />
           
           <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
@@ -182,4 +180,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-        }
+                                      }
