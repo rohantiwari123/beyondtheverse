@@ -77,8 +77,8 @@ export default function HomePage({ onNavigateToDonate, isAdmin, isAuthenticated,
         </div>
       )}
 
-      {/* 3. Hero & Philosophy (Ye sabko dikhega) */}
-      <StorySection />
+{/* 3. Hero & Philosophy */}
+<StorySection isAuthenticated={isAuthenticated} />
 
       {/* 4. Beautiful Support CTA Banner (Ye sabko dikhega) */}
       <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-teal-950 rounded-3xl p-8 md:p-12 text-center text-white shadow-2xl relative overflow-hidden border border-slate-700">
