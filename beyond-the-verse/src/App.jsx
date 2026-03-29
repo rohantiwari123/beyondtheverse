@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-// 🌟 NAYA: useLocation import kiya gaya hai
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
-import { onSnapshot, collection, doc, getDoc, setDoc } from 'firebase/firestore';
+import { onSnapshot, collection, doc, getDoc } from 'firebase/firestore'; // 🌟 setDoc हटा दिया (Auto-heal gone)
 import { onAuthStateChanged, signOut } from 'firebase/auth'; 
 import { auth, db } from './firebase'; 
 
@@ -15,16 +14,35 @@ import LoginPage from './components/LoginPage/LoginPage';
 import HomePage from './components/HomePage/HomePage';
 import DonationPage from './components/DonationPage/DonationPage';
 
+// 🍪 COOKIE HELPERS (डेटा को फोन में परमानेंट सेव रखने के लिए)
+const setCookie = (name, value, days) => {
+  const date = new Date();
+  date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+  document.cookie = `${name}=${JSON.stringify(value)};expires=${date.toUTCString()};path=/`;
+};
+
+const getCookie = (name) => {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  if (match) return JSON.parse(match[2]);
+  return null;
+};
+
+const eraseCookie = (name) => {
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
+};
+
 export default function App() {
   const navigate = useNavigate();
-  const location = useLocation(); // 🌟 करंट पेज चेक करने के लिए
+  const location = useLocation(); 
+
+  // 🌟 INITIALIZE FROM COOKIE (ताकि रिफ्रेश करते ही तुरंत नाम दिखे, कोई लोडिंग नहीं!)
+  const savedUser = getCookie('btv_user');
   
-  // 🌟 Authentication States
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [userName, setUserName] = useState(""); 
+  const [isAuthenticated, setIsAuthenticated] = useState(!!savedUser);
+  const [isAdmin, setIsAdmin] = useState(savedUser?.role === 'admin');
+  const [userName, setUserName] = useState(savedUser?.name || ""); 
   
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(!savedUser); 
 
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', isSuccess: true });
@@ -33,7 +51,7 @@ export default function App() {
   const [totalRaised, setTotalRaised] = useState(0);
   const [targetAmount, setTargetAmount] = useState(50000);
 
-  // 🌟 Auto-Login Check & Name Fetching (With AUTO-HEAL 🪄) 🌟
+  // 🌟 FIREBASE CHECKER (बैकग्राउंड में चुपचाप कुकी को अपडेट करेगा)
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -47,23 +65,23 @@ export default function App() {
             setIsAuthenticated(true);
             setIsAdmin(role === 'admin');
             setUserName(name); 
+
+            // 🍪 कुकी को 30 दिन के लिए अपडेट कर दो
+            setCookie('btv_user', { uid: user.uid, role, name }, 30);
           } else {
-            await setDoc(doc(db, 'users', user.uid), {
-              name: "User", 
-              email: user.email,
-              role: 'client', 
-              createdAt: Date.now()
-            });
-            
-            setIsAuthenticated(true);
+            // 🚨 AUTO-HEAL REMOVED! अगर डेटाबेस में नहीं है, तो तुरंत बाहर फेंको
+            await signOut(auth);
+            eraseCookie('btv_user');
+            setIsAuthenticated(false);
             setIsAdmin(false);
-            setUserName("User");
+            setUserName("");
           }
         } catch (error) {
           console.error("Database or Auth Error:", error);
-          setIsAuthenticated(false);
         }
       } else {
+        // अगर फायरबेस लॉगआउट है, तो कुकी उड़ा दो
+        eraseCookie('btv_user');
         setIsAuthenticated(false);
         setIsAdmin(false);
         setUserName("");
@@ -74,7 +92,7 @@ export default function App() {
     return () => unsubscribeAuth();
   }, []);
 
-  // Live Donations & Goal Fetch (Ab ye bina login ke bhi chalega taaki donation page par live goal dikhe)
+  // Live Donations & Goal Fetch (Public)
   useEffect(() => {
     const unsubDonations = onSnapshot(collection(db, 'donations'), (snapshot) => {
       let total = 0; let list = [];
@@ -88,7 +106,7 @@ export default function App() {
     });
 
     return () => { unsubDonations(); unsubConfig(); };
-  }, []); // 🌟 NAYA: Yahan se [isAuthenticated] hata diya taaki public page par bhi graph chale
+  }, []); 
 
   const showToast = (message, isSuccess = true) => {
     setToast({ show: true, message, isSuccess });
@@ -96,6 +114,7 @@ export default function App() {
   };
 
   const handleLogin = (role) => {
+    // कुकी बैकग्राउंड में useEffect बना लेगा, बस UI अपडेट कर दो
     setIsAuthenticated(true);
     setIsAdmin(role === 'admin');
     navigate('/');
@@ -103,6 +122,7 @@ export default function App() {
 
   const handleLogout = async () => {
     await signOut(auth);
+    eraseCookie('btv_user'); // 🍪 कुकी भी उड़ाओ
     setIsAuthenticated(false);
     setIsAdmin(false);
     setUserName(""); 
@@ -117,11 +137,14 @@ export default function App() {
           <i className="fa-solid fa-atom text-4xl text-teal-600"></i>
         </div>
         <div className="flex items-center gap-2 text-slate-500 font-bold text-sm">
-          <i className="fa-solid fa-circle-notch fa-spin text-teal-600"></i> Securely connecting...
+          <i className="fa-solid fa-circle-notch fa-spin text-teal-600"></i> Securing session...
         </div>
       </div>
     );
   }
+
+  // Header ko public pages par bhi show karo (agar chahein to), par abhi ke liye auth par chhod dete hain
+  const isPublicPage = location.pathname === '/' || location.pathname === '/donate';
 
   return (
     <div className="relative min-h-screen bg-[#f8fafc] font-[Poppins] text-slate-800 antialiased overflow-hidden">
@@ -130,40 +153,39 @@ export default function App() {
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none"></div>
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-teal-400/20 rounded-full blur-[100px] pointer-events-none"></div>
       
-      {isAuthenticated && (
-        <Header 
-          isAdmin={isAdmin} 
-          userName={userName} 
-          onAdminClick={() => setIsAdminModalOpen(true)} 
-          onLogout={handleLogout}
-        />
-      )}
+      {/* Header ab sabko dikhega, chahe login ho ya nahi (Professional look) */}
+      <Header 
+        isAdmin={isAdmin} 
+        userName={userName} 
+        isAuthenticated={isAuthenticated} // 🌟 Naya prop bheja ja sakta hai aage chalkar login button dikhane ke liye
+        onAdminClick={() => setIsAdminModalOpen(true)} 
+        onLogout={handleLogout}
+        onLoginClick={() => navigate('/login')}
+      />
 
-      {/* 🌟 NAYA: Donation page par styling set karne ka logic */}
-      <main className={`relative z-10 ${isAuthenticated || location.pathname === '/donate' ? 'max-w-6xl mx-auto px-4 py-8 md:py-12' : ''}`}>
+      <main className={`relative z-10 ${isPublicPage ? 'max-w-6xl mx-auto px-4 py-8 md:py-12' : ''}`}>
         <Routes>
           <Route path="/login" element={
             !isAuthenticated ? <LoginPage onLogin={handleLogin} showToast={showToast} /> : <Navigate to="/" />
           } />
 
+          {/* 🔓 1. MASTER UNLOCK: Home Page Public kar diya gaya hai! */}
           <Route path="/" element={
-            isAuthenticated ? (
-              <HomePage 
-                isAdmin={isAdmin} 
-                donations={donations} 
-                totalRaised={totalRaised} 
-                targetAmount={targetAmount} 
-                onNavigateToDonate={() => navigate('/donate')} 
-              />
-            ) : <Navigate to="/login" />
+            <HomePage 
+              isAdmin={isAdmin} 
+              donations={donations} 
+              totalRaised={totalRaised} 
+              targetAmount={targetAmount} 
+              onNavigateToDonate={() => navigate('/donate')} 
+            />
           } />
           
-          {/* 🔓 🌟 MASTER UNLOCK: Donation Page sabke liye Public kar diya! 🌟 🔓 */}
+          {/* 🔓 2. Donation Page Public */}
           <Route path="/donate" element={
             <DonationPage showToast={showToast} onBack={() => navigate('/')} />
           } />
           
-          <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
 
@@ -180,4 +202,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-                                      }
+        }
