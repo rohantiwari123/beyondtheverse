@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
-import { onSnapshot, collection, doc, getDoc } from 'firebase/firestore';
+// 🌟 NAYA: setDoc ko import kiya gaya hai Auto-Heal ke liye 🌟
+import { onSnapshot, collection, doc, getDoc, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth'; 
 import { auth, db } from './firebase'; 
 
@@ -31,7 +32,7 @@ export default function App() {
   const [totalRaised, setTotalRaised] = useState(0);
   const [targetAmount, setTargetAmount] = useState(50000);
 
-  // 🌟 Auto-Login Check & Name Fetching (With Detective Alerts) 🌟
+  // 🌟 Auto-Login Check & Name Fetching (With AUTO-HEAL 🪄) 🌟
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -46,16 +47,21 @@ export default function App() {
             setIsAdmin(role === 'admin');
             setUserName(name); 
           } else {
-            // 🚨 जासूस 1: डेटाबेस में यूज़र नहीं मिला!
-            alert("🚨 Busted 1: Firestore mein user ka data nahi mila! Signing out...");
-            setIsAuthenticated(false);
+            // 🌟 AUTO-HEAL JADOO: अलर्ट हटा दिया। अगर यूज़र नहीं मिला तो चुपचाप नया बना दो!
+            await setDoc(doc(db, 'users', user.uid), {
+              name: "User", // डिफ़ॉल्ट नाम
+              email: user.email,
+              role: 'client', // हमेशा क्लाइंट रोल दो सिक्योरिटी के लिए
+              createdAt: Date.now()
+            });
+            
+            setIsAuthenticated(true);
             setIsAdmin(false);
-            setUserName("");
-            await signOut(auth);
+            setUserName("User");
           }
         } catch (error) {
-          // 🚨 जासूस 2: फायरबेस ने डेटा पढ़ने से मना कर दिया!
-          alert("🚨 Busted 2: Database Rules Error -> " + error.message);
+          // अगर रूल्स या नेटवर्क की वजह से एरर आए तो अलर्ट मत दिखाओ, बस कंसोल में प्रिंट कर दो
+          console.error("Database or Auth Error:", error);
           setIsAuthenticated(false);
         }
       } else {
@@ -176,4 +182,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-      }
+        }
