@@ -55,7 +55,7 @@ export default function LoginPage({ onLogin, showToast }) {
 
     try {
       await emailjs.send(
-        'service_wdi6gpu', // अपनी असली Service ID
+        'service_2cyd1id', // अपनी असली Service ID
         'template_2x68oex', // अपनी असली Template ID
         { to_name: fullName, to_email: email, otp_code: newOtp },
         'HZr8hKSA5jdTwvwVK' // अपनी असली Public Key
