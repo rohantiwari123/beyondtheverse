@@ -87,35 +87,31 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* 4. JOIN THE MOVEMENT CTA */}
-      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100/50 rounded-2xl sm:rounded-[2rem] p-8 sm:p-12 text-center shadow-sm relative overflow-hidden">
-        <i className="fa-solid fa-rocket absolute -bottom-10 -left-10 text-[150px] text-indigo-500/5 rotate-45"></i>
+      {/* 🌟 4. NAYA: UNIQUE ENDING (No more repetitive buttons) 🌟 */}
+      <div className="bg-white border border-slate-200 rounded-2xl sm:rounded-[2rem] p-8 sm:p-12 text-center shadow-sm relative overflow-hidden flex flex-col items-center justify-center">
+        {/* Subtle decorative quote marks */}
+        <i className="fa-solid fa-quote-left absolute top-8 left-8 text-6xl text-slate-50 opacity-50"></i>
         
         <div className="relative z-10 max-w-2xl mx-auto space-y-6">
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-800">Ready to explore the unknown?</h2>
-          <p className="text-slate-600 text-sm sm:text-base font-medium">
-            This initiative is entirely non-profit and community-driven. You can support us by joining the dialogue or contributing to our operational costs.
+          <div className="w-16 h-1 bg-teal-500 mx-auto rounded-full mb-6"></div>
+          
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 leading-relaxed italic">
+            "The journey of a thousand miles into the universe begins with a single step into your own mind."
+          </h2>
+          
+          <p className="text-slate-500 text-sm sm:text-base font-medium pb-4">
+            You know our story. Now it's time to explore the subjects we are decoding.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <button 
-              onClick={() => navigate('/donate')}
-              className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-black py-3.5 px-8 rounded-xl transition-all shadow-lg shadow-teal-500/30 active:scale-95"
-            >
-              Support the Mission
-            </button>
-            <a 
-              href="https://chat.whatsapp.com/EXTq8cGEOcwAcrZN8fr4qw?mode=gi_t_" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-black py-3.5 px-8 rounded-xl transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
-            >
-              <i className="fa-brands fa-whatsapp text-green-500 text-lg"></i> Join Community
-            </a>
-          </div>
+          <button 
+            onClick={() => navigate('/')}
+            className="inline-flex items-center justify-center gap-3 bg-slate-900 hover:bg-slate-800 text-white font-black py-3.5 px-8 rounded-xl transition-all shadow-xl shadow-slate-900/20 active:scale-95"
+          >
+            <i className="fa-solid fa-layer-group text-teal-400"></i> Explore Research Topics
+          </button>
         </div>
       </div>
 
     </div>
   );
-      }
+        }
