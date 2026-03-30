@@ -13,6 +13,7 @@ import Toast from './components/Toast';
 import LoginPage from './components/LoginPage/LoginPage';
 import HomePage from './components/HomePage/HomePage';
 import DonationPage from './components/DonationPage/DonationPage';
+import AboutPage from './components/AboutPage/AboutPage';
 
 // 🍪 COOKIE HELPERS (डेटा को फोन में परमानेंट सेव रखने के लिए)
 const setCookie = (name, value, days) => {
@@ -183,7 +184,8 @@ export default function App() {
               onNavigateToDonate={() => navigate('/donate')} 
             />
           } />
-          
+
+          <Route path="/about" element={<AboutPage />} />
           {/* 🔓 2. Donation Page Public */}
           <Route path="/donate" element={
             <DonationPage showToast={showToast} onBack={() => navigate('/')} />
