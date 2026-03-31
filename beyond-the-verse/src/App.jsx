@@ -64,8 +64,11 @@ export default function App() {
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none"></div>
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-teal-400/20 rounded-full blur-[100px] pointer-events-none"></div>
 
+      {/* Header Sirf Login Page pe Hide Hoga */}
       {location.pathname !== '/login' && (
         <Header onAdminClick={() => setIsAdminModalOpen(true)} />
+      )}   {/* 🌟 YAHAN PAR YE )} LAGANA HAI 🌟 */}
+
       <main className={`relative z-10 ${isPublicPage ? 'max-w-7xl mx-auto px-2 sm:px-4 py-6 md:py-10' : ''}`}>
         <Routes>
           <Route path="/login" element={
