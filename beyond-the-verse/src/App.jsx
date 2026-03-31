@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
-import { onSnapshot, collection, doc, getDoc } from 'firebase/firestore'; // 🌟 setDoc हटा दिया (Auto-heal gone)
+import { onSnapshot, collection, doc, getDoc } from 'firebase/firestore'; // 🌟 setDoc hata diya!
 import { onAuthStateChanged, signOut } from 'firebase/auth'; 
 import { auth, db } from './firebase'; 
 
-// Global Components
-import Header from './components/Header';
-import AdminModal from './components/AdminModal';
+import Header from './components/Layout/Header';
 import Toast from './components/Toast';
+import AdminModal from './components/AdminModal'; 
 
-// Pages
-import LoginPage from './components/LoginPage/LoginPage';
-import HomePage from './components/HomePage/HomePage';
-import DonationPage from './components/DonationPage/DonationPage';
-import AboutPage from './components/AboutPage/AboutPage';
+import LoginPage from './pages/Auth/LoginPage';
+import HomePage from './pages/Home/HomePage';
+import DonationPage from './pages/Donate/DonationPage';
+import AboutPage from './pages/About/AboutPage';
 
-// 🍪 COOKIE HELPERS (डेटा को फोन में परमानेंट सेव रखने के लिए)
+// 🍪 COOKIES (रिफ्रेश पर फ्लैश रोकने के लिए)
 const setCookie = (name, value, days) => {
   const date = new Date();
   date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -36,7 +34,6 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation(); 
 
-  // 🌟 INITIALIZE FROM COOKIE (ताकि रिफ्रेश करते ही तुरंत नाम दिखे, कोई लोडिंग नहीं!)
   const savedUser = getCookie('btv_user');
   
   const [isAuthenticated, setIsAuthenticated] = useState(!!savedUser);
@@ -52,36 +49,42 @@ export default function App() {
   const [totalRaised, setTotalRaised] = useState(0);
   const [targetAmount, setTargetAmount] = useState(50000);
 
-  // 🌟 FIREBASE CHECKER (बैकग्राउंड में चुपचाप कुकी को अपडेट करेगा)
+  // 🌟 PURE FIREBASE AUTH (No Fake Names, No Refresh Logouts) 🌟
   useEffect(() => {
+    // Firebase Auth apne aap refresh handle karta hai
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           
           if (userDoc.exists()) {
-            const role = userDoc.data().role;
-            const name = userDoc.data().name || "User"; 
+            // 1. अगर डेटाबेस में असली डेटा है, तो उसे यूज़ करो
+            const role = userDoc.data().role || 'client';
+            const realName = userDoc.data().name || user.displayName || ""; 
             
             setIsAuthenticated(true);
             setIsAdmin(role === 'admin');
-            setUserName(name); 
-
-            // 🍪 कुकी को 30 दिन के लिए अपडेट कर दो
-            setCookie('btv_user', { uid: user.uid, role, name }, 30);
+            setUserName(realName); 
+            setCookie('btv_user', { uid: user.uid, role, name: realName }, 30);
           } else {
-            // 🚨 AUTO-HEAL REMOVED! अगर डेटाबेस में नहीं है, तो तुरंत बाहर फेंको
-            await signOut(auth);
-            eraseCookie('btv_user');
-            setIsAuthenticated(false);
+            // 2. अगर डेटाबेस में नहीं है (जैसे अभी-अभी Signup किया है)
+            // 🚨 FAKE DATA SAVE NAHI KARENGE 🚨
+            // बस फायरबेस से जो नाम मिला है (या खाली) उसे दिखाएंगे, Logout नहीं करेंगे।
+            const tempName = user.displayName || ""; 
+            
+            setIsAuthenticated(true);
             setIsAdmin(false);
-            setUserName("");
+            setUserName(tempName);
+            setCookie('btv_user', { uid: user.uid, role: 'client', name: tempName }, 30);
           }
         } catch (error) {
-          console.error("Database or Auth Error:", error);
+          // 3. इंटरनेट स्लो होने पर एरर आए, तो भी Logout मत करो!
+          console.error("Database connection delayed, keeping session alive...");
+          setIsAuthenticated(true); 
+          setUserName(user.displayName || getCookie('btv_user')?.name || "");
         }
       } else {
-        // अगर फायरबेस लॉगआउट है, तो कुकी उड़ा दो
+        // 4. जब यूज़र सच में Logout बटन दबाए
         eraseCookie('btv_user');
         setIsAuthenticated(false);
         setIsAdmin(false);
@@ -93,7 +96,7 @@ export default function App() {
     return () => unsubscribeAuth();
   }, []);
 
-  // Live Donations & Goal Fetch (Public)
+  // Live Donations Fetch
   useEffect(() => {
     const unsubDonations = onSnapshot(collection(db, 'donations'), (snapshot) => {
       let total = 0; let list = [];
@@ -115,7 +118,6 @@ export default function App() {
   };
 
   const handleLogin = (role) => {
-    // कुकी बैकग्राउंड में useEffect बना लेगा, बस UI अपडेट कर दो
     setIsAuthenticated(true);
     setIsAdmin(role === 'admin');
     navigate('/');
@@ -123,7 +125,7 @@ export default function App() {
 
   const handleLogout = async () => {
     await signOut(auth);
-    eraseCookie('btv_user'); // 🍪 कुकी भी उड़ाओ
+    eraseCookie('btv_user');
     setIsAuthenticated(false);
     setIsAdmin(false);
     setUserName(""); 
@@ -134,27 +136,24 @@ export default function App() {
   if (isCheckingAuth) {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center">
-        <div className="h-16 w-16 bg-teal-50 rounded-2xl flex items-center justify-center mb-4 animate-pulse">
+        <div className="h-16 w-16 bg-teal-50 rounded-2xl flex items-center justify-center mb-4 animate-pulse shadow-inner border border-teal-100">
           <i className="fa-solid fa-atom text-4xl text-teal-600"></i>
         </div>
-        <div className="flex items-center gap-2 text-slate-500 font-bold text-sm">
-          <i className="fa-solid fa-circle-notch fa-spin text-teal-600"></i> Securing session...
+        <div className="flex items-center gap-2 text-slate-500 font-bold text-sm tracking-wide uppercase">
+          <i className="fa-solid fa-circle-notch fa-spin text-teal-600"></i> Securing session
         </div>
       </div>
     );
   }
 
-  // Header ko public pages par bhi show karo (agar chahein to), par abhi ke liye auth par chhod dete hain
-  const isPublicPage = location.pathname === '/' || location.pathname === '/donate';
+  const isPublicPage = location.pathname === '/' || location.pathname === '/donate' || location.pathname === '/about';
 
   return (
     <div className="relative min-h-screen bg-[#f8fafc] font-[Poppins] text-slate-800 antialiased overflow-hidden">
       
-      {/* Premium Background Glow */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none"></div>
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-teal-400/20 rounded-full blur-[100px] pointer-events-none"></div>
 
-      {/* 🌟 NAYA: Agar user '/login' page par hai, to Header hide kar do! 🌟 */}
       {location.pathname !== '/login' && (
         <Header 
           isAdmin={isAdmin} 
@@ -166,18 +165,17 @@ export default function App() {
         />
       )}
 
-      <main className={`relative z-10 ${isPublicPage ? 'max-w-6xl mx-auto px-4 py-8 md:py-12' : ''}`}>
+      <main className={`relative z-10 ${isPublicPage ? 'max-w-7xl mx-auto px-2 sm:px-4 py-6 md:py-10' : ''}`}>
         <Routes>
           <Route path="/login" element={
             !isAuthenticated ? <LoginPage onLogin={handleLogin} showToast={showToast} /> : <Navigate to="/" />
           } />
 
-          {/* 🔓 1. MASTER UNLOCK: Home Page Public kar diya gaya hai! */}
           <Route path="/" element={
             <HomePage 
               isAdmin={isAdmin} 
-              isAuthenticated={isAuthenticated} // 🌟 NAYA: Isse pata chalega client logged in hai ya nahi
-              userName={userName} // 🌟 NAYA: User ka naam dikhane ke liye
+              isAuthenticated={isAuthenticated} 
+              userName={userName} 
               donations={donations} 
               totalRaised={totalRaised} 
               targetAmount={targetAmount} 
@@ -186,7 +184,7 @@ export default function App() {
           } />
 
           <Route path="/about" element={<AboutPage />} />
-          {/* 🔓 2. Donation Page Public */}
+          
           <Route path="/donate" element={
             <DonationPage showToast={showToast} onBack={() => navigate('/')} />
           } />
@@ -208,4 +206,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-        }
+}
