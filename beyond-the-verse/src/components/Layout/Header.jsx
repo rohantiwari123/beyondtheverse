@@ -276,9 +276,14 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
               <i className="fa-solid fa-right-from-bracket"></i> Secure Logout
             </button>
           ) : (
-            <button onClick={() => { onLoginClick(); setIsMobileMenuOpen(false); }} className="w-full flex items-center justify-center gap-3 bg-teal-600 text-white py-3.5 rounded-xl text-sm font-bold shadow-md shadow-teal-500/30 active:scale-95">
-              <i className="fa-solid fa-user-plus"></i> Login / Create Account
-            </button>
+            {/* 🌟 NAYA: Button hata kar <Link> laga diya hai, ab ye 100% click hoga! */}
+<Link 
+  to="/login" 
+  onClick={() => setIsMobileMenuOpen(false)} 
+  className="w-full flex items-center justify-center gap-3 bg-teal-600 text-white py-3.5 rounded-xl text-sm font-bold shadow-md shadow-teal-500/30 active:scale-95"
+>
+  <i className="fa-solid fa-user-plus"></i> Login / Create Account
+</Link>
           )}
         </div>
       </div>
