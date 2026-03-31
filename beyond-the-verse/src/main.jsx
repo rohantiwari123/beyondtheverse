@@ -1,12 +1,14 @@
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-// 🌟 NAYA IMPORT: GitHub aur Codespaces ke liye HashRouter sabse safe hai 🌟
+// GitHub aur Codespaces ke liye HashRouter sabse safe hai
 import { HashRouter } from 'react-router-dom'; 
 import './index.css';
 import App from './App.jsx';
 
+// 🌟 NAYA: AuthProvider import kiya (Yahi sabse zaroori hai!)
+import { AuthProvider } from './context/AuthContext';
+
 // 🌟 Advanced Error Boundary 🌟
-// Agar app mein koi fatal error aata hai, toh yeh white screen aane se rokega
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -18,13 +20,11 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Yahan aap chahain toh errors ko apne database me log karwa sakte hain
     console.error("🚨 Beyond The Verse Error Log:", error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
-      // 🎨 Premium Crash UI
       return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 text-center p-4 font-[Poppins] antialiased">
           <div className="bg-white p-8 md:p-10 rounded-[2rem] shadow-2xl shadow-slate-200 max-w-md w-full border border-slate-100">
@@ -48,8 +48,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// 🌟 Pro-level Console Message 🌟
-// Jab koi developer aapki site inspect karega, toh use yeh cool message dikhega
+// Pro-level Console Message
 console.log(
   "%c🌌 Beyond The Verse is Active!", 
   "color: #0d9488; font-size: 18px; font-weight: 900; text-shadow: 1px 1px 2px rgba(0,0,0,0.1);"
@@ -63,9 +62,11 @@ console.log(
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      {/* 🌟 NAYA: App ko HashRouter ke andar lapet (wrap) diya hai 🌟 */}
       <HashRouter>
-        <App />
+        {/* 🌟 NAYA: Puri App ko AuthProvider ke andar lapet diya hai! 🌟 */}
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </HashRouter>
     </ErrorBoundary>
   </StrictMode>
