@@ -77,14 +77,11 @@ export default function App() {
 
           <Route path="/" element={
             <HomePage 
-              isAdmin={isAdmin} 
-              isAuthenticated={isAuthenticated} 
-              userName={userName} 
-              donations={donations} 
-              totalRaised={totalRaised} 
-              targetAmount={targetAmount} 
-              onNavigateToDonate={() => navigate('/donate')} 
-            />
+  donations={donations} 
+  totalRaised={totalRaised} 
+  targetAmount={targetAmount} 
+  onNavigateToDonate={() => navigate('/donate')} 
+/>
           } />
 
           <Route path="/about" element={<AboutPage />} />
