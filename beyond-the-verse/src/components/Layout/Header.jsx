@@ -246,7 +246,7 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
           })}
         </nav>
 
-        {/* Drawer Footer (Auth & User Info) */}
+      {/* Drawer Footer (Auth & User Info) */}
         <div className="p-5 border-t border-slate-100 bg-slate-50/50 flex flex-col gap-3">
           {isAuthenticated ? (
             <div className="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm mb-2">
@@ -272,21 +272,23 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
           )}
 
           {isAuthenticated ? (
-            <button onClick={() => { onLogout(); setIsMobileMenuOpen(false); }} className="w-full flex items-center justify-center gap-3 bg-rose-50 text-rose-600 border border-rose-200 py-3.5 rounded-xl text-sm font-bold active:scale-95">
+            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-3 bg-rose-50 text-rose-600 border border-rose-200 py-3.5 rounded-xl text-sm font-bold active:scale-95">
               <i className="fa-solid fa-right-from-bracket"></i> Secure Logout
             </button>
           ) : (
-            {/* 🌟 NAYA: Button hata kar <Link> laga diya hai, ab ye 100% click hoga! */}
-<Link 
-  to="/login" 
-  onClick={() => setIsMobileMenuOpen(false)} 
-  className="w-full flex items-center justify-center gap-3 bg-teal-600 text-white py-3.5 rounded-xl text-sm font-bold shadow-md shadow-teal-500/30 active:scale-95"
->
-  <i className="fa-solid fa-user-plus"></i> Login / Create Account
-</Link>
+            <Link 
+              to="/login" 
+              onClick={() => setIsMobileMenuOpen(false)} 
+              className="w-full flex items-center justify-center gap-3 bg-teal-600 text-white py-3.5 rounded-xl text-sm font-bold shadow-md shadow-teal-500/30 active:scale-95"
+            >
+              <i className="fa-solid fa-user-plus"></i> Login / Create Account
+            </Link>
           )}
         </div>
       </div>
+    </>
+  );
+}
     </>
   );
             }
