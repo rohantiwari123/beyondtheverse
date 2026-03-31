@@ -65,16 +65,7 @@ export default function App() {
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-teal-400/20 rounded-full blur-[100px] pointer-events-none"></div>
 
       {location.pathname !== '/login' && (
-        <Header 
-          isAdmin={isAdmin} 
-          userName={userName} 
-          isAuthenticated={isAuthenticated} 
-          onAdminClick={() => setIsAdminModalOpen(true)} 
-          onLogout={handleLogout}
-          onLoginClick={() => navigate('/login')}
-        />
-      )}
-
+        <Header onAdminClick={() => setIsAdminModalOpen(true)} />
       <main className={`relative z-10 ${isPublicPage ? 'max-w-7xl mx-auto px-2 sm:px-4 py-6 md:py-10' : ''}`}>
         <Routes>
           <Route path="/login" element={
