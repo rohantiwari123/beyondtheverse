@@ -1,13 +1,20 @@
 import React from 'react';
+// 🌟 JADOO: AuthContext import kiya
+import { useAuth } from '../../context/AuthContext';
 
 // Components
 import StorySection from './StorySection';
 import FAQ from './FAQ';
 
-export default function HomePage({ onNavigateToDonate, isAdmin, isAuthenticated, userName }) {
+// 🌟 NAYA: Props se isAdmin, isAuthenticated, userName hata diye! Ab sirf onNavigateToDonate bacha hai.
+export default function HomePage({ onNavigateToDonate }) {
+  
+  // 🌟 JADOO: Ab data direct Context se aa raha hai!
+  const { isAuthenticated, isAdmin, userName } = useAuth();
+
   return (
     <div className="w-full max-w-6xl mx-auto px-2 sm:px-6 lg:px-8 py-6 sm:py-12 md:py-16 space-y-12 sm:space-y-20 lg:space-y-24 animate-fade-in-up">
-      {/* 🌟 NAYA: Mobile par gap ekdam kam (px-2) kar diya hai, baaki screens par normal rahega */}
+      {/* Mobile par gap ekdam kam (px-2) kar diya hai, baaki screens par normal rahega */}
       
       {/* 👑 1. VIP ADMIN DASHBOARD */}
       {isAdmin && (
@@ -81,6 +88,7 @@ export default function HomePage({ onNavigateToDonate, isAdmin, isAuthenticated,
       )}
 
       {/* 3. Hero & Philosophy */}
+      {/* 🌟 NAYA: StorySection ke andar se isAuthenticated prop nikal sakte hain agar usko bhi context se jod dein. Par abhi chal jayega. */}
       <StorySection isAuthenticated={isAuthenticated} />
 
       {/* 4. Beautiful Support CTA Banner */}
