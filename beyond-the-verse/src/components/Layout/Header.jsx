@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
-// 🌟 NAYA: Link aur useLocation import kiye gaye hain taaki page links kaam karein
-import { Link, useLocation } from "react-router-dom"; 
+import { Link, useLocation, useNavigate } from "react-router-dom"; 
+// 🌟 JADOO: Context Import kiya
+import { useAuth } from "../../context/AuthContext";
 
-export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogout, onLoginClick, userName }) {
+export default function Header({ onAdminClick }) {
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState("English");
-  
-  // 🌟 NAYA: Mobile Drawer State
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const dropdownRef = useRef(null);
-  const location = useLocation(); // Current page pata karne ke liye
+  const location = useLocation(); 
+  const navigate = useNavigate();
 
-  // 🌟 NAYA: Navigation Menus (Desktop aur Mobile dono ke liye)
+  // 🌟 JADOO: Ab sara data context se aayega
+  const { isAuthenticated, isAdmin, userName, logout } = useAuth();
+
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
@@ -30,7 +32,13 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
     { code: 'de', name: 'Deutsch (German)' }, { code: 'ar', name: 'العربية (Arabic)' }
   ];
 
-  // Prevent scrolling when mobile drawer is open
+  // Secure Logout function
+  const handleLogout = async () => {
+    await logout();
+    setIsMobileMenuOpen(false);
+    navigate('/login');
+  };
+
   useEffect(() => {
     if (isMobileMenuOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'unset';
@@ -85,7 +93,6 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
       <header className="bg-white/90 backdrop-blur-xl shadow-sm sticky top-0 z-40 border-b border-slate-100 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 lg:py-4 flex justify-between items-center gap-3 relative">
           
-          {/* 🌟 Logo Section */}
           <Link to="/" className="flex items-center gap-2.5 sm:gap-3 select-none shrink-0 group">
             <div className="flex items-center justify-center h-9 w-9 lg:h-10 lg:w-10 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100/50 rounded-xl lg:rounded-2xl shadow-inner group-hover:scale-105 transition-transform">
               <i className="fa-solid fa-atom text-lg lg:text-xl text-teal-600"></i>
@@ -100,7 +107,6 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
             </div>
           </Link>
 
-          {/* 🌟 DESKTOP MENUS (Center) */}
           <nav className="hidden md:flex items-center gap-1 lg:gap-2 mr-auto ml-6 lg:ml-10">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
@@ -122,9 +128,7 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
 
           <div id="google_translate_element" className="hidden"></div>
 
-          {/* 🌟 Right Side (Desktop Navigation & Auth) */}
           <div className="hidden md:flex items-center gap-3 lg:gap-4 shrink-0">
-            
             {isAuthenticated && userName && (
               <div className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-3 py-1.5 lg:px-4 lg:py-2 rounded-full text-indigo-700 shadow-sm" title={userName}>
                 <i className="fa-solid fa-circle-user text-sm lg:text-base"></i>
@@ -132,12 +136,11 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
               </div>
             )}
 
-            {/* Language Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button onClick={() => setIsLangOpen(!isLangOpen)} className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 px-3 py-1.5 lg:px-4 lg:py-2 rounded-xl text-sm font-semibold transition-all notranslate">
                 <i className="fa-solid fa-globe text-teal-600"></i>
                 <span className="hidden lg:inline">{currentLang}</span>
-                <span className="lg:hidden">{currentLang.slice(0, 3)}</span> {/* Short name on smaller screens */}
+                <span className="lg:hidden">{currentLang.slice(0, 3)}</span>
                 <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${isLangOpen ? 'rotate-180' : ''}`}></i>
               </button>
               {isLangOpen && (
@@ -161,17 +164,16 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
             )}
 
             {isAuthenticated ? (
-              <button onClick={onLogout} className="flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-4 py-1.5 lg:px-5 lg:py-2 rounded-xl text-sm font-bold transition-all active:scale-95">
+              <button onClick={handleLogout} className="flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-4 py-1.5 lg:px-5 lg:py-2 rounded-xl text-sm font-bold transition-all active:scale-95">
                 <i className="fa-solid fa-right-from-bracket"></i> Logout
               </button>
             ) : (
-              <button onClick={onLoginClick} className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-1.5 lg:px-6 lg:py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-teal-500/30 active:scale-95">
+              <Link to="/login" className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-1.5 lg:px-6 lg:py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-teal-500/30 active:scale-95">
                 <i className="fa-solid fa-user-plus"></i> Join Us
-              </button>
+              </Link>
             )}
           </div>
 
-          {/* 🌟 Right Side (Mobile Icons) */}
           <div className="flex md:hidden items-center gap-2 shrink-0">
             <button onClick={() => setIsLangOpen(!isLangOpen)} className="h-10 w-10 flex items-center justify-center bg-slate-50 border border-slate-200 text-teal-600 rounded-xl active:scale-95 transition-transform">
               <i className="fa-solid fa-globe text-base"></i>
@@ -182,7 +184,6 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
             </button>
           </div>
 
-          {/* Mobile Language Dropdown (Overlay) */}
           {isLangOpen && (
             <div className="absolute md:hidden top-[110%] right-4 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl overflow-hidden py-1 z-[100] notranslate animate-fade-in-up">
               <div className="max-h-[50vh] overflow-y-auto lang-scrollbar flex flex-col">
@@ -194,23 +195,18 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
               </div>
             </div>
           )}
-
         </div>
       </header>
 
-      {/* 🔓 🌟 MOBILE SIDE DRAWER (Right to Left) 🌟 🔓 */}
-      
-      {/* 1. Dark Background Overlay */}
+      {/* MOBILE SIDE DRAWER */}
       <div 
         className={`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[90] md:hidden transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
         onClick={() => setIsMobileMenuOpen(false)}
       ></div>
 
-      {/* 2. The Drawer */}
       <div 
         className={`fixed top-0 right-0 h-[100dvh] w-[280px] sm:w-[320px] bg-white shadow-2xl z-[100] md:hidden flex flex-col transform transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
-        {/* Drawer Header (Close Button) */}
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <div className="flex items-center gap-2 notranslate">
             <i className="fa-solid fa-atom text-teal-600 text-xl"></i>
@@ -224,7 +220,6 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
           </button>
         </div>
 
-        {/* Drawer Navigation Links */}
         <nav className="flex-1 overflow-y-auto p-5 flex flex-col gap-2">
           {navLinks.map((link) => {
             const isActive = location.pathname === link.path;
@@ -246,7 +241,6 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
           })}
         </nav>
 
-      {/* Drawer Footer (Auth & User Info) */}
         <div className="p-5 border-t border-slate-100 bg-slate-50/50 flex flex-col gap-3">
           {isAuthenticated ? (
             <div className="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm mb-2">
@@ -288,7 +282,4 @@ export default function Header({ isAdmin, isAuthenticated, onAdminClick, onLogou
       </div>
     </>
   );
-}
-    </>
-  );
-            }
+      }
