@@ -54,7 +54,8 @@ export default function CommunityPage({ showToast }) {
         userId: userId,
         isPinned: false, // Default pinned status
         createdAt: serverTimestamp(),
-        likes: []
+        // 🌟 NAYA LOGIC: likes ki jagah interactions array
+        interactions: [] 
       });
       setNewPost("");
       showToast("Thought shared successfully! 🚀");
@@ -147,4 +148,4 @@ export default function CommunityPage({ showToast }) {
       </div>
     </div>
   );
-    }
+            }
