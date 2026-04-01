@@ -21,7 +21,10 @@ import AboutPage from './pages/About/AboutPage';
 import CommunityPage from './pages/Community/CommunityPage';
 //import LibraryPage from './pages/Library/LibraryPage';
 //import VaultPage from './pages/Vault/VaultPage';
-//import ExamPage from './pages/Academy/ExamPage';
+
+// 🌟 NAYE IMPORTS (Academy & Exam Engine)
+import ExamPage from './pages/Academy/ExamPage';
+import ExamEngine from './components/Academy/ExamEngine';
 //import EventsPage from './pages/Academy/EventsPage';
 
 export default function App() {
@@ -95,6 +98,9 @@ export default function App() {
           {/* 🌟 PHASE 2: New Module Routes */}
           <Route path="/community" element={<CommunityPage showToast={showToast} />} />
           
+          {/* 🌟 ACADEMY ROUTES */}
+          <Route path="/academy" element={<ExamPage showToast={showToast} />} />
+          <Route path="/academy/exam/:examId" element={<ExamEngine showToast={showToast} />} />
           
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
@@ -115,4 +121,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-    }
+                                                   }
