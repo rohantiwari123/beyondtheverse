@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css'; // Editor ki styling
+import 'react-quill-new/dist/quill.snow.css'; 
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 
 export default function AdminAcademy({ showToast }) {
   const [examTitle, setExamTitle] = useState("");
   const [examCategory, setExamCategory] = useState("Quantum Physics");
+  
+  // Date, Time aur Location ke liye states
+  const [examDate, setExamDate] = useState("");
+  const [examTime, setExamTime] = useState("");
+  const [examLocation, setExamLocation] = useState(""); 
+  
   const [isSaving, setIsSaving] = useState(false);
 
-  // Default state: 1 Question with 2 empty options
   const [questions, setQuestions] = useState([
     {
       id: `q_${Date.now()}`,
@@ -18,13 +23,12 @@ export default function AdminAcademy({ showToast }) {
         { id: `opt_${Date.now()}_1`, text: "" },
         { id: `opt_${Date.now()}_2`, text: "" }
       ],
-      correctOptionIds: [] // Yahan sahi jawabo ki ID aayegi
+      correctOptionIds: [] 
     }
   ]);
 
   const categories = ["Quantum Physics", "Philosophy", "Psychology", "Astrophysics", "Logic & Paradox"];
 
-  // --- QUESTION HANDLERS ---
   const handleAddQuestion = () => {
     setQuestions([...questions, {
       id: `q_${Date.now()}`,
@@ -43,7 +47,6 @@ export default function AdminAcademy({ showToast }) {
     setQuestions(questions.map(q => q.id === qId ? { ...q, text: newText } : q));
   };
 
-  // --- OPTION HANDLERS ---
   const handleAddOption = (qId) => {
     setQuestions(questions.map(q => {
       if (q.id === qId) {
@@ -63,7 +66,7 @@ export default function AdminAcademy({ showToast }) {
         return { 
           ...q, 
           options: q.options.filter(opt => opt.id !== optId),
-          correctOptionIds: q.correctOptionIds.filter(id => id !== optId) // Agar delete hua option correct tha, toh use bhi hatao
+          correctOptionIds: q.correctOptionIds.filter(id => id !== optId) 
         };
       }
       return q;
@@ -82,7 +85,6 @@ export default function AdminAcademy({ showToast }) {
     }));
   };
 
-  // --- CORRECT ANSWER TOGGLE (Multiple Correct) ---
   const toggleCorrectOption = (qId, optId) => {
     setQuestions(questions.map(q => {
       if (q.id === qId) {
@@ -90,25 +92,24 @@ export default function AdminAcademy({ showToast }) {
         return {
           ...q,
           correctOptionIds: isAlreadyCorrect 
-            ? q.correctOptionIds.filter(id => id !== optId) // Uncheck kiya
-            : [...q.correctOptionIds, optId] // Check kiya
+            ? q.correctOptionIds.filter(id => id !== optId) 
+            : [...q.correctOptionIds, optId] 
         };
       }
       return q;
     }));
   };
 
-  // --- SAVE EXAM TO FIREBASE ---
   const handleSaveExam = async () => {
     if (!examTitle.trim()) return showToast("Exam ka Title zaroori hai!", false);
-    
-    // Validation: Har question mein kam se kam 1 correct answer hona chahiye
+    if (!examLocation.trim()) return showToast("Exam ki Location (kahan hoga) zaroori hai!", false);
+    if (!examDate) return showToast("Exam ki Date zaroori hai!", false);
+    if (!examTime) return showToast("Exam ka Time zaroori hai!", false);
+
     for (let i = 0; i < questions.length; i++) {
       if (questions[i].correctOptionIds.length === 0) {
         return showToast(`Question ${i + 1} mein koi ek option 'Correct' mark karein!`, false);
       }
-      
-      // Quill empty space ko <p><br></p> manta hai
       const qText = questions[i].text.replace(/<[^>]*>?/gm, '').trim();
       if (!qText) {
         return showToast(`Question ${i + 1} khali nahi ho sakta!`, false);
@@ -117,11 +118,13 @@ export default function AdminAcademy({ showToast }) {
 
     setIsSaving(true);
     try {
-      // Data Firebase mein bhejne ki koshish
       const docRef = await addDoc(collection(db, "exams"), {
         title: examTitle,
         category: examCategory,
-        isResultPublished: false, // Default false, admin baad mein publish karega
+        date: examDate,
+        time: examTime,
+        location: examLocation,
+        isResultPublished: false, 
         questions: questions,
         createdAt: serverTimestamp()
       });
@@ -129,8 +132,10 @@ export default function AdminAcademy({ showToast }) {
       console.log("Document written with ID: ", docRef.id);
       showToast("Exam Created Successfully! 🚀");
       
-      // Save hone ke baad Form Reset karein
       setExamTitle("");
+      setExamDate("");
+      setExamTime("");
+      setExamLocation("");
       setQuestions([{ 
         id: `q_${Date.now()}`, 
         text: "", 
@@ -139,40 +144,33 @@ export default function AdminAcademy({ showToast }) {
       }]);
 
     } catch (error) {
-      // 👇 YAHAN HAI ASLI JADOO 👇
-      // Agar Firebase ne error diya, toh screen par bada sa Alert aayega
       alert("🔥 Firebase Error Aa Gaya!\n\nReason: " + error.message);
-      
-      // Console mein bhi poora error print hoga
       console.error("Full Database Error:", error);
-      
       showToast("Save Failed! Check Alert.", false);
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Custom Quill Modules for toolbar (Bold, Italic, Code, etc.)
   const quillModules = {
     toolbar: [
-      ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+      ['bold', 'italic', 'underline', 'strike'],        
       ['blockquote', 'code-block'],
       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
-      ['clean']                                         // remove formatting button
+      [{ 'script': 'sub'}, { 'script': 'super' }],      
+      ['clean']                                         
     ],
   };
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in-up pb-20">
       
-      {/* 🌟 Exam Settings Header */}
       <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm">
         <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
           <i className="fa-solid fa-brain text-teal-600"></i> Create Mind Trial
         </h2>
         
-        <div className="flex flex-col md:flex-row gap-6">
+        <div className="flex flex-col md:flex-row gap-6 mb-6">
           <div className="flex-1">
             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Exam Title</label>
             <input 
@@ -194,9 +192,40 @@ export default function AdminAcademy({ showToast }) {
             </select>
           </div>
         </div>
+
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="md:w-1/4">
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Date</label>
+            <input 
+              type="date" 
+              value={examDate}
+              onChange={(e) => setExamDate(e.target.value)}
+              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl py-3 px-4 outline-none focus:border-teal-500 font-bold text-slate-800 transition-colors"
+            />
+          </div>
+          <div className="md:w-1/4">
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Time</label>
+            <input 
+              type="time" 
+              value={examTime}
+              onChange={(e) => setExamTime(e.target.value)}
+              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl py-3 px-4 outline-none focus:border-teal-500 font-bold text-slate-800 transition-colors"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Location / Platform</label>
+            <input 
+              type="text" 
+              value={examLocation}
+              onChange={(e) => setExamLocation(e.target.value)}
+              placeholder="e.g. Online Platform, ya Room 101" 
+              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl py-3 px-4 outline-none focus:border-teal-500 font-bold text-slate-800 transition-colors"
+            />
+          </div>
+        </div>
+
       </div>
 
-      {/* 🌟 Questions List */}
       <div className="space-y-8">
         {questions.map((q, index) => (
           <div key={q.id} className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm relative group">
@@ -212,7 +241,6 @@ export default function AdminAcademy({ showToast }) {
               </button>
             </div>
 
-            {/* Rich Text Question Input */}
             <div className="mb-8">
               <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Problem Statement</label>
               <ReactQuill 
@@ -224,7 +252,6 @@ export default function AdminAcademy({ showToast }) {
               />
             </div>
 
-            {/* Options Area */}
             <div className="space-y-4">
               <div className="flex justify-between items-center mb-2">
                 <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Options (Select the correct ones)</label>
@@ -236,7 +263,6 @@ export default function AdminAcademy({ showToast }) {
                 return (
                   <div key={opt.id} className={`flex items-start gap-4 p-4 rounded-2xl border-2 transition-all ${isCorrect ? 'border-emerald-500 bg-emerald-50/20' : 'border-slate-100 bg-slate-50'}`}>
                     
-                    {/* Correct Answer Checkbox */}
                     <button 
                       onClick={() => toggleCorrectOption(q.id, opt.id)}
                       className={`mt-2 h-6 w-6 rounded flex-shrink-0 flex items-center justify-center border-2 transition-colors ${isCorrect ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-slate-300 hover:border-emerald-400'}`}
@@ -245,18 +271,16 @@ export default function AdminAcademy({ showToast }) {
                       {isCorrect && <i className="fa-solid fa-check text-xs"></i>}
                     </button>
 
-                    {/* Rich Text Option Input */}
                     <div className="flex-1 min-w-0">
                        <ReactQuill 
                         theme="snow" 
                         value={opt.text} 
                         onChange={(content) => handleOptionTextChange(q.id, opt.id, content)} 
-                        modules={{ toolbar: [['bold', 'italic', 'code-block', 'clean']] }} // Chota toolbar options ke liye
+                        modules={{ toolbar: [['bold', 'italic', 'code-block', 'clean']] }} 
                         className="bg-white"
                       />
                     </div>
 
-                    {/* Delete Option Button */}
                     <button 
                       onClick={() => handleRemoveOption(q.id, opt.id)}
                       className="mt-2 text-slate-300 hover:text-rose-500 transition-colors px-2"
@@ -279,7 +303,6 @@ export default function AdminAcademy({ showToast }) {
         ))}
       </div>
 
-      {/* 🌟 Footer Action Buttons */}
       <div className="flex justify-between items-center sticky bottom-6 bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-slate-700 shadow-2xl z-50">
         <button 
           onClick={handleAddQuestion}
@@ -299,4 +322,4 @@ export default function AdminAcademy({ showToast }) {
 
     </div>
   );
-    }
+}

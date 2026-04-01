@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '../../firebase'; // Apna sahi firebase path check kar lein
+import { db } from '../../firebase'; 
+import { useNavigate } from 'react-router-dom'; 
 
 export default function ExamList() {
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); 
 
   useEffect(() => {
-    // Firebase se data mangwane ka function
     const fetchExams = async () => {
       try {
-        // Exams collection se data laao, naye exams sabse upar (descending order)
         const q = query(collection(db, "exams"), orderBy("createdAt", "desc"));
         const querySnapshot = await getDocs(q);
         
@@ -55,28 +55,55 @@ export default function ExamList() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {exams.map((exam) => (
-          <div key={exam.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div key={exam.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col justify-between">
             
-            {/* Top Badge */}
-            <div className="absolute top-0 right-0 bg-teal-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-bl-xl z-10">
-              {exam.category}
-            </div>
+            <div>
+              <div className="absolute top-0 right-0 bg-teal-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-bl-xl z-10">
+                {exam.category}
+              </div>
 
-            <div className="mt-4">
-              <h3 className="text-xl font-bold text-slate-800 mb-2 line-clamp-2">
-                {exam.title}
-              </h3>
-              
-              <div className="flex items-center gap-4 text-sm font-bold text-slate-400 mt-4">
-                <span className="flex items-center gap-1">
-                  <i className="fa-solid fa-list-ol"></i> 
-                  {exam.questions?.length || 0} Questions
-                </span>
+              <div className="mt-4">
+                <h3 className="text-xl font-bold text-slate-800 mb-4 line-clamp-2">
+                  {exam.title}
+                </h3>
+                
+                <div className="flex flex-col gap-3">
+                  
+                  {(exam.date || exam.time) && (
+                    <div className="flex items-center gap-4 text-sm font-bold text-slate-500">
+                      {exam.date && (
+                        <span className="flex items-center gap-2 bg-slate-50 px-2 py-1 rounded-lg">
+                          <i className="fa-regular fa-calendar text-teal-500"></i> {exam.date}
+                        </span>
+                      )}
+                      {exam.time && (
+                        <span className="flex items-center gap-2 bg-slate-50 px-2 py-1 rounded-lg">
+                          <i className="fa-regular fa-clock text-teal-500"></i> {exam.time}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {exam.location && (
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-600 bg-teal-50/50 px-3 py-2 rounded-xl border border-teal-100">
+                      <i className="fa-solid fa-location-dot text-rose-500"></i> 
+                      <span className="line-clamp-1">{exam.location}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 text-sm font-bold text-slate-400 mt-1">
+                    <i className="fa-solid fa-list-ol"></i> 
+                    {exam.questions?.length || 0} Questions
+                  </div>
+
+                </div>
               </div>
             </div>
 
-            {/* Action Button */}
-            <button className="w-full mt-6 bg-slate-50 hover:bg-teal-50 text-slate-600 hover:text-teal-700 font-bold py-3 rounded-xl border-2 border-slate-100 hover:border-teal-200 transition-colors flex justify-center items-center gap-2">
+            <button 
+              onClick={() => navigate(`/academy/exam/${exam.id}`)} 
+              className="w-full mt-6 bg-slate-50 hover:bg-teal-50 text-slate-600 hover:text-teal-700 font-bold py-3 rounded-xl border-2 border-slate-100 hover:border-teal-200 transition-colors flex justify-center items-center gap-2 group-hover:bg-teal-500 group-hover:text-white group-hover:border-teal-500"
+            >
               Start Exam <i className="fa-solid fa-arrow-right"></i>
             </button>
           </div>
@@ -84,4 +111,4 @@ export default function ExamList() {
       </div>
     </div>
   );
-                                                 }
+}

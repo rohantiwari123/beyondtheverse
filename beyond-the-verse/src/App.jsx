@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { onSnapshot, collection, doc } from 'firebase/firestore'; 
 import { db } from './firebase'; 
+import VaultPage from './pages/Vault/VaultPage';
 
 // Context Hook
 import { useAuth } from './context/AuthContext';
@@ -19,13 +20,10 @@ import AboutPage from './pages/About/AboutPage';
 
 // 🌟 PHASE 2: Upcoming Pages Imports
 import CommunityPage from './pages/Community/CommunityPage';
-//import LibraryPage from './pages/Library/LibraryPage';
-//import VaultPage from './pages/Vault/VaultPage';
 
-// 🌟 NAYE IMPORTS (Academy & Exam Engine)
-import ExamPage from './pages/Academy/ExamPage';
+// 🌟 NAYE IMPORTS (FIXED: ExamPage hatake ExamList lagaya hai)
+import ExamList from './components/Academy/ExamList';
 import ExamEngine from './components/Academy/ExamEngine';
-//import EventsPage from './pages/Academy/EventsPage';
 
 export default function App() {
   const navigate = useNavigate();
@@ -98,9 +96,10 @@ export default function App() {
           {/* 🌟 PHASE 2: New Module Routes */}
           <Route path="/community" element={<CommunityPage showToast={showToast} />} />
           
-          {/* 🌟 ACADEMY ROUTES */}
-          <Route path="/academy" element={<ExamPage showToast={showToast} />} />
+          {/* 🌟 ACADEMY ROUTES (FIXED: Yahan ExamList add kiya hai) */}
+          <Route path="/academy" element={<ExamList />} />
           <Route path="/academy/exam/:examId" element={<ExamEngine showToast={showToast} />} />
+          <Route path="/vault" element={<VaultPage showToast={showToast} />} />
           
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
@@ -121,4 +120,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-                                                   }
+}
