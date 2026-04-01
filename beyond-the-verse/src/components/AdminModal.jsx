@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { doc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
+// 🌟 NAYA IMPORT: AdminAcademy ko import kiya
+import AdminAcademy from "./Academy/AdminAcademy"; 
 
 export default function AdminModal({
   onClose,
@@ -13,7 +15,7 @@ export default function AdminModal({
   const { logout } = useAuth();
 
   // UI States
-  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, users, subjects, settings
+  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, users, subjects, academy, settings
   const [searchTerm, setSearchTerm] = useState("");
 
   const [newTarget, setNewTarget] = useState(targetAmount);
@@ -24,7 +26,7 @@ export default function AdminModal({
   const [subjectsList, setSubjectsList] = useState([]); 
   const [isFetchingDef, setIsFetchingDef] = useState(false);
 
-  // 🌟 NAYA: Users Data State
+  // Users Data State
   const [usersList, setUsersList] = useState([]);
   const [isFetchingUsers, setIsFetchingUsers] = useState(false);
 
@@ -37,7 +39,7 @@ export default function AdminModal({
     return () => unsubscribe();
   }, []);
 
-  // 🌟 NAYA: Database se Users lana (Jab Users tab click ho)
+  // Database se Users lana
   useEffect(() => {
     if (activeTab === 'users') {
       const fetchUsers = async () => {
@@ -238,8 +240,9 @@ export default function AdminModal({
             <div className="flex gap-6 overflow-x-auto no-scrollbar">
               {[
                 { id: 'dashboard', icon: 'fa-chart-pie', label: 'Donations' },
-                { id: 'users', icon: 'fa-users', label: 'Citizens (Users)' }, // 🌟 NAYA TAB
+                { id: 'users', icon: 'fa-users', label: 'Citizens (Users)' },
                 { id: 'subjects', icon: 'fa-book-open', label: 'Manage Subjects' },
+                { id: 'academy', icon: 'fa-brain', label: 'Exam Creator' }, // 🌟 NAYA TAB ADD KIYA
                 { id: 'settings', icon: 'fa-sliders', label: 'Settings & Links' }
               ].map(tab => (
                 <button 
@@ -478,7 +481,14 @@ export default function AdminModal({
               </div>
             )}
 
-            {/* =========== TAB 4: SETTINGS & LINKS =========== */}
+            {/* =========== 🌟 TAB 4: ACADEMY EXAM CREATOR =========== */}
+            {activeTab === 'academy' && (
+              <div className="animate-fade-in-up h-full overflow-y-auto">
+                <AdminAcademy showToast={showToast} />
+              </div>
+            )}
+
+            {/* =========== TAB 5: SETTINGS & LINKS =========== */}
             {activeTab === 'settings' && (
               <div className="max-w-2xl mx-auto space-y-6 animate-fade-in-up">
                 
@@ -531,4 +541,4 @@ export default function AdminModal({
       </div>
     </div>
   );
-      }
+        }
