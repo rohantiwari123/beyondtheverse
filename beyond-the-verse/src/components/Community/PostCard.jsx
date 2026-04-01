@@ -1,103 +1,155 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import React, { useState } from 'react';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 
 export default function PostCard({ post, showToast }) {
-  // 🌟 isAdmin aur userId context se nikala
-  const { isAuthenticated, isAdmin, userId } = useAuth();
-  const navigate = useNavigate();
+  const { isAuthenticated, userId, userName, isAdmin } = useAuth();
+  
+  // States for interaction
+  const [activeGate, setActiveGate] = useState(null); // 'support', 'counter', 'doubt'
+  const [reason, setReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const date = post.createdAt?.toDate ? post.createdAt.toDate().toLocaleDateString('en-IN', {
-    day: 'numeric', month: 'short'
-  }) : "Now";
+  // Calculate stats
+  const interactions = post.interactions || [];
+  const supportCount = interactions.filter(i => i.type === 'support').length;
+  const counterCount = interactions.filter(i => i.type === 'counter').length;
+  const doubtCount = interactions.filter(i => i.type === 'doubt').length;
 
-  // 🛡️ ADMIN: Delete Post
-  const handleDelete = async () => {
-    if (!window.confirm("Bhai, kya is post ko delete karna hai?")) return;
-    try {
-      await deleteDoc(doc(db, "posts", post.id));
-      showToast("Post deleted successfully! 🗑️");
-    } catch (e) {
-      showToast("Delete failed. Check permissions.", false);
+  const handleGateClick = (gateType) => {
+    if (!isAuthenticated) return showToast("🔐 Please login to interact!", false);
+    
+    // Toggle close if clicking the same button
+    if (activeGate === gateType) {
+      setActiveGate(null);
+      setReason("");
+    } else {
+      setActiveGate(gateType);
+      setReason("");
     }
   };
 
-  // 🛡️ ADMIN: Pin/Unpin Post
-  const handlePin = async () => {
+  const handleSubmitReason = async () => {
+    if (reason.trim().length < 15) return; // Extra layer of security
+    setIsSubmitting(true);
+
     try {
-      await updateDoc(doc(db, "posts", post.id), {
-        isPinned: !post.isPinned 
+      const postRef = doc(db, "posts", post.id);
+      await updateDoc(postRef, {
+        interactions: arrayUnion({
+          userId,
+          userName: userName || "Explorer",
+          type: activeGate,
+          text: reason,
+          timestamp: new Date().toISOString()
+        })
       });
-      showToast(post.isPinned ? "Thought Unpinned!" : "Thought Pinned to Top! 📌");
+      
+      showToast("Response recorded successfully! 🔬");
+      setActiveGate(null);
+      setReason("");
     } catch (e) {
-      showToast("Pinning failed.", false);
+      showToast("Failed to record response.", false);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Interaction Lock Logic for Guests
-  const handleLockedAction = (e) => {
-    e.preventDefault();
-    if (!isAuthenticated) {
-      showToast("🔐 Please login to Like or Reply!", false);
-    }
+  // UI Helpers
+  const gateColors = {
+    support: "text-emerald-500 bg-emerald-50 border-emerald-200",
+    counter: "text-rose-500 bg-rose-50 border-rose-200",
+    doubt: "text-amber-500 bg-amber-50 border-amber-200"
   };
 
   return (
-    <div className={`bg-white sm:rounded-[2rem] p-5 sm:p-7 border-y sm:border border-x-0 sm:border-x border-slate-100 shadow-sm transition-all overflow-hidden relative group ${post.isPinned ? 'ring-2 ring-teal-500/50 bg-teal-50/10' : ''}`}>
+    <div className="bg-white sm:rounded-[2rem] p-6 border-y sm:border border-slate-100 shadow-sm relative overflow-hidden">
       
-      {/* 📌 Pinned Badge (Sirf pinned posts par dikhega) */}
-      {post.isPinned && (
-        <div className="absolute top-0 right-10 bg-teal-600 text-white text-[9px] font-black px-3 py-1 rounded-b-xl shadow-sm uppercase tracking-widest animate-fade-in">
-          Pinned
-        </div>
-      )}
-
       {/* Header Info */}
-      <div className="flex items-center justify-between mb-4 md:mb-6">
+      <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 md:h-12 md:w-12 bg-gradient-to-br from-teal-50 to-indigo-50 rounded-full flex items-center justify-center font-black text-teal-700 text-sm md:text-base border border-teal-100 shadow-inner">
+          <div className="h-10 w-10 bg-slate-900 rounded-xl flex items-center justify-center font-black text-white shadow-md">
             {post.userName?.charAt(0).toUpperCase()}
           </div>
           <div>
-            <h4 className="font-extrabold text-slate-800 text-xs md:text-sm notranslate">{post.userName}</h4>
-            <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">{date}</p>
+            <h4 className="font-bold text-slate-800 text-sm leading-tight">{post.userName}</h4>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{post.category}</span>
           </div>
         </div>
-
-        {/* 🛡️ ADMIN ACTIONS: Sirf Admin ko dikhenge */}
-        {isAdmin && (
-          <div className="flex gap-2">
-            <button 
-              onClick={handlePin}
-              title={post.isPinned ? "Unpin Post" : "Pin Post"}
-              className={`h-8 w-8 rounded-full flex items-center justify-center transition-all ${post.isPinned ? 'bg-teal-600 text-white shadow-lg' : 'bg-slate-100 text-slate-400 hover:bg-teal-100 hover:text-teal-600'}`}
-            >
-              <i className="fa-solid fa-thumbtack text-xs"></i>
-            </button>
-            <button 
-              onClick={handleDelete}
-              title="Delete Post"
-              className="h-8 w-8 bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white rounded-full flex items-center justify-center transition-all"
-            >
-              <i className="fa-solid fa-trash-can text-xs"></i>
-            </button>
-          </div>
-        )}
-
-        {/* Guest Category Label (Agar admin buttons nahi hain tabhi ye side mein dikhe) */}
-        {!isAdmin && (
-          <span className="bg-slate-50 text-slate-500 text-[9px] md:text-[11px] font-black px-3 py-1 rounded-full border border-slate-100 uppercase tracking-tighter">
-            {post.category}
-          </span>
-        )}
       </div>
 
-      {/* Main Content */}
-      <p className="text-slate-700 font-medium leading-relaxed italic text-base md:text-xl mb-5 md:mb-8 px-1">
+      {/* Main Thought */}
+      <p className="text-slate-700 font-medium leading-relaxed italic text-lg mb-6">
         "{post.text}"
       </p>
+
+      {/* 🚀 THE 3 PILLARS (INTERACTION GATES) */}
+      <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-50">
+        
+        <button 
+          onClick={() => handleGateClick('support')}
+          className={`flex-1 flex flex-col items-center justify-center py-2 rounded-xl border transition-all ${activeGate === 'support' ? gateColors.support : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
+        >
+          <i className="fa-solid fa-check-double mb-1 text-lg"></i>
+          <span className="text-[10px] font-black uppercase tracking-wide">Support ({supportCount})</span>
+        </button>
+
+        <button 
+          onClick={() => handleGateClick('counter')}
+          className={`flex-1 flex flex-col items-center justify-center py-2 rounded-xl border transition-all ${activeGate === 'counter' ? gateColors.counter : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
+        >
+          <i className="fa-solid fa-bolt mb-1 text-lg"></i>
+          <span className="text-[10px] font-black uppercase tracking-wide">Counter ({counterCount})</span>
+        </button>
+
+        <button 
+          onClick={() => handleGateClick('doubt')}
+          className={`flex-1 flex flex-col items-center justify-center py-2 rounded-xl border transition-all ${activeGate === 'doubt' ? gateColors.doubt : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
+        >
+          <i className="fa-solid fa-microscope mb-1 text-lg"></i>
+          <span className="text-[10px] font-black uppercase tracking-wide">Doubt ({doubtCount})</span>
+        </button>
+
+      </div>
+
+      {/* ⚠️ COMPULSORY REASON INPUT BOX (Expands when a gate is clicked) */}
+      {activeGate && (
+        <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 animate-fade-in">
+          <label className="block text-xs font-black text-slate-600 uppercase tracking-widest mb-2">
+            {activeGate === 'support' && "Provide supporting evidence/logic:"}
+            {activeGate === 'counter' && "State the logical flaw or exception:"}
+            {activeGate === 'doubt' && "What exactly is unclear to you?"}
+          </label>
+          
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Minimum 15 characters required..."
+            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm text-slate-700 focus:ring-2 focus:ring-slate-300 resize-none mb-3"
+            rows="2"
+          />
+          
+          <div className="flex justify-between items-center">
+            <span className={`text-[10px] font-bold ${reason.length < 15 ? 'text-rose-400' : 'text-emerald-500'}`}>
+              {reason.length}/15 chars
+            </span>
+            
+            {/* 🔒 BUTTON IS DISABLED UNTIL 15 CHARACTERS ARE TYPED */}
+            <button 
+              onClick={handleSubmitReason}
+              disabled={reason.length < 15 || isSubmitting}
+              className="bg-slate-900 text-white px-6 py-2 rounded-lg text-xs font-black uppercase tracking-wider disabled:opacity-30 transition-opacity"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Logic"}
+            </button>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+          }      </p>
 
       {/* Action Area */}
       <div className="flex items-center gap-6 pt-4 border-t border-slate-50">
