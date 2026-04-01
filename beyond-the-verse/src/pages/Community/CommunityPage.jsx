@@ -13,7 +13,6 @@ export default function CommunityPage({ showToast }) {
 
   const categories = ["#Philosophy", "#Science", "#Quantum", "#Spirituality", "#Reflection"];
 
-  // 🌟 Live Feed Fetch karna
   useEffect(() => {
     const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -25,7 +24,10 @@ export default function CommunityPage({ showToast }) {
   const handlePostSubmit = async (e) => {
     e.preventDefault();
     if (!newPost.trim()) return;
-    if (!isAuthenticated) return showToast("Please login to share your thoughts!", false);
+    if (!isAuthenticated) {
+      showToast("Please login to share your thoughts!", false);
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -47,15 +49,15 @@ export default function CommunityPage({ showToast }) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-10 animate-fade-in-up">
+    <div className="max-w-3xl mx-auto px-4 py-8 space-y-10">
       
-      {/* 🌟 1. Header Section */}
+      {/* Header Section */}
       <div className="text-center space-y-3">
         <h1 className="text-4xl font-black text-slate-800 tracking-tight">The Thought <span className="text-teal-600">Verse</span></h1>
         <p className="text-slate-500 font-medium">Share your reflections, scientific theories, and philosophical quotes.</p>
       </div>
 
-      {/* 🌟 2. Create Post Box (Only for Logged-in users) */}
+      {/* Create Post Box */}
       <div className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100">
         <form onSubmit={handlePostSubmit} className="space-y-4">
           <textarea 
@@ -73,7 +75,7 @@ export default function CommunityPage({ showToast }) {
                   key={cat}
                   type="button"
                   onClick={() => setCategory(cat)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${category === cat ? 'bg-teal-600 text-white shadow-lg shadow-teal-500/30' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${category === cat ? 'bg-teal-600 text-white shadow-lg' : 'bg-slate-100 text-slate-500'}`}
                 >
                   {cat}
                 </button>
@@ -91,7 +93,7 @@ export default function CommunityPage({ showToast }) {
         </form>
       </div>
 
-      {/* 🌟 3. Posts Feed */}
+      {/* Posts Feed Section (Fixed Bracket Logic) */}
       <div className="space-y-6 pb-20">
         {posts.length === 0 ? (
           <div className="text-center py-20 opacity-40 italic">
@@ -105,10 +107,4 @@ export default function CommunityPage({ showToast }) {
       </div>
     </div>
   );
-        }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <PostCard key={post.id} post={post} />
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  )}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              );
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              }
+  }
