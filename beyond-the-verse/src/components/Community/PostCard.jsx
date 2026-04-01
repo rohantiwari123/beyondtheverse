@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { doc, updateDoc, arrayUnion, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
-import CommentBox from './CommentBox'; // 🌟 CommentBox import kiya
+import CommentBox from './CommentBox'; 
 
 export default function PostCard({ post, showToast }) {
   const { isAuthenticated, userId, userName, isAdmin } = useAuth();
@@ -10,23 +10,25 @@ export default function PostCard({ post, showToast }) {
   const [activeGate, setActiveGate] = useState(null);
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // 🌟 NAYA: Custom Delete Confirmation State
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const interactions = post.interactions || [];
-  
-  // 🌟 NAYA LOGIC: Check karo ki kya is user ne pehle se interact kiya hai
   const hasInteracted = interactions.some(i => i.userId === userId);
 
   const supportCount = interactions.filter(i => i.type === 'support').length;
   const counterCount = interactions.filter(i => i.type === 'counter').length;
   const doubtCount = interactions.filter(i => i.type === 'doubt').length;
 
-  // 🛡️ ADMIN: Delete Function
-  const handleDelete = async () => {
-    if (!window.confirm("Admin: Delete this thought?")) return;
+  // 🛡️ ADMIN: Custom Delete Logic (No browser alert)
+  const confirmDelete = async () => {
     try {
       await deleteDoc(doc(db, "posts", post.id));
       showToast("Thought deleted! 🗑️");
-    } catch (e) { showToast("Delete failed.", false); }
+    } catch (e) { 
+      showToast("Delete failed.", false); 
+    }
   };
 
   // 🛡️ ADMIN: Pin Function
@@ -74,7 +76,7 @@ export default function PostCard({ post, showToast }) {
   };
 
   return (
-    <div className={`bg-white sm:rounded-[2rem] p-6 border-y sm:border border-slate-100 shadow-sm relative overflow-hidden group ${post.isPinned ? 'ring-2 ring-teal-500/50 bg-teal-50/10' : ''}`}>
+    <div className={`bg-white sm:rounded-[2rem] p-6 border-y sm:border border-slate-100 shadow-sm relative overflow-hidden ${post.isPinned ? 'ring-2 ring-teal-500/50 bg-teal-50/10' : ''}`}>
       
       {/* 📌 Pinned Badge */}
       {post.isPinned && (
@@ -97,13 +99,31 @@ export default function PostCard({ post, showToast }) {
 
         {/* 🛡️ Admin Buttons */}
         {isAdmin && (
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <button onClick={handlePin} className={`h-8 w-8 rounded-full flex items-center justify-center transition-all ${post.isPinned ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-400 hover:text-teal-600'}`}>
               <i className="fa-solid fa-thumbtack text-xs"></i>
             </button>
-            <button onClick={handleDelete} className="h-8 w-8 bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
-              <i className="fa-solid fa-trash-can text-xs"></i>
-            </button>
+            
+            {/* 🌟 NAYA: Inline Delete Confirmation */}
+            {showDeleteConfirm ? (
+              <div className="flex items-center gap-2 bg-rose-100 px-3 py-1.5 rounded-full animate-fade-in border border-rose-200">
+                <span className="text-[10px] font-black text-rose-600 uppercase tracking-wider">Delete?</span>
+                <button onClick={confirmDelete} className="text-emerald-600 hover:text-emerald-700 transition-colors">
+                  <i className="fa-solid fa-check"></i>
+                </button>
+                <button onClick={() => setShowDeleteConfirm(false)} className="text-rose-500 hover:text-rose-700 transition-colors ml-1">
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            ) : (
+              // Icon ab hamesha dikhega (opacity hata di hai)
+              <button 
+                onClick={() => setShowDeleteConfirm(true)} 
+                className="h-8 w-8 bg-slate-50 text-slate-300 hover:bg-rose-50 hover:text-rose-500 rounded-full flex items-center justify-center transition-all"
+              >
+                <i className="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -132,7 +152,7 @@ export default function PostCard({ post, showToast }) {
       {hasInteracted && (
         <div className="mt-3 text-center">
           <span className="text-[10px] font-black text-teal-600 bg-teal-50 px-3 py-1 rounded-full uppercase tracking-widest">
-            <i className="fa-solid fa-lock mr-1"></i> Response Locked
+            <i className="fa-solid fa-lock mr-1"></i> Logic Submitted
           </span>
         </div>
       )}
@@ -155,9 +175,9 @@ export default function PostCard({ post, showToast }) {
         </div>
       )}
 
-      {/* 🌟 DISCUSSIONS SHOWCASE (Naya Comment Box) */}
+      {/* 🌟 DISCUSSIONS SHOWCASE */}
       <CommentBox interactions={interactions} />
 
     </div>
   );
-        }
+                          }
