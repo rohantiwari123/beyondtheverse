@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { doc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
+import { doc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
-// 🌟 NAYA: AuthContext se logout function le aaye
 import { useAuth } from "../context/AuthContext";
 
 export default function AdminModal({
@@ -11,11 +10,10 @@ export default function AdminModal({
   targetAmount,
   showToast,
 }) {
-  // 🌟 NAYA: Context se logout function laya
   const { logout } = useAuth();
 
   // UI States
-  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, subjects, settings
+  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, users, subjects, settings
   const [searchTerm, setSearchTerm] = useState("");
 
   const [newTarget, setNewTarget] = useState(targetAmount);
@@ -26,6 +24,10 @@ export default function AdminModal({
   const [subjectsList, setSubjectsList] = useState([]); 
   const [isFetchingDef, setIsFetchingDef] = useState(false);
 
+  // 🌟 NAYA: Users Data State
+  const [usersList, setUsersList] = useState([]);
+  const [isFetchingUsers, setIsFetchingUsers] = useState(false);
+
   // Database se live subjects lana
   useEffect(() => {
     const q = query(collection(db, "subjects"), orderBy("timestamp", "desc"));
@@ -35,7 +37,27 @@ export default function AdminModal({
     return () => unsubscribe();
   }, []);
 
-  // Secure Logout (Directly using Context)
+  // 🌟 NAYA: Database se Users lana (Jab Users tab click ho)
+  useEffect(() => {
+    if (activeTab === 'users') {
+      const fetchUsers = async () => {
+        setIsFetchingUsers(true);
+        try {
+          const q = query(collection(db, "users"));
+          const snapshot = await getDocs(q);
+          setUsersList(snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() })));
+        } catch (error) {
+          console.error("Error fetching users:", error);
+          showToast("Failed to load users.", false);
+        } finally {
+          setIsFetchingUsers(false);
+        }
+      };
+      fetchUsers();
+    }
+  }, [activeTab, showToast]);
+
+  // Secure Logout
   const handleLogout = async () => {
     await logout();
     showToast("Logged out successfully");
@@ -207,7 +229,6 @@ export default function AdminModal({
                   <span className="text-xs font-bold text-teal-600 uppercase tracking-widest">Beyond The Verse</span>
                 </div>
               </div>
-              {/* 🌟 NAYA: Admin Logout Button */}
               <button onClick={handleLogout} className="bg-red-50 hover:bg-red-100 text-red-600 text-sm px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors border border-red-100 active:scale-95">
                 <i className="fa-solid fa-right-from-bracket"></i> <span className="hidden sm:inline">Logout Admin</span>
               </button>
@@ -217,6 +238,7 @@ export default function AdminModal({
             <div className="flex gap-6 overflow-x-auto no-scrollbar">
               {[
                 { id: 'dashboard', icon: 'fa-chart-pie', label: 'Donations' },
+                { id: 'users', icon: 'fa-users', label: 'Citizens (Users)' }, // 🌟 NAYA TAB
                 { id: 'subjects', icon: 'fa-book-open', label: 'Manage Subjects' },
                 { id: 'settings', icon: 'fa-sliders', label: 'Settings & Links' }
               ].map(tab => (
@@ -247,7 +269,7 @@ export default function AdminModal({
                     </div>
                   </div>
                   <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 text-xl"><i className="fa-solid fa-users"></i></div>
+                    <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 text-xl"><i className="fa-solid fa-hand-holding-heart"></i></div>
                     <div>
                       <p className="text-xs font-bold text-slate-400 uppercase">Total Donors</p>
                       <p className="text-2xl font-black text-slate-800">{donations.length}</p>
@@ -330,7 +352,81 @@ export default function AdminModal({
               </div>
             )}
 
-            {/* =========== TAB 2: SUBJECTS =========== */}
+            {/* =========== TAB 2: USERS (CITIZENS) =========== */}
+            {activeTab === 'users' && (
+              <div className="h-full flex flex-col animate-fade-in-up">
+                
+                {/* Stats Header */}
+                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 mb-4 shrink-0">
+                  <div className="h-12 w-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-xl">
+                    <i className="fa-solid fa-users-viewfinder"></i>
+                  </div>
+                  <div>
+                    <h3 className="font-black text-slate-800 text-lg">Registered Citizens</h3>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Accounts: {usersList.length}</p>
+                  </div>
+                </div>
+
+                {/* Users Table */}
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex-1 flex flex-col">
+                  {isFetchingUsers ? (
+                     <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+                       <i className="fa-solid fa-circle-notch fa-spin text-3xl text-teal-500 mb-3"></i>
+                       <p className="font-bold text-sm uppercase tracking-widest">Scanning Database...</p>
+                     </div>
+                  ) : (
+                    <div className="overflow-y-auto flex-1">
+                      <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-50 sticky top-0 border-b border-slate-200 z-10">
+                          <tr>
+                            <th className="p-4 text-xs font-black text-slate-500 uppercase tracking-widest">Citizen Info</th>
+                            <th className="p-4 text-xs font-black text-slate-500 uppercase tracking-widest text-center">Role</th>
+                            <th className="p-4 text-xs font-black text-slate-500 uppercase tracking-widest hidden sm:table-cell">Unique ID</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {usersList.length === 0 ? (
+                            <tr><td colSpan="3" className="p-8 text-center text-slate-400 font-medium">No users found.</td></tr>
+                          ) : (
+                            usersList.map((user) => (
+                              <tr key={user.uid} className="hover:bg-slate-50/80 transition-colors">
+                                <td className="p-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center font-black text-white shadow-sm ${user.role === 'admin' ? 'bg-slate-800' : 'bg-teal-500'}`}>
+                                      {user.name?.charAt(0).toUpperCase() || "?"}
+                                    </div>
+                                    <div>
+                                      <p className="font-bold text-slate-800 text-sm leading-tight">{user.name || "Unknown"}</p>
+                                      <p className="text-[11px] font-bold text-slate-400">{user.email || "No Email"}</p>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="p-4 text-center">
+                                  <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border ${
+                                    user.role === 'admin' 
+                                      ? 'bg-slate-900 text-white border-slate-800 shadow-md' 
+                                      : 'bg-teal-50 text-teal-600 border-teal-100'
+                                  }`}>
+                                    {user.role || 'client'}
+                                  </span>
+                                </td>
+                                <td className="p-4 hidden sm:table-cell">
+                                  <code className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded border border-slate-200 font-bold tracking-wider">
+                                    {user.uid}
+                                  </code>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* =========== TAB 3: SUBJECTS =========== */}
             {activeTab === 'subjects' && (
               <div className="max-w-3xl mx-auto space-y-6 animate-fade-in-up">
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -382,7 +478,7 @@ export default function AdminModal({
               </div>
             )}
 
-            {/* =========== TAB 3: SETTINGS & LINKS =========== */}
+            {/* =========== TAB 4: SETTINGS & LINKS =========== */}
             {activeTab === 'settings' && (
               <div className="max-w-2xl mx-auto space-y-6 animate-fade-in-up">
                 
@@ -435,4 +531,4 @@ export default function AdminModal({
       </div>
     </div>
   );
-        }
+      }
