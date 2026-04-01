@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom"; 
-// 🌟 JADOO: Context Import kiya
 import { useAuth } from "../../context/AuthContext";
 
 export default function Header({ onAdminClick }) {
@@ -12,12 +11,13 @@ export default function Header({ onAdminClick }) {
   const location = useLocation(); 
   const navigate = useNavigate();
 
-  // 🌟 JADOO: Ab sara data context se aayega
   const { isAuthenticated, isAdmin, userName, logout } = useAuth();
 
+  // 🌟 UPDATE: Community Link yahan add kar diya hai
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
+    { name: 'Community', path: '/community' },
     { name: 'Donate', path: '/donate' }
   ];
 
@@ -32,7 +32,6 @@ export default function Header({ onAdminClick }) {
     { code: 'de', name: 'Deutsch (German)' }, { code: 'ar', name: 'العربية (Arabic)' }
   ];
 
-  // Secure Logout function
   const handleLogout = async () => {
     await logout();
     setIsMobileMenuOpen(false);
@@ -183,18 +182,6 @@ export default function Header({ onAdminClick }) {
               <i className="fa-solid fa-bars text-lg"></i>
             </button>
           </div>
-
-          {isLangOpen && (
-            <div className="absolute md:hidden top-[110%] right-4 w-48 bg-white border border-slate-100 rounded-2xl shadow-2xl overflow-hidden py-1 z-[100] notranslate animate-fade-in-up">
-              <div className="max-h-[50vh] overflow-y-auto lang-scrollbar flex flex-col">
-                {languages.map((lang) => (
-                  <button key={lang.code} onClick={() => translatePage(lang.code, lang.name)} className={`w-full text-left px-4 py-3 text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors ${currentLang === lang.name.split(' ')[0] ? 'bg-teal-50 text-teal-700 font-bold' : 'text-slate-600 font-medium'}`}>
-                    {lang.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </header>
 
@@ -234,7 +221,13 @@ export default function Header({ onAdminClick }) {
                   : "text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                <i className={`fa-solid ${link.name === 'Home' ? 'fa-house' : link.name === 'About' ? 'fa-book-open' : 'fa-hand-holding-heart'} ${isActive ? 'text-teal-500' : 'text-slate-400'}`}></i>
+                {/* 🌟 UPDATE: Icons logic updated for Community */}
+                <i className={`fa-solid ${
+                  link.name === 'Home' ? 'fa-house' : 
+                  link.name === 'About' ? 'fa-book-open' : 
+                  link.name === 'Community' ? 'fa-users' : 
+                  'fa-hand-holding-heart'
+                } ${isActive ? 'text-teal-500' : 'text-slate-400'}`}></i>
                 {link.name}
               </Link>
             );
@@ -282,4 +275,4 @@ export default function Header({ onAdminClick }) {
       </div>
     </>
   );
-      }
+    }
