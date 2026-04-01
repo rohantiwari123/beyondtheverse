@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 
@@ -7,11 +7,11 @@ export default function PostCard({ post, showToast }) {
   const { isAuthenticated, userId, userName, isAdmin } = useAuth();
   
   // States for interaction
-  const [activeGate, setActiveGate] = useState(null); // 'support', 'counter', 'doubt'
+  const [activeGate, setActiveGate] = useState(null);
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Calculate stats
+  // Calculate stats securely
   const interactions = post.interactions || [];
   const supportCount = interactions.filter(i => i.type === 'support').length;
   const counterCount = interactions.filter(i => i.type === 'counter').length;
@@ -31,7 +31,7 @@ export default function PostCard({ post, showToast }) {
   };
 
   const handleSubmitReason = async () => {
-    if (reason.trim().length < 15) return; // Extra layer of security
+    if (reason.trim().length < 15) return;
     setIsSubmitting(true);
 
     try {
@@ -56,7 +56,18 @@ export default function PostCard({ post, showToast }) {
     }
   };
 
-  // UI Helpers
+  // Admin Delete Function
+  const handleDelete = async () => {
+    if (!window.confirm("Admin: Are you sure you want to delete this thought?")) return;
+    try {
+      await deleteDoc(doc(db, "posts", post.id));
+      showToast("Thought deleted successfully! 🗑️");
+    } catch (e) {
+      showToast("Delete failed. Check permissions.", false);
+    }
+  };
+
+  // UI Colors for different states
   const gateColors = {
     support: "text-emerald-500 bg-emerald-50 border-emerald-200",
     counter: "text-rose-500 bg-rose-50 border-rose-200",
@@ -64,7 +75,7 @@ export default function PostCard({ post, showToast }) {
   };
 
   return (
-    <div className="bg-white sm:rounded-[2rem] p-6 border-y sm:border border-slate-100 shadow-sm relative overflow-hidden">
+    <div className="bg-white sm:rounded-[2rem] p-6 border-y sm:border border-slate-100 shadow-sm relative overflow-hidden group">
       
       {/* Header Info */}
       <div className="flex items-center justify-between mb-5">
@@ -77,6 +88,17 @@ export default function PostCard({ post, showToast }) {
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{post.category}</span>
           </div>
         </div>
+
+        {/* Admin Delete Button */}
+        {isAdmin && (
+          <button 
+            onClick={handleDelete}
+            className="h-8 w-8 rounded-full flex items-center justify-center text-slate-300 hover:bg-rose-50 hover:text-rose-500 transition-all opacity-0 group-hover:opacity-100"
+            title="Delete Thought"
+          >
+            <i className="fa-solid fa-trash-can text-xs"></i>
+          </button>
+        )}
       </div>
 
       {/* Main Thought */}
@@ -113,7 +135,7 @@ export default function PostCard({ post, showToast }) {
 
       </div>
 
-      {/* ⚠️ COMPULSORY REASON INPUT BOX (Expands when a gate is clicked) */}
+      {/* ⚠️ COMPULSORY REASON INPUT BOX */}
       {activeGate && (
         <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 animate-fade-in">
           <label className="block text-xs font-black text-slate-600 uppercase tracking-widest mb-2">
@@ -135,7 +157,6 @@ export default function PostCard({ post, showToast }) {
               {reason.length}/15 chars
             </span>
             
-            {/* 🔒 BUTTON IS DISABLED UNTIL 15 CHARACTERS ARE TYPED */}
             <button 
               onClick={handleSubmitReason}
               disabled={reason.length < 15 || isSubmitting}
@@ -149,53 +170,4 @@ export default function PostCard({ post, showToast }) {
 
     </div>
   );
-          }      </p>
-
-      {/* Action Area */}
-      <div className="flex items-center gap-6 pt-4 border-t border-slate-50">
-        
-        {/* Like Button */}
-        <button 
-          onClick={handleLockedAction}
-          className={`flex items-center gap-2 transition-all ${isAuthenticated ? 'text-slate-400 hover:text-rose-500' : 'opacity-40 cursor-not-allowed'}`}
-        >
-          {isAuthenticated ? (
-            <i className="fa-regular fa-heart text-sm md:text-lg"></i>
-          ) : (
-            <i className="fa-solid fa-lock text-[10px] md:text-xs text-slate-400"></i>
-          )}
-          <span className="text-xs md:text-sm font-bold">{post.likes?.length || 0}</span>
-        </button>
-
-        {/* Reply Button */}
-        <button 
-          onClick={handleLockedAction}
-          className={`flex items-center gap-2 transition-all ${isAuthenticated ? 'text-slate-400 hover:text-teal-600' : 'opacity-40 cursor-not-allowed'}`}
-        >
-          {isAuthenticated ? (
-            <i className="fa-regular fa-comment text-sm md:text-lg"></i>
-          ) : (
-            <i className="fa-solid fa-lock text-[10px] md:text-xs text-slate-400"></i>
-          )}
-          <span className="text-xs md:text-sm font-bold">{isAuthenticated ? 'Reply' : 'Locked'}</span>
-        </button>
-
-        {/* Status for Guests */}
-        {!isAuthenticated && (
-          <div className="ml-auto">
-             <span className="text-[9px] font-black text-teal-600/40 uppercase tracking-widest italic animate-pulse">Login to engage</span>
-          </div>
-        )}
-        
-        {/* Category Badge for Admin View (Kyuki header me admin buttons aa gaye hain) */}
-        {isAdmin && (
-          <div className="ml-auto">
-             <span className="bg-slate-50 text-slate-400 text-[9px] font-black px-2 py-1 rounded-md uppercase border border-slate-100">
-               {post.category}
-             </span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-                }
+    }
