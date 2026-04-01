@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase'; // Path check kar lijiyega
+import { auth, db } from '../firebase'; 
 
-// 🍪 COOKIES 
+// 🍪 COOKIES LOGIC
 const setCookie = (name, value, days) => {
   const date = new Date();
   date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -20,13 +20,9 @@ const eraseCookie = (name) => {
   document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
 };
 
-// 1. Context बनाना
 const AuthContext = createContext();
-
-// 2. Custom Hook (ताकि किसी भी पेज से इसे आसानी से बुला सकें)
 export const useAuth = () => useContext(AuthContext);
 
-// 3. Provider Component
 export const AuthProvider = ({ children }) => {
   const savedUser = getCookie('btv_user');
   
@@ -36,18 +32,15 @@ export const AuthProvider = ({ children }) => {
   const [userName, setUserName] = useState(savedUser?.name || ""); 
   const [isCheckingAuth, setIsCheckingAuth] = useState(!savedUser);
 
-  // 🌟 PURE FIREBASE AUTH (No Fake Names, No Refresh Logouts) 🌟
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setCurrentUser(user);
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
-          
           if (userDoc.exists()) {
             const role = userDoc.data().role || 'client';
             const realName = userDoc.data().name || user.displayName || ""; 
-            
             setIsAuthenticated(true);
             setIsAdmin(role === 'admin');
             setUserName(realName); 
@@ -77,14 +70,12 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribeAuth();
   }, []);
 
-  // Login function
   const login = (role, name) => {
     setIsAuthenticated(true);
     setIsAdmin(role === 'admin');
     if (name) setUserName(name);
   };
 
-  // Logout function
   const logout = async () => {
     await signOut(auth);
     eraseCookie('btv_user');
@@ -94,14 +85,21 @@ export const AuthProvider = ({ children }) => {
     setUserName("");
   };
 
-  // ये सारा डेटा अब "बादल" (Cloud) में रहेगा
-  const value = { currentUser, isAuthenticated, isAdmin, userName, login, logout };
+  // 🌟 VALUE UPDATED: userId ab yahan se pass ho raha hai
+  const value = { 
+    currentUser, 
+    isAuthenticated, 
+    isAdmin, 
+    userName, 
+    userId: currentUser?.uid || savedUser?.uid, // Dono jagah se check karega
+    login, 
+    logout 
+  };
 
-  // लोडिंग स्क्रीन भी अब यहीं से हैंडल होगी
   if (isCheckingAuth) {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center">
-        <div className="h-16 w-16 bg-teal-50 rounded-2xl flex items-center justify-center mb-4 animate-pulse shadow-inner border border-teal-100">
+        <div className="h-16 w-16 bg-teal-50 rounded-2xl flex items-center justify-center mb-4 animate-pulse border border-teal-100">
           <i className="fa-solid fa-atom text-4xl text-teal-600"></i>
         </div>
         <div className="flex items-center gap-2 text-slate-500 font-bold text-sm tracking-wide uppercase">
@@ -111,9 +109,5 @@ export const AuthProvider = ({ children }) => {
     );
   }
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
