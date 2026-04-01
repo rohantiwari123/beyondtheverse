@@ -107,26 +107,46 @@ export default function AdminAcademy({ showToast }) {
       if (questions[i].correctOptionIds.length === 0) {
         return showToast(`Question ${i + 1} mein koi ek option 'Correct' mark karein!`, false);
       }
-      if (!questions[i].text.trim() || questions[i].text === "<p><br></p>") {
+      
+      // Quill empty space ko <p><br></p> manta hai
+      const qText = questions[i].text.replace(/<[^>]*>?/gm, '').trim();
+      if (!qText) {
         return showToast(`Question ${i + 1} khali nahi ho sakta!`, false);
       }
     }
 
     setIsSaving(true);
     try {
-      await addDoc(collection(db, "exams"), {
+      // Data Firebase mein bhejne ki koshish
+      const docRef = await addDoc(collection(db, "exams"), {
         title: examTitle,
         category: examCategory,
         isResultPublished: false, // Default false, admin baad mein publish karega
         questions: questions,
         createdAt: serverTimestamp()
       });
+      
+      console.log("Document written with ID: ", docRef.id);
       showToast("Exam Created Successfully! 🚀");
-      // Reset form
+      
+      // Save hone ke baad Form Reset karein
       setExamTitle("");
-      setQuestions([{ id: `q_${Date.now()}`, text: "", options: [{ id: `opt_1`, text: "" }, { id: `opt_2`, text: "" }], correctOptionIds: [] }]);
+      setQuestions([{ 
+        id: `q_${Date.now()}`, 
+        text: "", 
+        options: [{ id: `opt_${Date.now()}_1`, text: "" }, { id: `opt_${Date.now()}_2`, text: "" }], 
+        correctOptionIds: [] 
+      }]);
+
     } catch (error) {
-      showToast("Error saving exam.", false);
+      // 👇 YAHAN HAI ASLI JADOO 👇
+      // Agar Firebase ne error diya, toh screen par bada sa Alert aayega
+      alert("🔥 Firebase Error Aa Gaya!\n\nReason: " + error.message);
+      
+      // Console mein bhi poora error print hoga
+      console.error("Full Database Error:", error);
+      
+      showToast("Save Failed! Check Alert.", false);
     } finally {
       setIsSaving(false);
     }
@@ -210,7 +230,7 @@ export default function AdminAcademy({ showToast }) {
                 <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">Options (Select the correct ones)</label>
               </div>
 
-              {q.options.map((opt, optIdx) => {
+              {q.options.map((opt) => {
                 const isCorrect = q.correctOptionIds.includes(opt.id);
                 
                 return (
@@ -279,4 +299,4 @@ export default function AdminAcademy({ showToast }) {
 
     </div>
   );
-}
+    }
