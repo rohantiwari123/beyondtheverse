@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom"; 
 import { useAuth } from "../../context/AuthContext";
 
-export default function Header({ onAdminClick }) {
+export default function Header() { // ❌ HATA DIYA: onAdminClick ab zaroorat nahi
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState("English");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -16,7 +16,7 @@ export default function Header({ onAdminClick }) {
   // 🌟 NAYA AUR FINALIZED LINKS ARRAY (Sabhi icons aur exact paths ke sath)
   const navLinks = [
     { name: 'Home', path: '/', icon: 'fa-house' },
-    { name: 'Academy', path: '/academy', icon: 'fa-graduation-cap' }, // Changed icon to graduation-cap for clarity
+    { name: 'Academy', path: '/academy', icon: 'fa-graduation-cap' }, 
     { name: 'Vault', path: '/vault', icon: 'fa-vault' },
     { name: 'Community', path: '/community', icon: 'fa-users' },
     { name: 'Donate', path: '/donate', icon: 'fa-hand-holding-heart' }
@@ -108,7 +108,7 @@ export default function Header({ onAdminClick }) {
             </div>
           </Link>
 
-          {/* Desktop Navigation (lg aur badi screens ke liye) */}
+          {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1 xl:gap-2 mr-auto ml-4 xl:ml-8">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path));
@@ -160,11 +160,15 @@ export default function Header({ onAdminClick }) {
               )}
             </div>
 
+            {/* 🌟 NAYA: Admin Link for Desktop */}
             {isAdmin && (
-              <button onClick={onAdminClick} className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 xl:px-5 xl:py-2 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 whitespace-nowrap">
+              <Link 
+                to="/admin" 
+                className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 xl:px-5 xl:py-2 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 whitespace-nowrap"
+              >
                 <i className="fa-solid fa-shield-halved"></i> 
                 <span className="hidden xl:inline">Dashboard</span>
-              </button>
+              </Link>
             )}
 
             {isAuthenticated ? (
@@ -214,7 +218,6 @@ export default function Header({ onAdminClick }) {
           </button>
         </div>
 
-        {/* 🌟 MOBILE MENU LINKS: Yahan ab saare links dikhenge (Academy, Vault etc.) */}
         <nav className="flex-1 overflow-y-auto p-5 flex flex-col gap-2">
           {navLinks.map((link) => {
             const isActive = location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path));
@@ -257,10 +260,15 @@ export default function Header({ onAdminClick }) {
             </div>
           )}
 
+          {/* 🌟 NAYA: Admin Link for Mobile */}
           {isAdmin && (
-            <button onClick={() => { onAdminClick(); setIsMobileMenuOpen(false); }} className="w-full flex items-center justify-center gap-3 bg-slate-800 text-white py-3.5 rounded-xl text-sm font-bold shadow-md active:scale-95">
+            <Link 
+              to="/admin" 
+              onClick={() => setIsMobileMenuOpen(false)} 
+              className="w-full flex items-center justify-center gap-3 bg-slate-800 text-white py-3.5 rounded-xl text-sm font-bold shadow-md active:scale-95"
+            >
               <i className="fa-solid fa-shield-halved"></i> Admin Dashboard
-            </button>
+            </Link>
           )}
 
           {isAuthenticated ? (

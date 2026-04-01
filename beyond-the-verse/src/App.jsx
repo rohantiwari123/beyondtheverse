@@ -10,7 +10,7 @@ import { useAuth } from './context/AuthContext';
 // Components & Layout
 import Header from './components/Layout/Header';
 import Toast from './components/Toast';
-import AdminModal from './components/AdminModal'; 
+// ❌ AdminModal hata diya yahan se
 
 // Phase 1 Pages
 import LoginPage from './pages/Auth/LoginPage';
@@ -18,12 +18,13 @@ import HomePage from './pages/Home/HomePage';
 import DonationPage from './pages/Donate/DonationPage';
 import AboutPage from './pages/About/AboutPage';
 
-// 🌟 PHASE 2: Upcoming Pages Imports
+// Phase 2 Pages
 import CommunityPage from './pages/Community/CommunityPage';
-
-// 🌟 NAYE IMPORTS (FIXED: ExamPage hatake ExamList lagaya hai)
 import ExamList from './components/Academy/ExamList';
 import ExamEngine from './components/Academy/ExamEngine';
+
+// 🌟 NAYA IMPORT: Admin Dashboard Page
+import AdminDashboard from './pages/Admin/AdminDashboard';
 
 export default function App() {
   const navigate = useNavigate();
@@ -31,9 +32,7 @@ export default function App() {
 
   const { isAuthenticated, isAdmin, logout } = useAuth();
 
-  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', isSuccess: true });
-
   const [donations, setDonations] = useState([]);
   const [totalRaised, setTotalRaised] = useState(0);
   const [targetAmount, setTargetAmount] = useState(50000);
@@ -63,8 +62,8 @@ export default function App() {
     setTimeout(() => setToast({ show: false, message: '', isSuccess: true }), 3500);
   };
 
-  // Pages where we want the standard max-width layout
-  const isStandardLayout = ['/', '/donate', '/about', '/community', '/library', '/vault', '/academy'].includes(location.pathname);
+  // 🌟 '/admin' ko is list mein add kiya taaki design center mein rahe
+  const isStandardLayout = ['/', '/donate', '/about', '/community', '/library', '/vault', '/academy', '/admin'].includes(location.pathname);
 
   return (
     <div className="relative min-h-screen bg-[#f8fafc] font-[Poppins] text-slate-800 antialiased overflow-x-hidden">
@@ -72,50 +71,41 @@ export default function App() {
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none"></div>
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-teal-400/20 rounded-full blur-[100px] pointer-events-none"></div>
 
-      {/* Header logic */}
+      {/* 🌟 Header ab simple ho gaya, Modal Open karne ka function nikal diya */}
       {location.pathname !== '/login' && (
-        <Header onAdminClick={() => setIsAdminModalOpen(true)} />
+        <Header />
       )}
 
       <main className={`relative z-10 ${isStandardLayout ? 'max-w-7xl mx-auto px-2 sm:px-4 py-6 md:py-10' : ''}`}>
         <Routes>
-          {/* Auth Route */}
-          <Route path="/login" element={
-            !isAuthenticated ? <LoginPage showToast={showToast} /> : <Navigate to="/" />
-          } />
+          <Route path="/login" element={!isAuthenticated ? <LoginPage showToast={showToast} /> : <Navigate to="/" />} />
 
-          {/* Phase 1 Routes */}
-          <Route path="/" element={
-            <HomePage onNavigateToDonate={() => navigate('/donate')} />
-          } />
+          <Route path="/" element={<HomePage onNavigateToDonate={() => navigate('/donate')} />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/donate" element={
-            <DonationPage showToast={showToast} onBack={() => navigate('/')} />
-          } />
+          <Route path="/donate" element={<DonationPage showToast={showToast} onBack={() => navigate('/')} />} />
 
-          {/* 🌟 PHASE 2: New Module Routes */}
           <Route path="/community" element={<CommunityPage showToast={showToast} />} />
           
-          {/* 🌟 ACADEMY ROUTES (FIXED: Yahan ExamList add kiya hai) */}
           <Route path="/academy" element={<ExamList />} />
           <Route path="/academy/exam/:examId" element={<ExamEngine showToast={showToast} />} />
           <Route path="/vault" element={<VaultPage showToast={showToast} />} />
+          
+          {/* 🌟 NAYA ROUTE: Admin Dashboard ka full page */}
+          <Route path="/admin" element={
+            <AdminDashboard 
+              showToast={showToast}
+              donations={donations}
+              totalRaised={totalRaised}
+              targetAmount={targetAmount}
+            />
+          } />
           
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
 
-      {/* Admin Dashboard Overlay */}
-      {isAdmin && isAdminModalOpen && (
-        <AdminModal 
-          onClose={() => setIsAdminModalOpen(false)} 
-          showToast={showToast}
-          donations={donations}
-          totalRaised={totalRaised}
-          targetAmount={targetAmount}
-        />
-      )}
+      {/* ❌ Bottom se AdminModal ka poora block hata diya gaya hai */}
       
       <Toast toast={toast} />
     </div>
