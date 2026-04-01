@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css'; // Editor ki styling
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css'; // Editor ki styling
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 
