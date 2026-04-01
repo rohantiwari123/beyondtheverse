@@ -19,10 +19,10 @@ import AboutPage from './pages/About/AboutPage';
 
 // 🌟 PHASE 2: Upcoming Pages Imports
 import CommunityPage from './pages/Community/CommunityPage';
-import LibraryPage from './pages/Library/LibraryPage';
-import VaultPage from './pages/Vault/VaultPage';
-import ExamPage from './pages/Academy/ExamPage';
-import EventsPage from './pages/Academy/EventsPage';
+//import LibraryPage from './pages/Library/LibraryPage';
+//import VaultPage from './pages/Vault/VaultPage';
+//import ExamPage from './pages/Academy/ExamPage';
+//import EventsPage from './pages/Academy/EventsPage';
 
 export default function App() {
   const navigate = useNavigate();
@@ -94,10 +94,7 @@ export default function App() {
 
           {/* 🌟 PHASE 2: New Module Routes */}
           <Route path="/community" element={<CommunityPage showToast={showToast} />} />
-          <Route path="/library" element={<LibraryPage showToast={showToast} />} />
-          <Route path="/vault" element={<VaultPage showToast={showToast} />} />
-          <Route path="/academy" element={<EventsPage showToast={showToast} />} />
-          <Route path="/academy/exam" element={<ExamPage showToast={showToast} />} />
+          
           
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
