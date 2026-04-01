@@ -94,9 +94,11 @@ export default function CommunityPage({ showToast }) {
       {/* 🌟 3. Posts Feed */}
       <div className="space-y-6 pb-20">
         {posts.length === 0 ? (
-          <div className="text-center py-20 opacity-40 italic">Waiting for the first spark of thought...</div>
+          <div className="text-center py-20 opacity-40 italic">
+            Waiting for the first spark of thought...
+          </div>
         ) : (
-          posts.map(post => (
+          posts.map((post) => (
             <PostCard key={post.id} post={post} />
           ))
         )}
