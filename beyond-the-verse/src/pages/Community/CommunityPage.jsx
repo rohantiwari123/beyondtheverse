@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import PostCard from '../../components/Community/PostCard';
 
 export default function CommunityPage({ showToast }) {
+  // 🌟 userId ab sahi se destructure hoga
   const { isAuthenticated, userName, userId } = useAuth();
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState("");
@@ -13,6 +14,7 @@ export default function CommunityPage({ showToast }) {
 
   const categories = ["#Philosophy", "#Science", "#Quantum", "#Spirituality", "#Reflection"];
 
+  // Fetch Live Feed
   useEffect(() => {
     const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -24,8 +26,10 @@ export default function CommunityPage({ showToast }) {
   const handlePostSubmit = async (e) => {
     e.preventDefault();
     if (!newPost.trim()) return;
-    if (!isAuthenticated) {
-      showToast("Please login to share your thoughts!", false);
+    
+    // Auth Check
+    if (!isAuthenticated || !userId) {
+      showToast("Please login first to share thoughts!", false);
       return;
     }
 
@@ -35,14 +39,15 @@ export default function CommunityPage({ showToast }) {
         text: newPost,
         category: category,
         userName: userName || "Explorer",
-        userId: userId,
+        userId: userId, // Firebase UID
         createdAt: serverTimestamp(),
         likes: []
       });
       setNewPost("");
       showToast("Thought shared successfully! 🚀");
     } catch (error) {
-      showToast("Failed to post. Try again.", false);
+      console.error("Post Error:", error);
+      showToast("Failed to post. Check connection.", false);
     } finally {
       setIsSubmitting(false);
     }
@@ -51,21 +56,18 @@ export default function CommunityPage({ showToast }) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-10">
       
-      {/* Header Section */}
       <div className="text-center space-y-3">
         <h1 className="text-4xl font-black text-slate-800 tracking-tight">The Thought <span className="text-teal-600">Verse</span></h1>
-        <p className="text-slate-500 font-medium">Share your reflections, scientific theories, and philosophical quotes.</p>
+        <p className="text-slate-500 font-medium">Share your reflections and scientific theories.</p>
       </div>
 
-      {/* Create Post Box */}
       <div className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100">
         <form onSubmit={handlePostSubmit} className="space-y-4">
           <textarea 
             value={newPost}
             onChange={(e) => setNewPost(e.target.value)}
-            placeholder="What's on your mind? Share a reflection..."
+            placeholder="What's on your mind?..."
             className="w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-2 focus:ring-teal-500/20 resize-none min-h-[120px]"
-            maxLength="300"
           />
           
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -85,7 +87,7 @@ export default function CommunityPage({ showToast }) {
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="bg-slate-900 text-white px-8 py-2.5 rounded-xl font-black hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
+              className="bg-slate-900 text-white px-8 py-2.5 rounded-xl font-black hover:bg-slate-800 active:scale-95 disabled:opacity-50"
             >
               {isSubmitting ? "Posting..." : "Post Thought"}
             </button>
@@ -93,7 +95,7 @@ export default function CommunityPage({ showToast }) {
         </form>
       </div>
 
-      {/* Posts Feed Section (Fixed Bracket Logic) */}
+      {/* 🌟 FIXED: Syntax ekdam clean hai build ke liye */}
       <div className="space-y-6 pb-20">
         {posts.length === 0 ? (
           <div className="text-center py-20 opacity-40 italic">
@@ -107,4 +109,4 @@ export default function CommunityPage({ showToast }) {
       </div>
     </div>
   );
-  }
+    }
