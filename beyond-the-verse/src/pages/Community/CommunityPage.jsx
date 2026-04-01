@@ -5,7 +5,6 @@ import { useAuth } from '../../context/AuthContext';
 import PostCard from '../../components/Community/PostCard';
 
 export default function CommunityPage({ showToast }) {
-  // 🌟 userId ab sahi se destructure hoga
   const { isAuthenticated, userName, userId } = useAuth();
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState("");
@@ -14,7 +13,6 @@ export default function CommunityPage({ showToast }) {
 
   const categories = ["#Philosophy", "#Science", "#Quantum", "#Spirituality", "#Reflection"];
 
-  // Fetch Live Feed
   useEffect(() => {
     const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -25,59 +23,54 @@ export default function CommunityPage({ showToast }) {
 
   const handlePostSubmit = async (e) => {
     e.preventDefault();
-    if (!newPost.trim()) return;
-    
-    // Auth Check
-    if (!isAuthenticated || !userId) {
-      showToast("Please login first to share thoughts!", false);
-      return;
-    }
-
+    if (!newPost.trim() || !isAuthenticated || !userId) return;
     setIsSubmitting(true);
     try {
       await addDoc(collection(db, "posts"), {
-        text: newPost,
-        category: category,
-        userName: userName || "Explorer",
-        userId: userId, // Firebase UID
-        createdAt: serverTimestamp(),
-        likes: []
+        text: newPost, category, userName: userName || "Explorer", userId,
+        createdAt: serverTimestamp(), likes: []
       });
       setNewPost("");
-      showToast("Thought shared successfully! 🚀");
+      showToast("Thought shared! 🚀");
     } catch (error) {
-      console.error("Post Error:", error);
-      showToast("Failed to post. Check connection.", false);
-    } finally {
-      setIsSubmitting(false);
-    }
+      showToast("Post failed", false);
+    } finally { setIsSubmitting(false); }
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-10">
+    // px-0 (Mobile edge-to-edge) | sm:px-4 (Tablet) | md:py-10 (Desktop)
+    <div className="w-full max-w-4xl mx-auto px-0 sm:px-4 py-4 md:py-10 space-y-6 md:space-y-10">
       
-      <div className="text-center space-y-3">
-        <h1 className="text-4xl font-black text-slate-800 tracking-tight">The Thought <span className="text-teal-600">Verse</span></h1>
-        <p className="text-slate-500 font-medium">Share your reflections and scientific theories.</p>
+      {/* Header - Responsive Font Sizes */}
+      <div className="text-center space-y-2 px-4 sm:px-0">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-800 tracking-tight">
+          The Thought <span className="text-teal-600">Verse</span>
+        </h1>
+        <p className="text-sm sm:text-base text-slate-500 font-medium italic">
+          "Where deep reflections meet scientific curiosity."
+        </p>
       </div>
 
-      <div className="bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100">
+      {/* Create Post Box - Rounded-none on mobile for edge-to-edge look */}
+      <div className="bg-white sm:rounded-3xl p-4 sm:p-6 shadow-xl shadow-slate-200/50 border-y sm:border border-slate-100">
         <form onSubmit={handlePostSubmit} className="space-y-4">
           <textarea 
             value={newPost}
             onChange={(e) => setNewPost(e.target.value)}
-            placeholder="What's on your mind?..."
-            className="w-full bg-slate-50 border-none rounded-2xl p-4 text-slate-700 font-medium focus:ring-2 focus:ring-teal-500/20 resize-none min-h-[120px]"
+            placeholder="Share a reflection..."
+            className="w-full bg-slate-50 border-none rounded-xl p-4 text-base md:text-lg text-slate-700 font-medium focus:ring-2 focus:ring-teal-500/20 resize-none min-h-[100px] md:min-h-[140px]"
+            maxLength="300"
           />
           
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+            {/* Category Pills - Horizontal Scroll on Mobile */}
+            <div className="flex w-full sm:w-auto gap-2 overflow-x-auto pb-2 sm:pb-0 no-scrollbar px-2 sm:px-0">
               {categories.map(cat => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setCategory(cat)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${category === cat ? 'bg-teal-600 text-white shadow-lg' : 'bg-slate-100 text-slate-500'}`}
+                  className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-all ${category === cat ? 'bg-teal-600 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
                 >
                   {cat}
                 </button>
@@ -87,7 +80,7 @@ export default function CommunityPage({ showToast }) {
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="bg-slate-900 text-white px-8 py-2.5 rounded-xl font-black hover:bg-slate-800 active:scale-95 disabled:opacity-50"
+              className="w-full sm:w-auto bg-slate-900 text-white px-10 py-3 rounded-xl font-black hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50"
             >
               {isSubmitting ? "Posting..." : "Post Thought"}
             </button>
@@ -95,17 +88,11 @@ export default function CommunityPage({ showToast }) {
         </form>
       </div>
 
-      {/* 🌟 FIXED: Syntax ekdam clean hai build ke liye */}
-      <div className="space-y-6 pb-20">
-        {posts.length === 0 ? (
-          <div className="text-center py-20 opacity-40 italic">
-            Waiting for the first spark of thought...
-          </div>
-        ) : (
-          posts.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))
-        )}
+      {/* Posts Feed */}
+      <div className="space-y-1 sm:space-y-6 pb-20">
+        {posts.map((post) => (
+          <PostCard key={post.id} post={post} />
+        ))}
       </div>
     </div>
   );
