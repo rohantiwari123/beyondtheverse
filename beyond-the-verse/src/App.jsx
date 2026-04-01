@@ -3,25 +3,32 @@ import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-
 import { onSnapshot, collection, doc } from 'firebase/firestore'; 
 import { db } from './firebase'; 
 
-// 🌟 NAYA: Context hook import kiya (Saara login logic yahan se aayega)
+// Context Hook
 import { useAuth } from './context/AuthContext';
 
-// Components & Pages
+// Components & Layout
 import Header from './components/Layout/Header';
 import Toast from './components/Toast';
 import AdminModal from './components/AdminModal'; 
 
+// Phase 1 Pages
 import LoginPage from './pages/Auth/LoginPage';
 import HomePage from './pages/Home/HomePage';
 import DonationPage from './pages/Donate/DonationPage';
 import AboutPage from './pages/About/AboutPage';
 
+// 🌟 PHASE 2: Upcoming Pages Imports
+import CommunityPage from './pages/Community/CommunityPage';
+import LibraryPage from './pages/Library/LibraryPage';
+import VaultPage from './pages/Vault/VaultPage';
+import ExamPage from './pages/Academy/ExamPage';
+import EventsPage from './pages/Academy/EventsPage';
+
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation(); 
 
-  // 🌟 JADOO: Ab sirf 1 line me saara auth data mil gaya!
-  const { isAuthenticated, isAdmin, userName, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
 
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', isSuccess: true });
@@ -30,13 +37,17 @@ export default function App() {
   const [totalRaised, setTotalRaised] = useState(0);
   const [targetAmount, setTargetAmount] = useState(50000);
 
-  // Live Donations & Goal Fetch (Sirf UI ke liye)
+  // Live Donations & Goal Fetch
   useEffect(() => {
     const unsubDonations = onSnapshot(collection(db, 'donations'), (snapshot) => {
       let total = 0; let list = [];
-      snapshot.forEach(doc => { total += (Number(doc.data().amount) || 0); list.push({ id: doc.id, ...doc.data() }); });
+      snapshot.forEach(doc => { 
+        total += (Number(doc.data().amount) || 0); 
+        list.push({ id: doc.id, ...doc.data() }); 
+      });
       list.sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0));
-      setDonations(list); setTotalRaised(total);
+      setDonations(list); 
+      setTotalRaised(total);
     });
 
     const unsubConfig = onSnapshot(doc(db, 'settings', 'config'), (docSnap) => {
@@ -51,49 +62,49 @@ export default function App() {
     setTimeout(() => setToast({ show: false, message: '', isSuccess: true }), 3500);
   };
 
-  const handleLogout = async () => {
-    await logout(); // Context wala logout call kiya
-    navigate('/login');
-    showToast("Logged out successfully!");
-  };
-
-  const isPublicPage = location.pathname === '/' || location.pathname === '/donate' || location.pathname === '/about';
+  // Pages where we want the standard max-width layout
+  const isStandardLayout = ['/', '/donate', '/about', '/community', '/library', '/vault', '/academy'].includes(location.pathname);
 
   return (
-    <div className="relative min-h-screen bg-[#f8fafc] font-[Poppins] text-slate-800 antialiased overflow-hidden">
+    <div className="relative min-h-screen bg-[#f8fafc] font-[Poppins] text-slate-800 antialiased overflow-x-hidden">
+      {/* Background Decorations */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none"></div>
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-teal-400/20 rounded-full blur-[100px] pointer-events-none"></div>
 
-      {/* Header Sirf Login Page pe Hide Hoga */}
+      {/* Header logic */}
       {location.pathname !== '/login' && (
         <Header onAdminClick={() => setIsAdminModalOpen(true)} />
-      )}   {/* 🌟 YAHAN PAR YE )} LAGANA HAI 🌟 */}
+      )}
 
-      <main className={`relative z-10 ${isPublicPage ? 'max-w-7xl mx-auto px-2 sm:px-4 py-6 md:py-10' : ''}`}>
+      <main className={`relative z-10 ${isStandardLayout ? 'max-w-7xl mx-auto px-2 sm:px-4 py-6 md:py-10' : ''}`}>
         <Routes>
+          {/* Auth Route */}
           <Route path="/login" element={
             !isAuthenticated ? <LoginPage showToast={showToast} /> : <Navigate to="/" />
           } />
 
+          {/* Phase 1 Routes */}
           <Route path="/" element={
-            <HomePage 
-  donations={donations} 
-  totalRaised={totalRaised} 
-  targetAmount={targetAmount} 
-  onNavigateToDonate={() => navigate('/donate')} 
-/>
+            <HomePage onNavigateToDonate={() => navigate('/donate')} />
           } />
-
           <Route path="/about" element={<AboutPage />} />
-          
           <Route path="/donate" element={
             <DonationPage showToast={showToast} onBack={() => navigate('/')} />
           } />
+
+          {/* 🌟 PHASE 2: New Module Routes */}
+          <Route path="/community" element={<CommunityPage showToast={showToast} />} />
+          <Route path="/library" element={<LibraryPage showToast={showToast} />} />
+          <Route path="/vault" element={<VaultPage showToast={showToast} />} />
+          <Route path="/academy" element={<EventsPage showToast={showToast} />} />
+          <Route path="/academy/exam" element={<ExamPage showToast={showToast} />} />
           
+          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
 
+      {/* Admin Dashboard Overlay */}
       {isAdmin && isAdminModalOpen && (
         <AdminModal 
           onClose={() => setIsAdminModalOpen(false)} 
