@@ -16,12 +16,24 @@ export default function CommunityPage({ showToast }) {
 
   const categories = ["#Philosophy", "#Science", "#Quantum", "#Spirituality", "#Reflection"];
 
-  // Fetch Live Feed
+  // 🌟 LIVE FEED: Sorting pinned posts first, then by time
   useEffect(() => {
-    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+    // Note: Is query ke liye Firebase Console me index create karne ka link aa sakta hai Console (F12) me.
+    const q = query(
+      collection(db, "posts"), 
+      orderBy("isPinned", "desc"), 
+      orderBy("createdAt", "desc")
+    );
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      console.error("Firestore Query Error:", error);
+      // Agar index error aaye to fallback to simple sorting
+      const simpleQ = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+      onSnapshot(simpleQ, (s) => setPosts(s.docs.map(d => ({ id: d.id, ...d.data() }))));
     });
+    
     return () => unsubscribe();
   }, []);
 
@@ -40,6 +52,7 @@ export default function CommunityPage({ showToast }) {
         category: category,
         userName: userName || "Explorer",
         userId: userId,
+        isPinned: false, // Default pinned status
         createdAt: serverTimestamp(),
         likes: []
       });
@@ -55,7 +68,7 @@ export default function CommunityPage({ showToast }) {
   return (
     <div className="w-full max-w-4xl mx-auto px-0 sm:px-4 py-4 md:py-10 space-y-6 md:space-y-10">
       
-      {/* 🌟 Header - Responsive Text */}
+      {/* Header Section */}
       <div className="text-center space-y-2 px-4 sm:px-0">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-800 tracking-tight">
           The Thought <span className="text-teal-600">Verse</span>
@@ -65,9 +78,10 @@ export default function CommunityPage({ showToast }) {
         </p>
       </div>
 
-      {/* 🌟 Post Creation Box (With Lock for Guests) */}
+      {/* Post Creation Box */}
       <div className="bg-white sm:rounded-3xl shadow-xl shadow-slate-200/50 border-y sm:border border-slate-100 relative overflow-hidden">
         
+        {/* Guest Lock Overlay */}
         {!isAuthenticated && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center text-center p-6">
             <div className="h-12 w-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center mb-3 shadow-lg">
@@ -117,16 +131,20 @@ export default function CommunityPage({ showToast }) {
         </form>
       </div>
 
-      {/* 🌟 Posts Feed */}
+      {/* Posts Feed */}
       <div className="space-y-1 sm:space-y-6 pb-24">
         {posts.length === 0 ? (
           <div className="text-center py-20 text-slate-300 italic font-medium">Waiting for reflections...</div>
         ) : (
           posts.map((post) => (
-            <PostCard key={post.id} post={post} showToast={showToast} />
+            <PostCard 
+              key={post.id} 
+              post={post} 
+              showToast={showToast} 
+            />
           ))
         )}
       </div>
     </div>
   );
-}
+    }
