@@ -46,31 +46,41 @@ export default function CommunityPage({ showToast }) {
     }
   };
 
+  // 🌟 Auto-scroll to top when clicking the header
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <div className="min-h-screen bg-white md:bg-[#f8fafc] pb-20">
+    <div className="min-h-screen bg-white md:bg-slate-50 pb-20">
       
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">The Verse Feed</h1>
+      {/* 🌟 PREMIUM STICKY HEADER (X / Threads Style) */}
+      <div 
+        className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-slate-200 cursor-pointer transition-colors hover:bg-slate-50/50"
+        onClick={scrollToTop}
+      >
+        <div className="max-w-2xl mx-auto px-4 py-3.5 md:py-4 flex items-center justify-between">
+          <h1 className="text-lg md:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            Home
+          </h1>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto md:mt-6">
+      {/* 🌟 FIXED MARGIN: Removed 'md:mt-6', added smooth padding for desktop only */}
+      <div className="max-w-2xl mx-auto md:pt-4">
+        
         <div className="space-y-0 md:space-y-4">
           
-          {/* 🌟 POST COMPOSER */}
+          {/* POST COMPOSER */}
           {isAuthenticated ? (
-            <div className="bg-white md:rounded-2xl border-b md:border border-slate-200 p-4 md:p-6">
+            <div className="bg-white md:rounded-2xl border-b md:border border-slate-200 p-4 md:p-6 shadow-sm">
               <form onSubmit={handlePostSubmit}>
                 
-                {/* 1. Avatar & Text Area Row */}
                 <div className="flex gap-3 md:gap-4 mb-3">
                   <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 shrink-0 mt-1">
                     {userName?.charAt(0).toUpperCase() || "U"}
                   </div>
                   
-                  {/* 🌟 FIXED: Ugly Border Removed Entirely */}
                   <textarea 
                     value={newPost}
                     onChange={(e) => setNewPost(e.target.value)}
@@ -80,7 +90,6 @@ export default function CommunityPage({ showToast }) {
                   />
                 </div>
                 
-                {/* 🌟 FIXED: Controls Row (Moved out of the indent to be full width) */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-3 border-t border-slate-100">
                   <div className="flex w-full sm:w-auto gap-2 overflow-x-auto no-scrollbar py-1">
                     {categories.map(cat => (
@@ -107,7 +116,7 @@ export default function CommunityPage({ showToast }) {
             </div>
           ) : (
             /* Login Banner */
-            <div className="bg-slate-50 border-b md:border border-slate-200 p-8 md:rounded-2xl flex flex-col items-center justify-center text-center">
+            <div className="bg-slate-50 border-b md:border border-slate-200 p-8 md:rounded-2xl flex flex-col items-center justify-center text-center shadow-sm">
               <div className="h-12 w-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mb-4">
                 <i className="fa-solid fa-feather-pointed text-xl"></i>
               </div>
@@ -128,7 +137,7 @@ export default function CommunityPage({ showToast }) {
               </div>
             ) : (
               posts.map((post) => (
-                <div key={post.id} className="md:rounded-2xl md:border border-slate-200 overflow-hidden bg-white">
+                <div key={post.id} className="md:rounded-2xl md:border border-slate-200 overflow-hidden bg-white shadow-sm">
                   <PostCard post={post} showToast={showToast} />
                 </div>
               ))
@@ -139,4 +148,4 @@ export default function CommunityPage({ showToast }) {
       </div>
     </div>
   );
-        }
+      }
