@@ -22,8 +22,8 @@ export default function PostCard({ post, showToast }) {
   const confirmDelete = async () => {
     try {
       await deleteDoc(doc(db, "posts", post.id));
-      showToast("Deleted.");
-    } catch (e) { showToast("Failed.", false); }
+      showToast("Post Deleted.");
+    } catch (e) { showToast("Failed to delete.", false); }
   };
 
   const handlePin = async () => {
@@ -43,24 +43,33 @@ export default function PostCard({ post, showToast }) {
     if (reason.trim().length < 15 || hasInteracted) return;
     setIsSubmitting(true);
     try {
+      // 🌟 MAGIC HERE: Added id, replies array, and commentGates
       await updateDoc(doc(db, "posts", post.id), {
         interactions: arrayUnion({
-          userId, userName: userName || "Explorer", type: activeGate, text: reason, timestamp: new Date().toISOString()
+          id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5), // Unique ID
+          userId, 
+          userName: userName || "Explorer", 
+          type: activeGate, 
+          text: reason, 
+          timestamp: new Date().toISOString(),
+          isPinned: false,
+          replies: [],
+          commentGates: { support: [], counter: [], doubt: [] }
         })
       });
       setActiveGate(null);
       setReason("");
-    } catch (e) { showToast("Failed.", false); } 
+      showToast("Logic recorded!");
+    } catch (e) { showToast("Failed to record.", false); } 
     finally { setIsSubmitting(false); }
   };
 
   return (
     <div className={`bg-white border-b border-slate-200 pt-6 pb-4 md:pt-8 md:pb-6 px-4 md:px-6 transition-colors ${post.isPinned ? 'bg-slate-50/50' : ''}`}>
       
-      {/* 🌟 Header: Ultra-clean modern layout */}
+      {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          {/* Modern Circular Avatar */}
           <div className="h-10 w-10 bg-slate-900 rounded-full flex items-center justify-center font-bold text-white text-sm">
             {post.userName?.charAt(0).toUpperCase()}
           </div>
@@ -75,7 +84,7 @@ export default function PostCard({ post, showToast }) {
           </div>
         </div>
 
-        {/* Flat Admin Controls */}
+        {/* Admin Controls */}
         {isAdmin && (
           <div className="flex items-center gap-3">
             <button onClick={handlePin} className={`text-xs transition-colors ${post.isPinned ? 'text-teal-600' : 'text-slate-400 hover:text-slate-900'}`}>
@@ -95,41 +104,32 @@ export default function PostCard({ post, showToast }) {
         )}
       </div>
 
-      {/* 🌟 Main Thought Text - Pure Focus */}
+      {/* Main Thought Text */}
       <div className="mb-5 pl-1">
         <p className="text-slate-900 text-xl md:text-[26px] verse-thought-serif leading-[1.85]">
           {post.text}
         </p>
       </div>
 
-      {/* 🌟 Interaction Bar: Minimalist Icons */}
+      {/* Interaction Bar */}
       <div className={`flex items-center gap-8 pt-2 ${hasInteracted ? 'opacity-40 pointer-events-none' : ''}`}>
-        <button 
-          onClick={() => handleGateClick('support')} 
-          className={`flex items-center gap-2 transition-colors ${activeGate === 'support' ? 'text-emerald-600' : 'text-slate-500 hover:text-emerald-600'}`}
-        >
+        <button onClick={() => handleGateClick('support')} className={`flex items-center gap-2 transition-colors ${activeGate === 'support' ? 'text-emerald-600' : 'text-slate-500 hover:text-emerald-600'}`}>
           <i className="fa-regular fa-circle-check text-lg"></i>
           <span className="text-sm font-semibold">{supportCount > 0 ? supportCount : ''}</span>
         </button>
 
-        <button 
-          onClick={() => handleGateClick('counter')} 
-          className={`flex items-center gap-2 transition-colors ${activeGate === 'counter' ? 'text-rose-600' : 'text-slate-500 hover:text-rose-600'}`}
-        >
+        <button onClick={() => handleGateClick('counter')} className={`flex items-center gap-2 transition-colors ${activeGate === 'counter' ? 'text-rose-600' : 'text-slate-500 hover:text-rose-600'}`}>
           <i className="fa-solid fa-bolt text-lg"></i>
           <span className="text-sm font-semibold">{counterCount > 0 ? counterCount : ''}</span>
         </button>
 
-        <button 
-          onClick={() => handleGateClick('doubt')} 
-          className={`flex items-center gap-2 transition-colors ${activeGate === 'doubt' ? 'text-amber-600' : 'text-slate-500 hover:text-amber-600'}`}
-        >
+        <button onClick={() => handleGateClick('doubt')} className={`flex items-center gap-2 transition-colors ${activeGate === 'doubt' ? 'text-amber-600' : 'text-slate-500 hover:text-amber-600'}`}>
           <i className="fa-solid fa-magnifying-glass text-lg"></i>
           <span className="text-sm font-semibold">{doubtCount > 0 ? doubtCount : ''}</span>
         </button>
       </div>
 
-      {/* 🌟 Flat & Seamless Input Area */}
+      {/* Input Area */}
       {activeGate && !hasInteracted && (
         <div className="mt-4 p-4 bg-slate-50 rounded-2xl animate-fade-in">
           <textarea 
@@ -154,9 +154,9 @@ export default function PostCard({ post, showToast }) {
         </div>
       )}
 
-      {/* Discussion List */}
-      <CommentBox interactions={interactions} />
+      {/* 🌟 PASSING THE FULL POST OBJECT TO COMMENT BOX */}
+      <CommentBox post={post} showToast={showToast} />
 
     </div>
   );
-        }
+                }
