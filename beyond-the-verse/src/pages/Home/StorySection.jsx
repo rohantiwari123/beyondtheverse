@@ -21,7 +21,7 @@ export default function StorySection() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setSubjects(docs);
-      // Default selection
+      // Default selection (Jab page load ho toh pehla subject apne aap khul jaye)
       if (docs.length > 0 && !activeSubject) {
         handleSubjectClick(docs[0]);
       }
@@ -29,21 +29,21 @@ export default function StorySection() {
     return () => unsubscribe();
   }, []);
 
-  // 2. 🌟 GEMINI API INTEGRATION 🌟
+  // 2. 🌟 GEMINI API INTEGRATION (With Strict Error Tracking) 🌟
   const fetchGeminiData = async (subjectName) => {
     setIsLoadingGemini(true);
     setGeminiData("");
+    
     try {
       // API Key fetch (Vite ya CRA dono ke liye support)
       const apiKey = import.meta.env?.VITE_GEMINI_API_KEY || process.env.REACT_APP_GEMINI_API_KEY;
       
       if (!apiKey) {
-        setGeminiData("API Key is missing. Please add VITE_GEMINI_API_KEY to your .env file.");
+        setGeminiData("🚨 Error: API Key is missing! Apni .env file check karein aur server restart karein.");
         setIsLoadingGemini(false);
         return;
       }
 
-      // 🧠 The Magic Prompt: Asking Gemini to mix Science & Philosophy
       const promptText = `You are an expert who bridges science and philosophy. Explain the subject '${subjectName}'. 
       First paragraph: Provide a concise, factual, and scientific definition. 
       Second paragraph: Explain its 'Life Application'—how understanding this concept can elevate human consciousness and daily life. 
@@ -59,15 +59,25 @@ export default function StorySection() {
 
       const data = await response.json();
       
+      // 🚨 Error Catching Logic (API Error Pakadne ke liye)
+      if (!response.ok) {
+        console.error("Gemini API Error Detail:", data);
+        setGeminiData(`🚨 Google API Error: ${data.error?.message || "Invalid Request"}`);
+        return;
+      }
+
+      // ✅ Success Logic
       if (data.candidates && data.candidates.length > 0) {
         const generatedText = data.candidates[0].content.parts[0].text;
         setGeminiData(generatedText);
       } else {
-        setGeminiData("Could not generate knowledge at this time.");
+        console.log("Empty Response Data:", data);
+        setGeminiData("🚨 Google Gemini ne koi jawab nahi diya. Console check karein.");
       }
+
     } catch (e) {
-      console.error(e);
-      setGeminiData("Failed to connect with Gemini AI. Please check your connection or API key.");
+      console.error("Fetch Catch Error:", e);
+      setGeminiData("🚨 Network Error! Ya toh aapka internet band hai, ya API connect nahi ho pa rahi.");
     } finally {
       setIsLoadingGemini(false);
     }
@@ -158,28 +168,38 @@ export default function StorySection() {
                   </div>
                 ) : (
                   <div className="space-y-6 mt-4">
-                    {/* Render paragraphs returned by Gemini */}
-                    {geminiData.split('\n\n').map((paragraph, idx) => {
-                      if (!paragraph.trim()) return null;
-                      // Making the second paragraph (Philosophy) visually distinct
-                      if (idx === 1) {
+                    {/* Error Handling UI Box */}
+                    {geminiData.startsWith("🚨") ? (
+                      <div className="bg-rose-50 text-rose-700 p-6 rounded-2xl border border-rose-200 font-bold text-sm">
+                        {geminiData}
+                      </div>
+                    ) : (
+                      /* Render Gemini Success Response */
+                      geminiData.split('\n\n').map((paragraph, idx) => {
+                        if (!paragraph.trim()) return null;
+                        
+                        // Life Application (2nd Paragraph) Highlight
+                        if (idx === 1) {
+                          return (
+                            <div key={idx} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mt-8">
+                              <h4 className="text-[10px] font-black text-teal-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                                <i className="fa-solid fa-bolt"></i> Life Application
+                              </h4>
+                              <p className="text-slate-700 text-lg leading-[1.8] font-medium">
+                                {paragraph}
+                              </p>
+                            </div>
+                          );
+                        }
+                        
+                        // Normal Scientific Definition (1st Paragraph)
                         return (
-                          <div key={idx} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mt-8">
-                            <h4 className="text-[10px] font-black text-teal-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                              <i className="fa-solid fa-bolt"></i> Life Application
-                            </h4>
-                            <p className="text-slate-700 text-lg leading-[1.8] font-medium">
-                              {paragraph}
-                            </p>
-                          </div>
+                          <p key={idx} className="text-slate-800 text-lg md:text-xl leading-[1.8] verse-thought-serif">
+                            {paragraph}
+                          </p>
                         );
-                      }
-                      return (
-                        <p key={idx} className="text-slate-800 text-lg md:text-xl leading-[1.8] verse-thought-serif">
-                          {paragraph}
-                        </p>
-                      );
-                    })}
+                      })
+                    )}
                   </div>
                 )}
               </div>
@@ -217,4 +237,4 @@ export default function StorySection() {
 
     </div>
   );
-  }
+    }
