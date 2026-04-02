@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom"; 
 import { useAuth } from "../../context/AuthContext";
 
@@ -32,79 +32,87 @@ export default function Header() {
   return (
     <>
       <header className="bg-white/90 backdrop-blur-xl shadow-sm sticky top-0 z-40 border-b border-slate-100 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 lg:py-4 flex justify-between items-center gap-3 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 lg:py-4 flex justify-between items-center relative">
           
-          {/* Logo Section */}
-          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 select-none shrink-0 group">
-            <div className="flex items-center justify-center h-9 w-9 lg:h-10 lg:w-10 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100/50 rounded-xl lg:rounded-2xl shadow-inner group-hover:scale-105 transition-transform">
-              <i className="fa-solid fa-atom text-lg lg:text-xl text-teal-600"></i>
-            </div>
-            <div className="flex flex-col">
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 leading-tight tracking-tight">
-                Beyond The <span className="text-teal-600">Verse</span>
-              </h1>
-              <span className="text-[8px] sm:text-[9px] lg:text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase mt-[1px] md:mt-0">
-                Empowering Education
-              </span>
-            </div>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 mr-auto ml-4 xl:ml-8">
-            {navLinks.map((link) => {
-              const isActive = location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path));
-              return (
-                <Link 
-                  key={link.name} 
-                  to={link.path}
-                  className={`px-3 py-2 xl:px-4 xl:py-2 rounded-lg text-sm xl:text-base font-bold transition-all whitespace-nowrap ${
-                    isActive 
-                    ? "bg-teal-50 text-teal-700" 
-                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
-                  }`}
-                >
-                  <i className={`fa-solid ${link.icon} mr-2 hidden xl:inline-block`}></i>
-                  {link.name}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Desktop User Actions */}
-          <div className="hidden lg:flex items-center gap-2 xl:gap-4 shrink-0">
-            {isAuthenticated && userName && (
-              <div className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-3 py-1.5 xl:px-4 xl:py-2 rounded-full text-indigo-700 shadow-sm" title={userName}>
-                <i className="fa-solid fa-circle-user text-sm xl:text-base"></i>
-                <span className="text-xs xl:text-sm font-bold truncate max-w-[100px] xl:max-w-[150px]">{userName.split(' ')[0]}</span>
+          {/* 🌟 LEFT SIDE GROUP: Logo + Desktop Menu */}
+          <div className="flex items-center gap-6 xl:gap-10">
+            
+            {/* Logo Section */}
+            <Link to="/" className="flex items-center gap-2.5 sm:gap-3 select-none shrink-0 group">
+              <div className="flex items-center justify-center h-9 w-9 lg:h-10 lg:w-10 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100/50 rounded-xl lg:rounded-2xl shadow-inner group-hover:scale-105 transition-transform">
+                <i className="fa-solid fa-atom text-lg lg:text-xl text-teal-600"></i>
               </div>
-            )}
+              <div className="flex flex-col">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 leading-tight tracking-tight">
+                  Beyond The <span className="text-teal-600">Verse</span>
+                </h1>
+                <span className="text-[8px] sm:text-[9px] lg:text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase mt-[1px] md:mt-0">
+                  Empowering Education
+                </span>
+              </div>
+            </Link>
 
-            {isAdmin && (
-              <Link 
-                to="/admin" 
-                className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 xl:px-5 xl:py-2 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 whitespace-nowrap"
-              >
-                <i className="fa-solid fa-shield-halved"></i> 
-                <span className="hidden xl:inline">Dashboard</span>
-              </Link>
-            )}
-
-            {isAuthenticated ? (
-              <button onClick={handleLogout} className="flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 xl:px-5 xl:py-2 rounded-xl text-sm font-bold transition-all active:scale-95 whitespace-nowrap">
-                <i className="fa-solid fa-right-from-bracket"></i> Logout
-              </button>
-            ) : (
-              <Link to="/login" className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-1.5 xl:px-6 xl:py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-teal-500/30 active:scale-95 whitespace-nowrap">
-                <i className="fa-solid fa-user-plus"></i> Join Us
-              </Link>
-            )}
+            {/* Desktop Navigation (Changed lg to md/lg for better visibility on small laptops) */}
+            <nav className="hidden lg:flex items-center gap-1 xl:gap-2">
+              {navLinks.map((link) => {
+                const isActive = location.pathname === link.path || (link.path !== '/' && location.pathname.startsWith(link.path));
+                return (
+                  <Link 
+                    key={link.name} 
+                    to={link.path}
+                    className={`px-3 py-2 xl:px-4 xl:py-2 rounded-lg text-sm xl:text-base font-bold transition-all whitespace-nowrap ${
+                      isActive 
+                      ? "bg-teal-50 text-teal-700" 
+                      : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+                    }`}
+                  >
+                    <i className={`fa-solid ${link.icon} mr-2 hidden xl:inline-block`}></i>
+                    {link.name}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
 
-          {/* Mobile Menu Toggle Button */}
-          <div className="flex lg:hidden items-center shrink-0">
-            <button onClick={() => setIsMobileMenuOpen(true)} className="hamburger-btn h-10 w-10 flex items-center justify-center bg-slate-800 text-white rounded-xl shadow-sm active:scale-95 transition-transform">
-              <i className="fa-solid fa-bars text-lg"></i>
-            </button>
+          {/* 🌟 RIGHT SIDE GROUP: Buttons & Mobile Toggle */}
+          <div className="flex items-center gap-3 shrink-0">
+            
+            {/* Desktop User Actions */}
+            <div className="hidden lg:flex items-center gap-2 xl:gap-4">
+              {isAuthenticated && userName && (
+                <div className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-3 py-1.5 xl:px-4 xl:py-2 rounded-full text-indigo-700 shadow-sm" title={userName}>
+                  <i className="fa-solid fa-circle-user text-sm xl:text-base"></i>
+                  <span className="text-xs xl:text-sm font-bold truncate max-w-[100px] xl:max-w-[150px]">{userName.split(' ')[0]}</span>
+                </div>
+              )}
+
+              {isAdmin && (
+                <Link 
+                  to="/admin" 
+                  className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 xl:px-5 xl:py-2 rounded-xl text-sm font-bold transition-all shadow-md active:scale-95 whitespace-nowrap"
+                >
+                  <i className="fa-solid fa-shield-halved"></i> 
+                  <span className="hidden xl:inline">Dashboard</span>
+                </Link>
+              )}
+
+              {isAuthenticated ? (
+                <button onClick={handleLogout} className="flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 xl:px-5 xl:py-2 rounded-xl text-sm font-bold transition-all active:scale-95 whitespace-nowrap">
+                  <i className="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+              ) : (
+                <Link to="/login" className="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-1.5 xl:px-6 xl:py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-teal-500/30 active:scale-95 whitespace-nowrap">
+                  <i className="fa-solid fa-user-plus"></i> Join Us
+                </Link>
+              )}
+            </div>
+
+            {/* Mobile Menu Toggle Button */}
+            <div className="flex lg:hidden items-center">
+              <button onClick={() => setIsMobileMenuOpen(true)} className="hamburger-btn h-10 w-10 flex items-center justify-center bg-slate-800 text-white rounded-xl shadow-sm active:scale-95 transition-transform">
+                <i className="fa-solid fa-bars text-lg"></i>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -196,4 +204,4 @@ export default function Header() {
       </div>
     </>
   );
-}
+                  }
