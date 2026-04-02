@@ -22,7 +22,7 @@ export default function PostCard({ post, showToast }) {
   const confirmDelete = async () => {
     try {
       await deleteDoc(doc(db, "posts", post.id));
-      showToast("Deleted! 🗑️");
+      showToast("Deleted.");
     } catch (e) { showToast("Failed.", false); }
   };
 
@@ -33,7 +33,7 @@ export default function PostCard({ post, showToast }) {
   };
 
   const handleGateClick = (gateType) => {
-    if (!isAuthenticated) return showToast("🔐 Please login!", false);
+    if (!isAuthenticated) return showToast("Please login first.", false);
     if (hasInteracted) return; 
     setActiveGate(activeGate === gateType ? null : gateType);
     setReason("");
@@ -55,102 +55,108 @@ export default function PostCard({ post, showToast }) {
   };
 
   return (
-    <div className={`bg-white border-b border-slate-100 p-4 md:p-6 transition-all relative ${post.isPinned ? 'bg-slate-50/50' : ''}`}>
+    <div className={`bg-white border-b border-slate-200 pt-6 pb-4 md:pt-8 md:pb-6 px-4 md:px-6 transition-colors ${post.isPinned ? 'bg-slate-50/50' : ''}`}>
       
-      {/* Header: Compact User Info */}
-      <div className="flex items-center justify-between mb-3">
+      {/* 🌟 Header: Ultra-clean modern layout */}
+      <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 bg-slate-900 rounded-lg flex items-center justify-center font-black text-white text-xs">
+          {/* Modern Circular Avatar */}
+          <div className="h-10 w-10 bg-slate-900 rounded-full flex items-center justify-center font-bold text-white text-sm">
             {post.userName?.charAt(0).toUpperCase()}
           </div>
-          <div>
-            <h4 className="font-black text-slate-900 text-xs tracking-tight">{post.userName}</h4>
-            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{post.category}</span>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <h4 className="font-bold text-slate-900 text-sm tracking-tight">{post.userName}</h4>
+              {post.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-[10px]"></i>}
+            </div>
+            <span className="text-[11px] text-slate-500 font-medium tracking-wide">
+              {post.category} <span className="mx-1 opacity-50">•</span> Just now
+            </span>
           </div>
         </div>
 
-        {/* Admin Controls: Simple & Flat */}
+        {/* Flat Admin Controls */}
         {isAdmin && (
-          <div className="flex items-center gap-2">
-            <button onClick={handlePin} className={`text-[10px] ${post.isPinned ? 'text-teal-600' : 'text-slate-300'}`}>
-              <i className="fa-solid fa-thumbtack"></i>
+          <div className="flex items-center gap-3">
+            <button onClick={handlePin} className={`text-xs transition-colors ${post.isPinned ? 'text-teal-600' : 'text-slate-400 hover:text-slate-900'}`}>
+              {post.isPinned ? 'Unpin' : 'Pin'}
             </button>
             {showDeleteConfirm ? (
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase">
-                <button onClick={confirmDelete} className="text-emerald-500">Confirm</button>
-                <button onClick={() => setShowDeleteConfirm(false)} className="text-rose-500">X</button>
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase">
+                <button onClick={confirmDelete} className="text-rose-600">Del</button>
+                <button onClick={() => setShowDeleteConfirm(false)} className="text-slate-400">Cancel</button>
               </div>
             ) : (
-              <button onClick={() => setShowDeleteConfirm(true)} className="text-slate-200 hover:text-rose-500">
-                <i className="fa-solid fa-trash-can"></i>
+              <button onClick={() => setShowDeleteConfirm(true)} className="text-xs text-slate-400 hover:text-rose-600 transition-colors">
+                Delete
               </button>
             )}
           </div>
         )}
       </div>
 
-      {/* Main Thought Text - English Poppins / Hindi Tiro Serif */}
-      <div className="mb-4">
-        <p className="text-slate-800 text-lg md:text-2xl verse-thought-serif leading-[1.8]">
+      {/* 🌟 Main Thought Text - Pure Focus */}
+      <div className="mb-5 pl-1">
+        <p className="text-slate-900 text-xl md:text-[26px] verse-thought-serif leading-[1.85]">
           {post.text}
         </p>
       </div>
 
-      {/* Interaction Bar: Facebook Style (Icons Only) */}
-      <div className={`flex items-center gap-6 py-1 ${hasInteracted ? 'opacity-50 pointer-events-none' : ''}`}>
+      {/* 🌟 Interaction Bar: Minimalist Icons */}
+      <div className={`flex items-center gap-8 pt-2 ${hasInteracted ? 'opacity-40 pointer-events-none' : ''}`}>
         <button 
           onClick={() => handleGateClick('support')} 
-          className={`flex items-center gap-1.5 transition-colors ${activeGate === 'support' ? 'text-emerald-600' : 'text-slate-400 hover:text-emerald-600'}`}
+          className={`flex items-center gap-2 transition-colors ${activeGate === 'support' ? 'text-emerald-600' : 'text-slate-500 hover:text-emerald-600'}`}
         >
-          <i className="fa-solid fa-check-double text-base"></i>
-          <span className="text-xs font-bold">{supportCount}</span>
+          <i className="fa-regular fa-circle-check text-lg"></i>
+          <span className="text-sm font-semibold">{supportCount > 0 ? supportCount : ''}</span>
         </button>
 
         <button 
           onClick={() => handleGateClick('counter')} 
-          className={`flex items-center gap-1.5 transition-colors ${activeGate === 'counter' ? 'text-rose-600' : 'text-slate-400 hover:text-rose-600'}`}
+          className={`flex items-center gap-2 transition-colors ${activeGate === 'counter' ? 'text-rose-600' : 'text-slate-500 hover:text-rose-600'}`}
         >
-          <i className="fa-solid fa-bolt text-base"></i>
-          <span className="text-xs font-bold">{counterCount}</span>
+          <i className="fa-solid fa-bolt text-lg"></i>
+          <span className="text-sm font-semibold">{counterCount > 0 ? counterCount : ''}</span>
         </button>
 
         <button 
           onClick={() => handleGateClick('doubt')} 
-          className={`flex items-center gap-1.5 transition-colors ${activeGate === 'doubt' ? 'text-amber-600' : 'text-slate-400 hover:text-amber-600'}`}
+          className={`flex items-center gap-2 transition-colors ${activeGate === 'doubt' ? 'text-amber-600' : 'text-slate-500 hover:text-amber-600'}`}
         >
-          <i className="fa-solid fa-microscope text-base"></i>
-          <span className="text-xs font-bold">{doubtCount}</span>
+          <i className="fa-solid fa-magnifying-glass text-lg"></i>
+          <span className="text-sm font-semibold">{doubtCount > 0 ? doubtCount : ''}</span>
         </button>
       </div>
 
-      {/* Simple Flat Input Area */}
+      {/* 🌟 Flat & Seamless Input Area */}
       {activeGate && !hasInteracted && (
-        <div className="mt-3 p-4 bg-slate-50 rounded-xl border border-slate-100 animate-fade-in">
+        <div className="mt-4 p-4 bg-slate-50 rounded-2xl animate-fade-in">
           <textarea 
             value={reason} 
             onChange={(e) => setReason(e.target.value)} 
             placeholder="Add your logic..." 
-            className="w-full bg-white border border-slate-200 rounded-lg p-3 text-sm text-slate-800 placeholder:text-slate-400 focus:ring-0 focus:border-slate-300 resize-none mb-3" 
+            className="w-full bg-transparent border-none p-2 text-sm text-slate-800 placeholder:text-slate-400 focus:ring-0 resize-none mb-2" 
             rows="2" 
           />
-          <div className="flex justify-between items-center">
-            <span className={`text-[9px] font-black uppercase ${reason.length < 15 ? 'text-rose-400' : 'text-emerald-500'}`}>
-               {reason.length < 15 ? `${15 - reason.length} chars needed` : "Ready"}
+          <div className="flex justify-between items-center px-2">
+            <span className={`text-[10px] font-bold ${reason.length < 15 ? 'text-rose-400' : 'text-emerald-500'}`}>
+               {reason.length < 15 ? `${15 - reason.length} chars needed` : "Ready to post"}
             </span>
             <button 
               onClick={handleSubmitReason} 
               disabled={reason.length < 15 || isSubmitting} 
-              className="bg-slate-900 text-white px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider disabled:bg-slate-200"
+              className="bg-slate-900 text-white px-5 py-2 rounded-full text-[11px] font-bold tracking-wide disabled:bg-slate-200 disabled:text-slate-400 transition-colors"
             >
-              {isSubmitting ? "..." : "Submit"}
+              {isSubmitting ? "Posting..." : "Reply"}
             </button>
           </div>
         </div>
       )}
 
-      {/* Discussion List: Automatically follows after the interaction bar */}
+      {/* Discussion List */}
       <CommentBox interactions={interactions} />
 
     </div>
   );
-    }
+        }
