@@ -124,10 +124,10 @@ export default function PostCard({ post, showToast }) {
 
       {/* Main Thought Text - SMART FONT APPLIED HERE */}
       <div className="mb-8 relative">
-        <p className="text-slate-800 font-semibold leading-[1.7] text-lg md:text-2xl tracking-tight pr-2">
-          <i className="fa-solid fa-quote-left text-teal-200/50 absolute -left-4 -top-2 text-3xl md:text-4xl -z-10"></i>
-          {post.text}
-        </p>
+        <p className="text-slate-800 font-medium leading-[1.8] text-lg md:text-2xl thought-text pr-2">
+  <i className="fa-solid fa-quote-left text-teal-200/50 mr-2 text-3xl"></i>
+  {post.text}
+</p>
       </div>
 
       {/* Interaction Pillars - Grid Style */}

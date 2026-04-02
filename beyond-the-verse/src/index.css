@@ -1,34 +1,44 @@
 @import "tailwindcss";
 
+/* 🌟 GLOBAL FONT SETTINGS */
 @layer base {
-  /* Poore App ke liye */
+  /* Poore App ke liye default setup */
   body {
     font-family: 'Poppins', "Noto Serif Devanagari", serif !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
-  /* 🌟 Sabse important: Thought Text ke liye special force */
-  /* Isse aapka Hindi text bilkul Google Fonts preview jaisa dikhega */
-  p, .hindi-serif {
+  /* 💎 THE "REAL" SERIF LOOK: Specially for Hindi Thoughts */
+  /* Isse aapka Hindi text bilkul Google Fonts preview jaisa curvy aur sundar dikhega */
+  p, .verse-thought {
     font-family: 'Poppins', "Noto Serif Devanagari", serif !important;
     font-optical-sizing: auto;
+    /* Serif font 400 ya 500 weight par hi sabse sundar lagta hai */
+    font-weight: 500; 
+    line-height: 1.8; /* Hindi matrayon ke liye extra space zaroori hai */
+    letter-spacing: 0.015em;
     font-variation-settings: "wdth" 100;
-    line-height: 1.6; /* Hindi serif ke liye thoda space zaruri hai */
   }
 
-  h1, h2, h3, h4, h5, h6, span, textarea, button, input {
+  /* Headings aur Buttons ke liye Poppins priority */
+  h1, h2, h3, h4, h5, h6, button, .notranslate {
     font-family: 'Poppins', "Noto Serif Devanagari", serif !important;
+    letter-spacing: -0.02em;
   }
-}
-  /* Specific weights define karne ke liye (Optional par accha rehta hai) */
-  .font-black { font-weight: 900; }
-  .font-bold { font-weight: 700; }
-  .font-medium { font-weight: 500; }
-  .font-normal { font-weight: 400; }
+
+  /* Utility weights for manual control */
+  .font-black { font-weight: 900 !important; }
+  .font-bold { font-weight: 700 !important; }
+  .font-medium { font-weight: 500 !important; }
+  .font-normal { font-weight: 400 !important; }
 }
 
-/* Custom Scrollbar (Waisa hi rakha hai) */
+/* --- UI COMPONENTS --- */
+
+/* Custom Scrollbar */
 .lang-scrollbar::-webkit-scrollbar { width: 6px; }
 .lang-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
 .lang-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+.lang-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
