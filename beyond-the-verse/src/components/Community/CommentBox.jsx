@@ -10,6 +10,9 @@ function CommentNode({ interaction, post, showToast }) {
   const [replyText, setReplyText] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // 🌟 BACKWARD COMPATIBILITY: Purane comments ke paas 'id' nahi thi, toh hum timestamp use karenge
+  const targetId = interaction.id || interaction.timestamp;
+
   // Fallbacks for older comments that might not have these fields
   const replies = interaction.replies || [];
   const gates = interaction.commentGates || { support: [], counter: [], doubt: [] };
@@ -28,10 +31,10 @@ function CommentNode({ interaction, post, showToast }) {
   };
   const config = typeConfig[interaction.type] || typeConfig['support']; // Safety fallback
 
-  // 🛡️ ADMIN: Delete Comment
+  // 🛡️ ADMIN: Delete Comment (Works for both old and new)
   const handleDeleteComment = async () => {
     try {
-      const newInteractions = post.interactions.filter(i => i.id !== interaction.id);
+      const newInteractions = post.interactions.filter(i => (i.id || i.timestamp) !== targetId);
       await updateDoc(doc(db, "posts", post.id), { interactions: newInteractions });
       showToast("Comment deleted.");
     } catch (e) { showToast("Failed to delete.", false); }
@@ -41,7 +44,7 @@ function CommentNode({ interaction, post, showToast }) {
   const handlePinComment = async () => {
     try {
       const newInteractions = post.interactions.map(i => 
-        i.id === interaction.id ? { ...i, isPinned: !i.isPinned } : i
+        (i.id || i.timestamp) === targetId ? { ...i, isPinned: !i.isPinned } : i
       );
       await updateDoc(doc(db, "posts", post.id), { interactions: newInteractions });
     } catch (e) { showToast("Failed to pin.", false); }
@@ -60,7 +63,7 @@ function CommentNode({ interaction, post, showToast }) {
       };
 
       const newInteractions = post.interactions.map(i => 
-        i.id === interaction.id ? { ...i, replies: [...(i.replies || []), newReply] } : i
+        (i.id || i.timestamp) === targetId ? { ...i, replies: [...(i.replies || []), newReply] } : i
       );
 
       await updateDoc(doc(db, "posts", post.id), { interactions: newInteractions });
@@ -78,21 +81,18 @@ function CommentNode({ interaction, post, showToast }) {
     try {
       const newGates = { ...gates, [type]: [...gates[type], userId] };
       const newInteractions = post.interactions.map(i => 
-        i.id === interaction.id ? { ...i, commentGates: newGates } : i
+        (i.id || i.timestamp) === targetId ? { ...i, commentGates: newGates } : i
       );
       await updateDoc(doc(db, "posts", post.id), { interactions: newInteractions });
     } catch (e) { console.error(e); }
   };
-
-  // Skip rendering if no ID (for super old database entries before this update)
-  if (!interaction.id) return null;
 
   return (
     <div className={`border-b border-slate-100 last:border-none py-5 md:py-6 transition-colors ${interaction.isPinned ? 'bg-slate-50/50' : ''}`}>
       <div className="flex items-start gap-3 md:gap-4 px-1">
         
         {/* Avatar */}
-        <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-xs md:text-sm shrink-0">
+        <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-xs md:text-sm shrink-0 mt-1">
           {interaction.userName?.charAt(0).toUpperCase()}
         </div>
         
@@ -124,7 +124,7 @@ function CommentNode({ interaction, post, showToast }) {
                   {showDeleteConfirm ? (
                     <div className="flex items-center gap-2 text-[9px] font-bold uppercase">
                       <button onClick={handleDeleteComment} className="text-rose-600">Del</button>
-                      <button onClick={() => setShowDeleteConfirm(false)} className="text-slate-400">X</button>
+                      <button onClick={() => setShowDeleteConfirm(false)} className="text-slate-400">Cancel</button>
                     </div>
                   ) : (
                     <button onClick={() => setShowDeleteConfirm(true)} className="text-[10px] text-slate-300 hover:text-rose-600 transition-colors">
@@ -184,7 +184,7 @@ function CommentNode({ interaction, post, showToast }) {
           {replies.length > 0 && (
             <div className="mt-4 space-y-3 border-l-2 border-slate-100 pl-4 ml-2">
               {replies.map((reply) => (
-                <div key={reply.id} className="flex items-start gap-2">
+                <div key={reply.id || reply.timestamp} className="flex items-start gap-2">
                   <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 text-[10px] shrink-0">
                     {reply.userName?.charAt(0).toUpperCase()}
                   </div>
@@ -232,4 +232,4 @@ export default function CommentBox({ post, showToast }) {
       </div>
     </div>
   );
-}
+                                             }
