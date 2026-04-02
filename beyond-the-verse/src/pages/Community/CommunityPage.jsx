@@ -11,12 +11,12 @@ export default function CommunityPage({ showToast }) {
   
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState("");
-  const [category, setCategory] = useState("#Philosophy");
+  const [category, setCategory] = useState("Philosophy");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const categories = ["#Philosophy", "#Science", "#Quantum", "#Spirituality", "#Reflection"];
+  const categories = ["Philosophy", "Science", "Quantum", "Spirituality", "Reflection"];
 
-  // Fetching Posts with real-time updates
+  // Fetching Posts
   useEffect(() => {
     const q = query(
       collection(db, "posts"), 
@@ -40,7 +40,7 @@ export default function CommunityPage({ showToast }) {
     e.preventDefault();
     if (!newPost.trim()) return;
     if (!isAuthenticated || !userId) {
-      showToast("🔐 Please login first!", false);
+      showToast("Please login first.", false);
       return;
     }
 
@@ -53,10 +53,11 @@ export default function CommunityPage({ showToast }) {
         userId: userId,
         isPinned: false,
         createdAt: serverTimestamp(),
-        interactions: [] 
+        interactions: [],
+        bookmarks: []
       });
       setNewPost("");
-      showToast("Shared! 🚀");
+      showToast("Post published!");
     } catch (error) {
       showToast("Failed to post.", false);
     } finally {
@@ -67,82 +68,101 @@ export default function CommunityPage({ showToast }) {
   return (
     <div className="min-h-screen bg-white md:bg-[#f8fafc] pb-20">
       
-      {/* 🌟 SIMPLE HEADER: Clean & Flat */}
-      <div className="bg-white border-b border-slate-100 py-6 md:py-10 px-4">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
-            The Verse <span className="text-teal-600">Feed</span>
+      {/* 🌟 STICKY HEADER: Glassmorphism effect for modern feel */}
+      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+            The Verse Feed
           </h1>
+          {/* Optional: Add a subtle loading pulse here if you want */}
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-2xl mx-auto md:mt-6">
         
-        {/* Main Feed Container */}
-        <div className="space-y-0 md:space-y-6">
+        <div className="space-y-0 md:space-y-4">
           
-          {/* Post Creation Box: Edge-to-edge mobile */}
-          <div className="bg-white md:rounded-2xl border-b md:border border-slate-100 relative overflow-hidden">
-            {!isAuthenticated && (
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-30 flex items-center justify-center">
-                <button 
-                  onClick={() => navigate('/login')}
-                  className="bg-slate-900 text-white px-6 py-2 rounded-full font-black text-[10px] tracking-widest active:scale-95 transition-all"
-                >
-                  LOGIN TO SHARE A THOUGHT
-                </button>
-              </div>
-            )}
-
-            <form onSubmit={handlePostSubmit} className={`p-4 md:p-6 ${!isAuthenticated ? 'opacity-10 pointer-events-none' : ''}`}>
-              <textarea 
-                value={newPost}
-                onChange={(e) => setNewPost(e.target.value)}
-                placeholder="What are you reflecting on?"
-                className="w-full bg-transparent border-none p-0 text-lg md:text-xl text-slate-800 font-medium placeholder:text-slate-300 focus:ring-0 resize-none min-h-[100px] md:min-h-[120px]"
-                maxLength="300"
-              />
-              
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-slate-50">
+          {/* 🌟 POST COMPOSER OR LOGIN BANNER */}
+          {isAuthenticated ? (
+            <div className="bg-white md:rounded-2xl border-b md:border border-slate-200 p-4 md:p-6">
+              <form onSubmit={handlePostSubmit} className="flex gap-3 md:gap-4">
                 
-                {/* Horizontal Categories: NO SCROLLBAR */}
-                <div className="flex w-full sm:w-auto gap-2 overflow-x-auto no-scrollbar py-1">
-                  {categories.map(cat => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setCategory(cat)}
-                      className={`whitespace-nowrap px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-tighter transition-all ${
-                        category === cat 
-                        ? 'bg-slate-900 text-white' 
-                        : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
+                {/* User Avatar */}
+                <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 shrink-0">
+                  {userName?.charAt(0).toUpperCase() || "U"}
                 </div>
 
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="w-full sm:w-auto bg-teal-600 text-white px-8 py-2 rounded-full font-black text-[10px] tracking-widest hover:bg-slate-900 active:scale-95 disabled:opacity-50 transition-all"
-                >
-                  {isSubmitting ? "..." : "SHARE"}
-                </button>
-              </div>
-            </form>
-          </div>
+                {/* Input Area */}
+                <div className="flex-1 min-w-0">
+                  <textarea 
+                    value={newPost}
+                    onChange={(e) => setNewPost(e.target.value)}
+                    placeholder="What's on your mind?"
+                    className="w-full bg-transparent border-none p-0 pt-2 md:pt-3 text-lg md:text-xl text-slate-900 placeholder:text-slate-400 focus:ring-0 resize-none min-h-[80px]"
+                    maxLength="500"
+                  />
+                  
+                  {/* Controls: Categories & Submit Button */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-3 pt-3 border-t border-slate-100">
+                    
+                    {/* Horizontal Pill Categories */}
+                    <div className="flex w-full sm:w-auto gap-2 overflow-x-auto no-scrollbar py-1">
+                      {categories.map(cat => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setCategory(cat)}
+                          className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wide transition-colors border ${
+                            category === cat 
+                            ? 'bg-slate-900 text-white border-slate-900' 
+                            : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
 
-          {/* Posts Feed: Edge-to-edge mobile */}
+                    <button 
+                      type="submit" 
+                      disabled={!newPost.trim() || isSubmitting}
+                      className="w-full sm:w-auto bg-teal-600 text-white px-6 py-2 rounded-full text-sm font-bold tracking-wide disabled:bg-slate-200 disabled:text-slate-400 transition-colors shrink-0"
+                    >
+                      {isSubmitting ? "Posting..." : "Post"}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          ) : (
+            // 🌟 CLEAN LOGIN BANNER FOR GUESTS
+            <div className="bg-slate-50 border-b md:border border-slate-200 p-8 md:rounded-2xl flex flex-col items-center justify-center text-center">
+              <div className="h-12 w-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mb-4">
+                <i className="fa-solid fa-feather-pointed text-xl"></i>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Join the Verse</h3>
+              <p className="text-sm text-slate-500 mb-5 max-w-sm">
+                Log in to share your reflections, debate with logic, and become a part of the community.
+              </p>
+              <button 
+                onClick={() => navigate('/login')}
+                className="bg-slate-900 text-white rounded-full px-8 py-2.5 text-sm font-bold transition-colors hover:bg-slate-800"
+              >
+                Log in to post
+              </button>
+            </div>
+          )}
+
+          {/* 🌟 POSTS FEED */}
           <div className="space-y-0 md:space-y-4">
             {posts.length === 0 ? (
-              <div className="py-20 text-center text-slate-200 text-[10px] font-black uppercase tracking-[0.3em]">
-                Loading Verses...
+              <div className="py-20 flex flex-col items-center justify-center text-slate-300">
+                <div className="h-8 w-8 border-4 border-slate-200 border-t-slate-400 rounded-full animate-spin mb-4"></div>
+                <span className="text-xs font-bold uppercase tracking-widest">Loading Feed</span>
               </div>
             ) : (
               posts.map((post) => (
-                <div key={post.id} className="md:rounded-2xl md:border border-slate-100 overflow-hidden">
+                <div key={post.id} className="md:rounded-2xl md:border border-slate-200 overflow-hidden bg-white">
                   <PostCard post={post} showToast={showToast} />
                 </div>
               ))
@@ -150,8 +170,7 @@ export default function CommunityPage({ showToast }) {
           </div>
 
         </div>
-
       </div>
     </div>
   );
-    }
+                                                           }
