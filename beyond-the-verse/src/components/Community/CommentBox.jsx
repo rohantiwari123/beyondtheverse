@@ -8,7 +8,7 @@ function CommentNode({ interaction, post, showToast }) {
   
   const [isReplying, setIsReplying] = useState(false);
   const [replyText, setReplyText] = useState("");
-  const [showReplies, setShowReplies] = useState(false); // Collapsible replies
+  const [showReplies, setShowReplies] = useState(false); 
 
   const targetId = interaction.id || interaction.timestamp;
   const replies = interaction.replies || [];
@@ -26,7 +26,7 @@ function CommentNode({ interaction, post, showToast }) {
   };
   const config = typeConfig[interaction.type] || typeConfig['support'];
 
-  // Actions (Same as before)
+  // 🛡️ ADMIN ACTIONS
   const handleDeleteComment = async () => {
     try {
       const newInteractions = post.interactions.filter(i => (i.id || i.timestamp) !== targetId);
@@ -35,18 +35,52 @@ function CommentNode({ interaction, post, showToast }) {
     } catch (e) { showToast("Failed.", false); }
   };
 
+  // 💬 SUBMIT REPLY (Fixed for Multiple Replies)
   const handleReplySubmit = async () => {
     if (replyText.trim().length < 2) return;
+    
+    // 🌟 MAGIC FIX: Generate a super-unique ID so replies never overwrite each other
+    const superUniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+    
     try {
-      const newReply = { id: Date.now().toString(36), userId, userName: userName || "Explorer", text: replyText, timestamp: new Date().toISOString() };
-      const newInteractions = post.interactions.map(i => (i.id || i.timestamp) === targetId ? { ...i, replies: [...(i.replies || []), newReply] } : i);
+      const newReply = { 
+        id: superUniqueId, 
+        userId, 
+        userName: userName || "Explorer", 
+        text: replyText.trim(), 
+        timestamp: new Date().toISOString() 
+      };
+      
+      const newInteractions = post.interactions.map(i => {
+        if ((i.id || i.timestamp) === targetId) {
+          // Spread operator ensures old replies stay, and new one is added at the end
+          return { ...i, replies: [...(i.replies || []), newReply] };
+        }
+        return i;
+      });
+
       await updateDoc(doc(db, "posts", post.id), { interactions: newInteractions });
-      setReplyText(""); setIsReplying(false); setShowReplies(true);
-    } catch (e) { showToast("Failed.", false); }
+      
+      setReplyText(""); 
+      setIsReplying(false); 
+      setShowReplies(true);
+    } catch (e) { 
+      console.error("Reply Error:", e);
+      showToast("Failed to post reply.", false); 
+    }
+  };
+
+  // 🚀 NEW FEATURE: Reply to a specific reply (@username)
+  const handleReplyToNested = (replyUserName) => {
+    setReplyText(`@${replyUserName} `);
+    setIsReplying(true);
+    setShowReplies(true);
+    // Optional: Focus the input field if you add a ref, but state change is enough for now
   };
 
   const handleCommentGateClick = async (type) => {
-    if (!isAuthenticated || hasReacted) return;
+    if (!isAuthenticated) return showToast("Please login first.", false);
+    if (hasReacted) return showToast("Already reacted.", false);
     try {
       const newGates = { ...gates, [type]: [...gates[type], userId] };
       const newInteractions = post.interactions.map(i => (i.id || i.timestamp) === targetId ? { ...i, commentGates: newGates } : i);
@@ -58,6 +92,7 @@ function CommentNode({ interaction, post, showToast }) {
     <div className="border-b border-slate-100 last:border-none py-4 md:py-6 group">
       <div className="flex items-start gap-3 md:gap-4 px-1">
         
+        {/* Main Comment Avatar */}
         <div className="h-8 w-8 md:h-10 md:w-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-xs md:text-sm shrink-0 mt-1">
           {interaction.userName?.charAt(0).toUpperCase()}
         </div>
@@ -88,6 +123,7 @@ function CommentNode({ interaction, post, showToast }) {
             {interaction.text}
           </p>
           
+          {/* Reaction Bar */}
           <div className="flex items-center gap-6 mt-2">
             <button onClick={() => setIsReplying(!isReplying)} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-900 font-medium">
               <i className="fa-regular fa-comment"></i> Reply
@@ -103,14 +139,28 @@ function CommentNode({ interaction, post, showToast }) {
             </button>
           </div>
 
+          {/* Reply Input Box */}
           {isReplying && (
-            <div className="mt-3 flex items-center gap-2">
-              <input type="text" value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="Write a reply..." className="flex-1 bg-slate-50 border-none rounded-full px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:ring-1 focus:ring-slate-200" />
-              <button onClick={handleReplySubmit} disabled={replyText.length < 2} className="bg-slate-900 text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase disabled:bg-slate-200">Post</button>
+            <div className="mt-3 flex items-center gap-2 animate-fade-in">
+              <input 
+                type="text" 
+                value={replyText} 
+                onChange={(e) => setReplyText(e.target.value)} 
+                placeholder="Write a reply..." 
+                className="flex-1 bg-slate-50 border-none rounded-full px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:ring-1 focus:ring-slate-200" 
+                autoFocus
+              />
+              <button 
+                onClick={handleReplySubmit} 
+                disabled={replyText.trim().length < 2} 
+                className="bg-slate-900 text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase disabled:bg-slate-200 disabled:text-slate-400 transition-colors"
+              >
+                Post
+              </button>
             </div>
           )}
 
-          {/* Collapsible Replies */}
+          {/* 🌟 Collapsible Replies List */}
           {replies.length > 0 && (
             <div className="mt-3">
               <button onClick={() => setShowReplies(!showReplies)} className="text-[11px] font-bold text-teal-600 flex items-center gap-1 mb-2 hover:underline">
@@ -118,18 +168,33 @@ function CommentNode({ interaction, post, showToast }) {
               </button>
               
               {showReplies && (
-                <div className="space-y-3 border-l-2 border-slate-100 pl-4 ml-2 animate-fade-in">
+                <div className="space-y-4 border-l-2 border-slate-100 pl-4 ml-2 animate-fade-in pt-1">
                   {replies.map((reply) => (
-                    <div key={reply.id || reply.timestamp} className="flex items-start gap-2">
+                    <div key={reply.id} className="flex items-start gap-2 group/reply">
                       <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 text-[10px] shrink-0 mt-0.5">
                         {reply.userName?.charAt(0).toUpperCase()}
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-800 text-xs">{reply.userName}</span>
-                          <span className="text-[9px] text-slate-400">{new Date(reply.timestamp).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}</span>
+                          <span className="text-[9px] text-slate-400">
+                            {new Date(reply.timestamp).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                          </span>
                         </div>
-                        <p className="text-slate-700 text-sm mt-0.5">{reply.text}</p>
+                        {/* Highlights @mentions in blue */}
+                        <p className="text-slate-700 text-sm mt-0.5">
+                          {reply.text.split(' ').map((word, i) => 
+                            word.startsWith('@') ? <span key={i} className="text-teal-600 font-medium">{word} </span> : word + ' '
+                          )}
+                        </p>
+                        
+                        {/* Mini Reply button for nested replies */}
+                        <button 
+                          onClick={() => handleReplyToNested(reply.userName)}
+                          className="text-[10px] text-slate-400 hover:text-slate-800 font-bold mt-1 opacity-0 group-hover/reply:opacity-100 transition-opacity"
+                        >
+                          Reply
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -146,7 +211,7 @@ function CommentNode({ interaction, post, showToast }) {
 
 // 🌟 Main Wrapper with Sort Logic
 export default function CommentBox({ post, showToast }) {
-  const [sortBy, setSortBy] = useState('new'); // 'new' or 'top'
+  const [sortBy, setSortBy] = useState('new'); 
   
   const interactions = post?.interactions || [];
   if (interactions.length === 0) return null;
@@ -160,16 +225,14 @@ export default function CommentBox({ post, showToast }) {
       const bGates = b.commentGates || { support: [], counter: [], doubt: [] };
       const aTotal = aGates.support.length + aGates.counter.length + aGates.doubt.length;
       const bTotal = bGates.support.length + bGates.counter.length + bGates.doubt.length;
-      if (bTotal !== aTotal) return bTotal - aTotal; // Sort by total reactions
+      if (bTotal !== aTotal) return bTotal - aTotal; 
     }
     
-    return new Date(b.timestamp) - new Date(a.timestamp); // Fallback to newest
+    return new Date(b.timestamp) - new Date(a.timestamp); 
   });
 
   return (
     <div className="mt-4 pt-4 border-t border-slate-100">
-      
-      {/* 🌟 Sort Controls */}
       <div className="flex justify-between items-center mb-2 px-1">
         <span className="text-xs font-bold text-slate-900">{interactions.length} Reflections</span>
         <div className="flex gap-3 text-xs font-semibold">
@@ -185,4 +248,4 @@ export default function CommentBox({ post, showToast }) {
       </div>
     </div>
   );
-                                                             }
+      }
