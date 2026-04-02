@@ -49,7 +49,7 @@ export default function StorySection() {
       Second paragraph: Explain its 'Life Application'—how understanding this concept can elevate human consciousness and daily life. 
       Return strictly these two paragraphs separated by a double newline. Do not use any markdown formatting like bolding or asterisks.`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
