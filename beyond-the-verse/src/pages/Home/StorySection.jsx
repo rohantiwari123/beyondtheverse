@@ -1,34 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { collection, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../../context/AuthContext";
 
-// 🌟 Helper: Generate a consistent, beautiful color theme based on Subject Name
-const getTheme = (name = "") => {
-  const themes = [
-    { bg: 'bg-teal-50', text: 'text-teal-600' },
-    { bg: 'bg-indigo-50', text: 'text-indigo-600' },
-    { bg: 'bg-rose-50', text: 'text-rose-600' },
-    { bg: 'bg-amber-50', text: 'text-amber-600' },
-    { bg: 'bg-sky-50', text: 'text-sky-600' },
-    { bg: 'bg-purple-50', text: 'text-purple-600' },
-  ];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return themes[Math.abs(hash) % themes.length];
-};
-
-export default function StorySection({ showToast }) {
-  const { isAuthenticated, userId } = useAuth();
+export default function StorySection() {
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
   const [subjects, setSubjects] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [processingId, setProcessingId] = useState(null); 
-  const [expandedId, setExpandedId] = useState(null); // 🌟 NAYA: Track which topic is expanded
+  const [activeSubject, setActiveSubject] = useState(null);
 
-  // Fetch Subjects
+  // Firestore से डेटा लाना
   useEffect(() => {
     const q = query(collection(db, "subjects"), orderBy("timestamp", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -37,232 +20,165 @@ export default function StorySection({ showToast }) {
     return () => unsubscribe();
   }, []);
 
-  // Follow / Unfollow Logic
-  const handleFollowToggle = async (subjectId, currentFollowers = []) => {
-    if (!isAuthenticated) {
-      if(showToast) showToast("Please login to follow topics.", false);
-      navigate('/login');
-      return;
-    }
-    
-    if (processingId) return;
-    setProcessingId(subjectId);
-
-    const isFollowing = currentFollowers.includes(userId);
-    const subjectRef = doc(db, "subjects", subjectId);
-
-    try {
-      await updateDoc(subjectRef, {
-        followers: isFollowing ? arrayRemove(userId) : arrayUnion(userId)
-      });
-      if(showToast) showToast(isFollowing ? "Unfollowed topic." : "Following topic!");
-    } catch (error) {
-      if(showToast) showToast("Failed to update status.", false);
-    } finally {
-      setProcessingId(null);
-    }
-  };
-
-  const toggleExpand = (id) => {
-    setExpandedId(prev => prev === id ? null : id); // Close if already open, else open
-  };
-
-  const filteredSubjects = subjects.filter(sub => 
-    sub.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    sub.definition?.toLowerCase().includes(searchQuery.toLowerCase())
+  // 🌟 Auto-Categorization Logic (Science vs Philosophy)
+  const scienceKeywords = ['science', 'quantum', 'mechanics', 'biology', 'neuro', 'astro', 'physics', 'tech'];
+  const scienceSubjects = subjects.filter(sub =>
+    scienceKeywords.some(kw => sub.name?.toLowerCase().includes(kw) || sub.category?.toLowerCase().includes(kw))
   );
+  const philosophySubjects = subjects.filter(sub => !scienceSubjects.includes(sub));
 
   return (
-    <div className="max-w-3xl mx-auto space-y-12 md:space-y-16 py-8 md:py-12 px-4 md:px-0">
+    <div className="max-w-5xl mx-auto space-y-10 py-8 px-4 md:px-0">
       
       {/* 🌟 1. HERO SECTION */}
-      <div className="text-center">
-        <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-[1.2]">
-          Science for the <span className="text-teal-600">mechanics</span>.<br className="hidden md:block" />
-          Philosophy for the <span className="text-indigo-600">purpose</span>.
+      <div className="text-center space-y-3 mb-12">
+        <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+          Science explains the <span className="text-blue-600">Mechanics</span>.<br />
+          Philosophy asks the <span className="text-purple-600">Purpose</span>.
         </h2>
-        <p className="mt-4 text-slate-500 text-sm md:text-lg font-medium leading-relaxed max-w-2xl mx-auto">
-          We destroy the artificial boundaries between exploring the universe and exploring the self. Join the research.
+        <p className="text-slate-500 text-sm md:text-base font-medium max-w-xl mx-auto">
+          Welcome to a platform where we destroy the artificial boundaries between exploring the universe and exploring the self.
         </p>
       </div>
 
-      {/* 🌟 2. BENTO BOX */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col gap-4">
-          <div className="h-12 w-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100">
-            <i className="fa-solid fa-microscope text-xl"></i>
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2 tracking-tight">The Outer World</h3>
-            <p className="text-slate-500 text-sm leading-relaxed font-medium">
-              Observation, facts, and rigorous experimentation. Science is a profound way of seeing reality exactly as it is, without blind faith.
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col gap-4">
-          <div className="h-12 w-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
-            <i className="fa-solid fa-brain text-xl"></i>
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2 tracking-tight">The Inner Observer</h3>
-            <p className="text-slate-500 text-sm leading-relaxed font-medium">
-              If you observe the stars but ignore the mind observing them, your knowledge is incomplete. Philosophy is the science of the self.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 🌟 3. ACTIVE RESEARCH (NEW ACCORDION LIST SYSTEM) */}
-      <div className="pt-4">
+      {/* 🌟 2. THE VISUALIZER LAYOUT (Exactly like your screenshot) */}
+      <div className="bg-[#fafcff] border border-slate-200/80 rounded-[2rem] p-6 md:p-10 shadow-sm">
         
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Active Research Topics</h3>
-            <p className="text-sm text-slate-500 font-medium">Click on a topic to read its definition.</p>
+        {/* Top Status Bar */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 mb-8 gap-6">
+          <div className="flex-1 min-h-[60px]">
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Content Scalability Explorer</h3>
+            <p className="text-sm text-slate-600 transition-all">
+              {activeSubject ? (
+                <span className="animate-fade-in">
+                  <strong className="text-slate-900">{activeSubject.name}:</strong> {activeSubject.definition}
+                </span>
+              ) : (
+                <span className="italic text-slate-400">Select a subject below to view its definition.</span>
+              )}
+            </p>
           </div>
           
-          <div className="relative w-full sm:w-64 shrink-0">
-            <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input 
-              type="text" 
-              placeholder="Search topics..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-full py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-teal-500 shadow-sm"
-            />
-          </div>
-        </div>
-
-        {/* The List Container */}
-        <div className="space-y-3">
-          {filteredSubjects.length === 0 ? (
-             <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400 text-sm font-medium">
-               No topics found matching your search.
-             </div>
-          ) : (
-            filteredSubjects.map((sub) => {
-              const followers = sub.followers || [];
-              const isFollowing = isAuthenticated && followers.includes(userId);
-              const theme = getTheme(sub.name);
-              const isExpanded = expandedId === sub.id;
-
-              return (
-                <div key={sub.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm transition-all">
-                  
-                  {/* List Header (Always Visible, Click to Expand) */}
-                  <div 
-                    onClick={() => toggleExpand(sub.id)}
-                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 select-none transition-colors"
-                  >
-                    <div className="flex items-center gap-3 md:gap-4">
-                      <div className={`h-10 w-10 ${theme.bg} ${theme.text} rounded-xl flex items-center justify-center shrink-0`}>
-                        <i className="fa-solid fa-book-open text-sm"></i>
-                      </div>
-                      <h4 className="font-bold text-slate-900 text-base md:text-lg">{sub.name}</h4>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 md:gap-5">
-                      <span className="hidden md:inline-block text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">
-                        {followers.length} Following
-                      </span>
-                      <div className={`h-8 w-8 rounded-full flex items-center justify-center transition-transform duration-300 ${isExpanded ? 'bg-slate-900 text-white rotate-180' : 'bg-slate-100 text-slate-500'}`}>
-                        <i className="fa-solid fa-chevron-down text-xs"></i>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Body (Expanded Content) */}
-                  {isExpanded && (
-                    <div className="p-5 md:p-6 bg-slate-50 border-t border-slate-100 animate-fade-in">
-                      <p className="text-slate-700 text-[15px] leading-relaxed font-medium mb-6">
-                        {sub.definition}
-                      </p>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="md:hidden text-[11px] font-bold text-slate-500 bg-slate-200/50 px-2.5 py-1 rounded-md">
-                          {followers.length} Following
-                        </span>
-                        
-                        <button 
-                          onClick={() => handleFollowToggle(sub.id, followers)}
-                          disabled={processingId === sub.id}
-                          className={`ml-auto px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-wider transition-colors border shadow-sm ${
-                            isFollowing 
-                            ? 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100' 
-                            : 'bg-teal-600 text-white border-teal-600 hover:bg-teal-700'
-                          }`}
-                        >
-                          {processingId === sub.id ? "Wait..." : isFollowing ? "Following" : "Follow Topic"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                </div>
-              )
-            })
-          )}
-        </div>
-      </div>
-
-      {/* 🌟 4. RULES OF ENGAGEMENT */}
-      <div className="pt-4">
-        <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-4 text-center md:text-left">Rules of Engagement</h3>
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-          {[
-            { num: "01", title: "Radical Objectivity", desc: "Leave your biases at the door. Test ideas on logic and evidence." },
-            { num: "02", title: "Intellectual Honesty", desc: "Admit what you don't know. Investigate without prejudice." },
-            { num: "03", title: "Constructive Dialogue", desc: "Our goal is to develop clarity, not to win cheap internet arguments." }
-          ].map((item, i) => (
-            <div key={i} className="flex gap-5 items-start pb-6 border-b border-slate-100 last:border-0 last:pb-0">
-              <div className="text-sm font-black text-teal-600 bg-teal-50 border border-teal-100 px-3 py-1.5 rounded-lg mt-0.5">
-                {item.num}
-              </div>
-              <div>
-                <h5 className="font-bold text-slate-900 text-lg mb-1">{item.title}</h5>
-                <p className="text-sm text-slate-500 font-medium leading-relaxed">{item.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 🌟 5. CTA */}
-      <div className="pb-8">
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
-          <div className="flex items-center gap-5 text-center md:text-left">
-            <div className="h-14 w-14 bg-slate-50 rounded-full flex items-center justify-center text-slate-600 shrink-0 border border-slate-100 shadow-sm">
-              <i className="fa-brands fa-whatsapp text-2xl"></i>
+          <div className="flex gap-6 md:gap-10 text-right shrink-0">
+            <div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Subjects</p>
+              <p className="text-lg font-black text-slate-800">{subjects.length}</p>
             </div>
             <div>
-              <h4 className="text-slate-900 font-black text-lg mb-1 tracking-tight">Join the inner circle</h4>
-              <p className="text-slate-500 text-sm font-medium">Debate, discuss, and evolve with us on WhatsApp.</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Layout Mode</p>
+              <p className="text-lg font-black text-slate-800">Split View</p>
             </div>
           </div>
+        </div>
+
+        {/* Two Columns Grid */}
+        <div className="flex flex-col md:flex-row gap-8 md:gap-12 relative">
           
-          <div className="w-full md:w-auto">
-            {isAuthenticated ? (
-              <a 
-                href="https://chat.whatsapp.com/EXTq8cGEOcwAcrZN8fr4qw?mode=gi_t_" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="w-full md:w-auto flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 rounded-full transition-colors text-sm shadow-sm"
+          {/* Middle Divider Line (Desktop only) */}
+          <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-slate-200 -translate-x-1/2"></div>
+
+          {/* 🔵 SCIENCE COLUMN */}
+          <div className="flex-1 space-y-4">
+            <h4 className="text-center font-black text-blue-600 tracking-[0.2em] uppercase mb-6">Science</h4>
+            
+            {scienceSubjects.length === 0 ? <p className="text-center text-xs text-slate-400">Loading...</p> : null}
+            
+            {scienceSubjects.map(sub => (
+              <div 
+                key={sub.id}
+                onClick={() => setActiveSubject(sub)}
+                className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 border ${
+                  activeSubject?.id === sub.id 
+                  ? 'bg-blue-50/80 border-blue-400 shadow-sm ring-1 ring-blue-400' 
+                  : 'bg-blue-50/30 border-transparent hover:bg-blue-50 hover:border-blue-200'
+                }`}
               >
-                Enter Community
-              </a>
-            ) : (
-              <button 
-                onClick={() => navigate('/login')}
-                className="w-full md:w-auto flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-8 rounded-full transition-colors text-sm shadow-sm"
-              >
-                <i className="fa-solid fa-lock text-slate-400"></i> Login to Unlock
-              </button>
-            )}
+                <div className={`h-10 w-10 shrink-0 flex items-center justify-center text-lg transition-colors ${activeSubject?.id === sub.id ? 'text-blue-600' : 'text-blue-400'}`}>
+                  <i className="fa-solid fa-microscope"></i>
+                </div>
+                <div>
+                  <h5 className="font-bold text-slate-800 text-[15px]">{sub.name}</h5>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Science</p>
+                </div>
+              </div>
+            ))}
           </div>
+
+          {/* 🟣 PHILOSOPHY COLUMN */}
+          <div className="flex-1 space-y-4">
+            <h4 className="text-center font-black text-purple-700 tracking-[0.2em] uppercase mb-6">Philosophy</h4>
+            
+            {philosophySubjects.length === 0 ? <p className="text-center text-xs text-slate-400">Loading...</p> : null}
+
+            {philosophySubjects.map(sub => (
+              <div 
+                key={sub.id}
+                onClick={() => setActiveSubject(sub)}
+                className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 border ${
+                  activeSubject?.id === sub.id 
+                  ? 'bg-purple-50/80 border-purple-400 shadow-sm ring-1 ring-purple-400' 
+                  : 'bg-purple-50/30 border-transparent hover:bg-purple-50 hover:border-purple-200'
+                }`}
+              >
+                <div className={`h-10 w-10 shrink-0 flex items-center justify-center text-lg transition-colors ${activeSubject?.id === sub.id ? 'text-purple-600' : 'text-purple-400'}`}>
+                  <i className="fa-solid fa-brain"></i>
+                </div>
+                <div>
+                  <h5 className="font-bold text-slate-800 text-[15px]">{sub.name}</h5>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Philosophy</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+
+        {/* Footer Actions */}
+        <div className="mt-8 pt-6 border-t border-slate-200 flex items-center justify-between">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden sm:block">Select any card</p>
+          <button 
+            onClick={() => setActiveSubject(null)}
+            disabled={!activeSubject}
+            className="w-full sm:w-auto bg-slate-200/70 hover:bg-slate-300 text-slate-600 disabled:opacity-40 px-8 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all"
+          >
+            Clear Selection
+          </button>
+        </div>
+      </div>
+
+      {/* 🌟 3. CTA (Join WhatsApp) */}
+      <div className="bg-slate-900 rounded-[2rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl mt-12">
+        <div className="flex items-center gap-5 text-center md:text-left">
+          <div className="h-14 w-14 bg-teal-500/10 rounded-full flex items-center justify-center text-teal-400 border border-teal-500/20">
+            <i className="fa-brands fa-whatsapp text-2xl"></i>
+          </div>
+          <div>
+            <h4 className="text-white font-bold text-lg">Join the Inner Circle</h4>
+            <p className="text-slate-400 text-sm font-medium">Debate, discuss, and evolve with us on WhatsApp.</p>
+          </div>
+        </div>
+        
+        <div className="w-full md:w-auto">
+          {isAuthenticated ? (
+            <a 
+              href="https://chat.whatsapp.com/EXTq8cGEOcwAcrZN8fr4qw" 
+              target="_blank" 
+              rel="noreferrer"
+              className="block text-center w-full bg-teal-500 hover:bg-teal-400 text-slate-900 font-black py-3 px-8 rounded-full text-sm transition-all"
+            >
+              Enter Community
+            </a>
+          ) : (
+            <button 
+              onClick={() => navigate('/login')} 
+              className="w-full bg-white hover:bg-slate-100 text-slate-900 font-black py-3 px-8 rounded-full text-sm transition-all"
+            >
+              Login to Unlock
+            </button>
+          )}
         </div>
       </div>
 
     </div>
   );
-                  }
+          }
