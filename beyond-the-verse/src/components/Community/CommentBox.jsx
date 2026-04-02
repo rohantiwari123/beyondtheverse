@@ -3,11 +3,12 @@ import { useAuth } from '../../context/AuthContext';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 
-// 🌟 REUSABLE COMPONENT: For both Main Comments and Replies
-function InteractionNode({ interaction, post, showToast, isMainComment }) {
+// 🌟 REUSABLE COMPONENT: For both Main Comments and Nested Replies
+function InteractionNode({ interaction, allInteractions, post, showToast, isMainComment }) {
   const { isAuthenticated, isAdmin, userId, userName } = useAuth();
   
   const [isReplying, setIsReplying] = useState(false);
+  const [replyType, setReplyType] = useState('support'); // Default selection for nested reply
   const [replyText, setReplyText] = useState("");
 
   const targetId = interaction.id || interaction.timestamp;
@@ -18,13 +19,17 @@ function InteractionNode({ interaction, post, showToast, isMainComment }) {
   const doubtCount = gates.doubt.length;
   const hasReacted = gates.support.includes(userId) || gates.counter.includes(userId) || gates.doubt.includes(userId);
 
+  // Styling Config (Works for both Main Comments and Replies now)
   const typeConfig = {
-    support: { icon: 'fa-regular fa-circle-check', color: 'text-emerald-600', label: 'Supported' },
-    counter: { icon: 'fa-solid fa-bolt', color: 'text-rose-600', label: 'Countered' },
-    doubt: { icon: 'fa-solid fa-magnifying-glass', color: 'text-amber-600', label: 'Questioned' },
-    reply: { icon: 'fa-solid fa-reply', color: 'text-slate-500', label: 'Replied' }
+    support: { icon: 'fa-regular fa-circle-check', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-100', label: 'Supported' },
+    counter: { icon: 'fa-solid fa-bolt', color: 'text-rose-700', bg: 'bg-rose-50', border: 'border-rose-100', label: 'Countered' },
+    doubt: { icon: 'fa-solid fa-magnifying-glass', color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-100', label: 'Questioned' },
+    reply: { icon: 'fa-solid fa-reply', color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-200', label: 'Replied' }
   };
   const config = typeConfig[interaction.type] || typeConfig['reply'];
+
+  // 🔍 Find who we are replying to
+  const parentInteraction = allInteractions?.find(i => (i.id || i.timestamp) === interaction.parentId);
 
   // 🛡️ ADMIN ACTIONS
   const handleDeleteComment = async () => {
@@ -35,7 +40,7 @@ function InteractionNode({ interaction, post, showToast, isMainComment }) {
     } catch (e) { showToast("Failed.", false); }
   };
 
-  // 💬 SUBMIT REPLY
+  // 💬 SUBMIT CLASSIFIED REPLY
   const handleReplySubmit = async () => {
     if (replyText.trim().length < 2) return;
     
@@ -44,10 +49,10 @@ function InteractionNode({ interaction, post, showToast, isMainComment }) {
     try {
       const newReply = { 
         id: superUniqueId, 
-        parentId: targetId, // Link to the comment we clicked reply on
+        parentId: targetId, 
         userId, 
         userName: userName || "Explorer", 
-        type: 'reply', 
+        type: replyType, // 🌟 Now saving Support/Counter/Doubt instead of just 'reply'
         text: replyText.trim(), 
         timestamp: new Date().toISOString(),
         commentGates: { support: [], counter: [], doubt: [] }
@@ -61,17 +66,10 @@ function InteractionNode({ interaction, post, showToast, isMainComment }) {
     } catch (e) { showToast("Failed to reply.", false); }
   };
 
-  // 🚀 Open Reply Box and Auto-Fill @Username
-  const openReplyBox = () => {
-    if (!isAuthenticated) return showToast("Please login first.", false);
-    // Automatically tag the person you are replying to (if it's a nested reply)
-    const mentionText = isMainComment ? "" : `@${interaction.userName} `;
-    setReplyText(mentionText);
-    setIsReplying(true);
-  };
-
+  // ⚡ QUICK REACTION (Without typing a reply)
   const handleCommentGateClick = async (type) => {
-    if (!isAuthenticated || hasReacted) return;
+    if (!isAuthenticated) return showToast("Please login first.", false);
+    if (hasReacted) return showToast("Already reacted to this.", false);
     try {
       const newGates = { ...gates, [type]: [...gates[type], userId] };
       const newInteractions = post.interactions.map(i => (i.id || i.timestamp) === targetId ? { ...i, commentGates: newGates } : i);
@@ -80,11 +78,20 @@ function InteractionNode({ interaction, post, showToast, isMainComment }) {
   };
 
   return (
-    <div className={`py-3 md:py-4 transition-all group ${isMainComment ? '' : 'border-t border-slate-50 mt-1'}`}>
+    <div className={`py-4 transition-all group ${isMainComment ? '' : 'border-t border-slate-100'}`}>
+      
+      {/* 🌟 WHO IS REPLYING TO WHOM? (Only for nested replies) */}
+      {!isMainComment && parentInteraction && (
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mb-2 ml-10 md:ml-12">
+          <i className="fa-solid fa-reply text-slate-300"></i>
+          Replying to <span className="text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded uppercase tracking-wider">@{parentInteraction.userName}</span>
+        </div>
+      )}
+
       <div className="flex items-start gap-3 px-1">
         
-        {/* Avatar: Big for Main Comment, Small for Replies */}
-        <div className={`${isMainComment ? 'h-9 w-9 md:h-10 md:w-10 text-sm' : 'h-7 w-7 md:h-8 md:w-8 text-[10px]'} rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 shrink-0 mt-0.5`}>
+        {/* Avatar */}
+        <div className={`${isMainComment ? 'h-9 w-9 md:h-10 md:w-10 text-sm' : 'h-8 w-8 text-xs'} rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 shrink-0 mt-0.5`}>
           {interaction.userName?.charAt(0).toUpperCase()}
         </div>
         
@@ -92,12 +99,12 @@ function InteractionNode({ interaction, post, showToast, isMainComment }) {
           
           <div className="flex items-center justify-between mb-0.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`font-bold text-slate-900 ${isMainComment ? 'text-sm' : 'text-xs md:text-sm'}`}>{interaction.userName}</span>
-              {isMainComment && (
-                <span className={`text-[10px] md:text-[11px] font-semibold flex items-center gap-1 ${config.color}`}>
-                  <i className={config.icon}></i> {config.label}
-                </span>
-              )}
+              <span className={`font-bold text-slate-900 ${isMainComment ? 'text-sm' : 'text-sm'}`}>{interaction.userName}</span>
+              
+              {/* 🌟 BADGE: Now visible on BOTH Main Comments and Replies */}
+              <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-wide flex items-center gap-1.5 ${config.color} ${config.bg} border ${config.border} px-2 py-0.5 rounded-md`}>
+                <i className={config.icon}></i> {config.label}
+              </span>
             </div>
             
             <div className="flex items-center gap-2">
@@ -113,40 +120,58 @@ function InteractionNode({ interaction, post, showToast, isMainComment }) {
           </div>
           
           <p className={`text-slate-800 leading-[1.7] verse-thought-serif ${isMainComment ? 'text-lg md:text-xl mt-1.5' : 'text-base md:text-lg mt-0.5'} mb-1.5`}>
-            {/* Convert @mentions to blue highlighted text */}
-            {interaction.text.split(' ').map((word, i) => 
-              word.startsWith('@') ? <span key={i} className="text-teal-600 font-medium">{word} </span> : word + ' '
-            )}
+            {interaction.text}
           </p>
           
-          {/* Reaction Bar */}
-          <div className="flex items-center gap-5 mt-1.5">
-            <button onClick={openReplyBox} className="flex items-center gap-1.5 text-[11px] text-slate-400 hover:text-slate-900 font-bold transition-colors">
+          {/* Reaction & Reply Bar */}
+          <div className="flex items-center gap-5 mt-2">
+            <button onClick={() => { setIsReplying(!isReplying); if(!isAuthenticated) showToast("Login first", false); }} className="flex items-center gap-1.5 text-[11px] text-slate-500 hover:text-slate-900 font-bold transition-colors">
               <i className="fa-solid fa-reply"></i> Reply
             </button>
-            <button onClick={() => handleCommentGateClick('support')} className={`flex items-center gap-1.5 text-[11px] font-bold ${hasReacted && gates.support.includes(userId) ? 'text-emerald-600' : 'text-slate-400 hover:text-emerald-600'}`}>
+            
+            {/* Quick Counters */}
+            <button onClick={() => handleCommentGateClick('support')} className={`flex items-center gap-1 text-[11px] font-bold ${hasReacted && gates.support.includes(userId) ? 'text-emerald-600' : 'text-slate-400 hover:text-emerald-600'}`}>
               <i className="fa-regular fa-circle-check"></i> {supportCount > 0 && <span>{supportCount}</span>}
             </button>
-            <button onClick={() => handleCommentGateClick('counter')} className={`flex items-center gap-1.5 text-[11px] font-bold ${hasReacted && gates.counter.includes(userId) ? 'text-rose-600' : 'text-slate-400 hover:text-rose-600'}`}>
+            <button onClick={() => handleCommentGateClick('counter')} className={`flex items-center gap-1 text-[11px] font-bold ${hasReacted && gates.counter.includes(userId) ? 'text-rose-600' : 'text-slate-400 hover:text-rose-600'}`}>
               <i className="fa-solid fa-bolt"></i> {counterCount > 0 && <span>{counterCount}</span>}
             </button>
-            <button onClick={() => handleCommentGateClick('doubt')} className={`flex items-center gap-1.5 text-[11px] font-bold ${hasReacted && gates.doubt.includes(userId) ? 'text-amber-600' : 'text-slate-400 hover:text-amber-600'}`}>
+            <button onClick={() => handleCommentGateClick('doubt')} className={`flex items-center gap-1 text-[11px] font-bold ${hasReacted && gates.doubt.includes(userId) ? 'text-amber-600' : 'text-slate-400 hover:text-amber-600'}`}>
               <i className="fa-solid fa-magnifying-glass"></i> {doubtCount > 0 && <span>{doubtCount}</span>}
             </button>
           </div>
 
-          {/* Reply Input Box */}
-          {isReplying && (
-            <div className="mt-3 flex items-center gap-2 animate-fade-in">
-              <input 
-                type="text" value={replyText} onChange={(e) => setReplyText(e.target.value)} 
-                placeholder={`Reply to ${interaction.userName}...`} 
-                className="flex-1 bg-slate-50 border border-slate-100 rounded-full px-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:ring-1 focus:ring-slate-300 outline-none" 
-                autoFocus
-              />
-              <button onClick={handleReplySubmit} disabled={replyText.trim().length < 2} className="bg-slate-900 text-white px-5 py-2 rounded-full text-[10px] font-bold uppercase disabled:bg-slate-200 transition-colors">
-                Post
-              </button>
+          {/* 🌟 NEW ADVANCED REPLY BOX */}
+          {isReplying && isAuthenticated && (
+            <div className="mt-3 bg-slate-50 p-3 md:p-4 rounded-2xl animate-fade-in border border-slate-100">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Choose Your Logic Stance:</label>
+              
+              {/* Gate Selectors */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                <button onClick={() => setReplyType('support')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold transition-all ${replyType === 'support' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-100'}`}>
+                  <i className="fa-regular fa-circle-check"></i> Support
+                </button>
+                <button onClick={() => setReplyType('counter')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold transition-all ${replyType === 'counter' ? 'bg-rose-100 text-rose-700 ring-1 ring-rose-300' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-100'}`}>
+                  <i className="fa-solid fa-bolt"></i> Counter
+                </button>
+                <button onClick={() => setReplyType('doubt')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold transition-all ${replyType === 'doubt' ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-300' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-100'}`}>
+                  <i className="fa-solid fa-magnifying-glass"></i> Doubt
+                </button>
+              </div>
+              
+              <div className="flex flex-col md:flex-row items-end gap-2">
+                <textarea 
+                  value={replyText} 
+                  onChange={(e) => setReplyText(e.target.value)} 
+                  placeholder={`State your logical response to ${interaction.userName}...`} 
+                  className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm text-slate-800 placeholder:text-slate-400 focus:ring-1 focus:ring-slate-300 outline-none resize-none min-h-[50px]" 
+                  rows="2"
+                  autoFocus
+                />
+                <button onClick={handleReplySubmit} disabled={replyText.trim().length < 2} className="w-full md:w-auto bg-slate-900 text-white px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest disabled:bg-slate-200 transition-colors shrink-0">
+                  Post
+                </button>
+              </div>
             </div>
           )}
 
@@ -156,42 +181,41 @@ function InteractionNode({ interaction, post, showToast, isMainComment }) {
   );
 }
 
-// 🌟 THREAD MANAGER: Groups Main Comment + All its Replies flatly
+// 🌟 THREAD MANAGER
 function ThreadBlock({ mainComment, allInteractions, post, showToast }) {
   const [showReplies, setShowReplies] = useState(true);
 
-  // Magic Engine: Get ALL nested replies (children, grandchildren, etc.)
+  // Recursively fetch all replies
   const getAllDescendants = (parentId) => {
     let result = [];
     const children = allInteractions.filter(i => i.parentId === parentId);
     children.forEach(child => {
       result.push(child);
-      result = result.concat(getAllDescendants(child.id || child.timestamp)); // Recurse
+      result = result.concat(getAllDescendants(child.id || child.timestamp)); 
     });
     return result;
   };
 
   const descendants = getAllDescendants(mainComment.id || mainComment.timestamp);
-  // Sort descendants by time (oldest first for chronological reading like Twitter/Instagram)
   descendants.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
   return (
     <div className="border-b border-slate-100 py-3 md:py-4">
-      {/* 1. Render Main Comment */}
-      <InteractionNode interaction={mainComment} post={post} showToast={showToast} isMainComment={true} />
+      {/* Main Thread Origin */}
+      <InteractionNode interaction={mainComment} allInteractions={allInteractions} post={post} showToast={showToast} isMainComment={true} />
 
-      {/* 2. Render FLAT Descendants (If any) */}
+      {/* Flat Nested Replies */}
       {descendants.length > 0 && (
-        <div className="mt-1 ml-4 md:ml-10 border-l-2 border-slate-100 pl-3 md:pl-4">
-          <button onClick={() => setShowReplies(!showReplies)} className="text-[10px] font-bold text-slate-400 hover:text-teal-600 mb-2 mt-1">
+        <div className="mt-1 ml-4 md:ml-10 border-l-[1.5px] border-slate-100 pl-3 md:pl-5">
+          <button onClick={() => setShowReplies(!showReplies)} className="text-[10px] font-bold text-slate-400 hover:text-teal-600 mb-1 mt-1 flex items-center gap-1.5">
+            <div className="h-[1px] w-4 bg-slate-200"></div>
             {showReplies ? 'Hide' : 'View'} {descendants.length} {descendants.length === 1 ? 'reply' : 'replies'}
           </button>
           
           {showReplies && (
             <div className="space-y-0 animate-fade-in">
               {descendants.map(reply => (
-                // Notice isMainComment=false. It will NEVER indent again.
-                <InteractionNode key={reply.id || reply.timestamp} interaction={reply} post={post} showToast={showToast} isMainComment={false} />
+                <InteractionNode key={reply.id || reply.timestamp} interaction={reply} allInteractions={allInteractions} post={post} showToast={showToast} isMainComment={false} />
               ))}
             </div>
           )}
@@ -208,11 +232,10 @@ export default function CommentBox({ post, showToast }) {
   const rawInteractions = post?.interactions || [];
   if (rawInteractions.length === 0) return null;
 
-  // Flatten the data for processing
   const flatInteractions = [];
   rawInteractions.forEach(i => {
     flatInteractions.push({ ...i, parentId: i.parentId || null });
-    if (i.replies) { // Fallback for old data structure
+    if (i.replies) { 
       i.replies.forEach(r => flatInteractions.push({ ...r, parentId: i.id || i.timestamp, type: 'reply' }));
     }
   });
@@ -236,15 +259,14 @@ export default function CommentBox({ post, showToast }) {
   return (
     <div className="mt-4 pt-4 border-t border-slate-100">
       <div className="flex justify-between items-center mb-2 px-1">
-        <span className="text-xs font-bold text-slate-900">{topLevelComments.length} Reflections</span>
-        <div className="flex gap-3 text-xs font-semibold">
-          <button onClick={() => setSortBy('new')} className={`${sortBy === 'new' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}>Newest</button>
-          <button onClick={() => setSortBy('top')} className={`${sortBy === 'top' ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}>Top Logic</button>
+        <span className="text-xs font-black text-slate-900 uppercase tracking-widest">{topLevelComments.length} Reflections</span>
+        <div className="flex gap-3 text-[11px] font-bold">
+          <button onClick={() => setSortBy('new')} className={`${sortBy === 'new' ? 'text-teal-600 border-b-2 border-teal-600' : 'text-slate-400 hover:text-slate-600'} pb-1`}>Newest</button>
+          <button onClick={() => setSortBy('top')} className={`${sortBy === 'top' ? 'text-teal-600 border-b-2 border-teal-600' : 'text-slate-400 hover:text-slate-600'} pb-1`}>Top Logic</button>
         </div>
       </div>
 
       <div className="space-y-0">
-        {/* Render Only Threads */}
         {sortedTopLevel.map((mainComment) => (
           <ThreadBlock 
             key={mainComment.id || mainComment.timestamp} 
@@ -257,4 +279,4 @@ export default function CommentBox({ post, showToast }) {
       </div>
     </div>
   );
-    }
+        }
