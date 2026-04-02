@@ -61,11 +61,11 @@ export default function App() {
     setTimeout(() => setToast({ show: false, message: '', isSuccess: true }), 3500);
   };
 
-  const isStandardLayout = ['/', '/donate', '/about', '/community', '/library', '/vault', '/academy', '/admin'].includes(location.pathname);
+  // 🌟 FIX: Removed '/community' from here so it doesn't get forced margins!
+  const isStandardLayout = ['/', '/donate', '/about', '/library', '/vault', '/academy', '/admin'].includes(location.pathname);
 
   return (
-// font-[Poppins] hata kar sirf 'font-sans' kar diya ya class nikal di
-<div className="relative min-h-screen bg-[#f8fafc] text-slate-800 antialiased overflow-x-hidden">      
+    <div className="relative min-h-screen bg-[#f8fafc] text-slate-800 antialiased overflow-x-hidden">      
       {/* Background Decorations */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none"></div>
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-teal-400/20 rounded-full blur-[100px] pointer-events-none"></div>
@@ -74,7 +74,8 @@ export default function App() {
         <Header />
       )}
 
-      <main className={`relative z-10 ${isStandardLayout ? 'max-w-7xl mx-auto px-2 sm:px-4 py-6 md:py-10' : ''}`}>
+      {/* 🌟 FIX: Added w-full so Community page can stretch properly */}
+      <main className={`relative z-10 w-full ${isStandardLayout ? 'max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-10' : ''}`}>
         <Routes>
           <Route path="/login" element={!isAuthenticated ? <LoginPage showToast={showToast} /> : <Navigate to="/" />} />
 
@@ -105,4 +106,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-}
+      }
