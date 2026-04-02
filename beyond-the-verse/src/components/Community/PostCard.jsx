@@ -4,6 +4,23 @@ import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import CommentBox from './CommentBox'; 
 
+// 🌟 NEW EXACT TIME FORMATTER (e.g., "12 Oct 2023 • 03:30 PM")
+export const formatDateTime = (timestamp) => {
+  if (!timestamp) return "";
+  
+  let date;
+  if (typeof timestamp.toDate === 'function') {
+    date = timestamp.toDate(); // For Firebase ServerTimestamp
+  } else {
+    date = new Date(timestamp); // For ISO Strings
+  }
+
+  const dateString = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  const timeString = date.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true }).toUpperCase();
+
+  return `${dateString} • ${timeString}`;
+};
+
 export default function PostCard({ post, showToast }) {
   const { isAuthenticated, userId, userName, isAdmin } = useAuth();
   
@@ -119,7 +136,9 @@ export default function PostCard({ post, showToast }) {
               {post.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-[10px]"></i>}
             </div>
             <span className="text-[11px] text-slate-500 font-medium tracking-wide">
-              {post.category} <span className="mx-1 opacity-50">•</span> Just now 
+              {post.category} <span className="mx-1 opacity-50">•</span> 
+              {/* 🌟 APPLIED EXACT DATE AND TIME HERE */}
+              {formatDateTime(post.createdAt)} 
               {post.isEdited && <span className="ml-1 italic opacity-70">(Edited)</span>}
             </span>
           </div>
@@ -233,4 +252,4 @@ export default function PostCard({ post, showToast }) {
 
     </div>
   );
-  }
+    }
