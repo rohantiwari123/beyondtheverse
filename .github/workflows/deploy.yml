@@ -22,19 +22,19 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        # यहाँ हमने बताया कि इस फोल्डर के अंदर जाओ
         run: npm install
         working-directory: beyond-the-verse
 
       - name: Build
-        # यहाँ भी फोल्डर का नाम दिया
+        # 🌟 यहाँ हमने Secrets को Build step के साथ जोड़ दिया है
         run: npm run build
         working-directory: beyond-the-verse
+        env:
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
         with:
-          # यहाँ बताया कि 'dist' फोल्डर कहाँ मिलेगा
           path: 'beyond-the-verse/dist/'
 
   deploy:
