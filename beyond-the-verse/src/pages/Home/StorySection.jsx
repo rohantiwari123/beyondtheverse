@@ -7,12 +7,12 @@ import { useAuth } from "../../context/AuthContext";
 // 🌟 Helper: Generate a consistent, beautiful color theme based on Subject Name
 const getTheme = (name = "") => {
   const themes = [
-    { bg: 'bg-teal-50', border: 'border-teal-100', text: 'text-teal-700', icon: 'text-teal-500' },
-    { bg: 'bg-indigo-50', border: 'border-indigo-100', text: 'text-indigo-700', icon: 'text-indigo-500' },
-    { bg: 'bg-rose-50', border: 'border-rose-100', text: 'text-rose-700', icon: 'text-rose-500' },
-    { bg: 'bg-amber-50', border: 'border-amber-100', text: 'text-amber-700', icon: 'text-amber-500' },
-    { bg: 'bg-sky-50', border: 'border-sky-100', text: 'text-sky-700', icon: 'text-sky-500' },
-    { bg: 'bg-purple-50', border: 'border-purple-100', text: 'text-purple-700', icon: 'text-purple-500' },
+    { bg: 'bg-teal-50', text: 'text-teal-600' },
+    { bg: 'bg-indigo-50', text: 'text-indigo-600' },
+    { bg: 'bg-rose-50', text: 'text-rose-600' },
+    { bg: 'bg-amber-50', text: 'text-amber-600' },
+    { bg: 'bg-sky-50', text: 'text-sky-600' },
+    { bg: 'bg-purple-50', text: 'text-purple-600' },
   ];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -25,7 +25,8 @@ export default function StorySection({ showToast }) {
   
   const [subjects, setSubjects] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [processingId, setProcessingId] = useState(null); // Local loading state for buttons
+  const [processingId, setProcessingId] = useState(null); 
+  const [expandedId, setExpandedId] = useState(null); // 🌟 NAYA: Track which topic is expanded
 
   // Fetch Subjects
   useEffect(() => {
@@ -62,6 +63,10 @@ export default function StorySection({ showToast }) {
     }
   };
 
+  const toggleExpand = (id) => {
+    setExpandedId(prev => prev === id ? null : id); // Close if already open, else open
+  };
+
   const filteredSubjects = subjects.filter(sub => 
     sub.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     sub.definition?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -81,7 +86,7 @@ export default function StorySection({ showToast }) {
         </p>
       </div>
 
-      {/* 🌟 2. BENTO BOX: Flat Community Style */}
+      {/* 🌟 2. BENTO BOX */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col gap-4">
           <div className="h-12 w-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100">
@@ -108,14 +113,13 @@ export default function StorySection({ showToast }) {
         </div>
       </div>
 
-      {/* 🌟 3. ACTIVE RESEARCH (NEW SPACIOUS LIST LAYOUT) */}
+      {/* 🌟 3. ACTIVE RESEARCH (NEW ACCORDION LIST SYSTEM) */}
       <div className="pt-4">
         
-        {/* Search Bar & Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h3 className="text-2xl font-black text-slate-900 tracking-tight">Active Research Topics</h3>
-            <p className="text-sm text-slate-500 font-medium">Explore definitions and join the pursuit.</p>
+            <p className="text-sm text-slate-500 font-medium">Click on a topic to read its definition.</p>
           </div>
           
           <div className="relative w-full sm:w-64 shrink-0">
@@ -130,57 +134,70 @@ export default function StorySection({ showToast }) {
           </div>
         </div>
 
-        {/* 🌟 NEW UX: Vertical Stacked Cards (No Text Cutoff) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        {/* The List Container */}
+        <div className="space-y-3">
           {filteredSubjects.length === 0 ? (
-             <div className="col-span-full text-center py-12 bg-white rounded-3xl border border-dashed border-slate-200 text-slate-400 text-sm font-medium">
+             <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400 text-sm font-medium">
                No topics found matching your search.
              </div>
           ) : (
             filteredSubjects.map((sub) => {
               const followers = sub.followers || [];
               const isFollowing = isAuthenticated && followers.includes(userId);
-              const theme = getTheme(sub.name); // Get dynamic color
+              const theme = getTheme(sub.name);
+              const isExpanded = expandedId === sub.id;
 
               return (
-                <div key={sub.id} className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
+                <div key={sub.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm transition-all">
                   
-                  {/* Dynamic Colored Header instead of Random Image */}
-                  <div className={`${theme.bg} ${theme.border} border-b px-5 py-4 flex items-center justify-between`}>
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 bg-white rounded-full flex items-center justify-center shadow-sm">
-                        <i className={`fa-solid fa-book-open ${theme.icon} text-xs`}></i>
+                  {/* List Header (Always Visible, Click to Expand) */}
+                  <div 
+                    onClick={() => toggleExpand(sub.id)}
+                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 select-none transition-colors"
+                  >
+                    <div className="flex items-center gap-3 md:gap-4">
+                      <div className={`h-10 w-10 ${theme.bg} ${theme.text} rounded-xl flex items-center justify-center shrink-0`}>
+                        <i className="fa-solid fa-book-open text-sm"></i>
                       </div>
-                      <h4 className={`font-black text-lg ${theme.text} tracking-tight`}>{sub.name}</h4>
+                      <h4 className="font-bold text-slate-900 text-base md:text-lg">{sub.name}</h4>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 md:gap-5">
+                      <span className="hidden md:inline-block text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">
+                        {followers.length} Following
+                      </span>
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center transition-transform duration-300 ${isExpanded ? 'bg-slate-900 text-white rotate-180' : 'bg-slate-100 text-slate-500'}`}>
+                        <i className="fa-solid fa-chevron-down text-xs"></i>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Body: Full Definition (No Line Clamp) */}
-                  <div className="p-5 md:p-6 flex-1 flex flex-col justify-between gap-6">
-                    <p className="text-slate-600 text-[15px] leading-relaxed font-medium">
-                      {sub.definition}
-                    </p>
-
-                    {/* Footer: Stats & Button */}
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Researchers</span>
-                        <span className="text-sm font-bold text-slate-700">{followers.length} Following</span>
+                  {/* Body (Expanded Content) */}
+                  {isExpanded && (
+                    <div className="p-5 md:p-6 bg-slate-50 border-t border-slate-100 animate-fade-in">
+                      <p className="text-slate-700 text-[15px] leading-relaxed font-medium mb-6">
+                        {sub.definition}
+                      </p>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="md:hidden text-[11px] font-bold text-slate-500 bg-slate-200/50 px-2.5 py-1 rounded-md">
+                          {followers.length} Following
+                        </span>
+                        
+                        <button 
+                          onClick={() => handleFollowToggle(sub.id, followers)}
+                          disabled={processingId === sub.id}
+                          className={`ml-auto px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-wider transition-colors border shadow-sm ${
+                            isFollowing 
+                            ? 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100' 
+                            : 'bg-teal-600 text-white border-teal-600 hover:bg-teal-700'
+                          }`}
+                        >
+                          {processingId === sub.id ? "Wait..." : isFollowing ? "Following" : "Follow Topic"}
+                        </button>
                       </div>
-
-                      <button 
-                        onClick={() => handleFollowToggle(sub.id, followers)}
-                        disabled={processingId === sub.id}
-                        className={`px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-wider transition-colors border ${
-                          isFollowing 
-                          ? 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100' 
-                          : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
-                        }`}
-                      >
-                        {processingId === sub.id ? "Wait..." : isFollowing ? "Following" : "Follow"}
-                      </button>
                     </div>
-                  </div>
+                  )}
 
                 </div>
               )
@@ -248,4 +265,4 @@ export default function StorySection({ showToast }) {
 
     </div>
   );
-  }
+                  }
