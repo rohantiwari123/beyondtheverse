@@ -47,7 +47,7 @@ export default function CommunityPage({ showToast }) {
   };
 
   return (
-    <div className="min-h-screen bg-white md:bg-slate-50 pb-20">
+    <div className="min-h-screen bg-white md:bg-slate-50">
       
       {/* 🌟 FULL WIDTH CONTAINER, NO EXTRA MARGINS */}
       <div className="max-w-2xl mx-auto w-full">
