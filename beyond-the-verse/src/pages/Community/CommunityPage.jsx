@@ -46,34 +46,17 @@ export default function CommunityPage({ showToast }) {
     }
   };
 
-  // 🌟 Auto-scroll to top when clicking the header
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
     <div className="min-h-screen bg-white md:bg-slate-50 pb-20">
       
-      {/* 🌟 PREMIUM STICKY HEADER (X / Threads Style) */}
-      <div 
-        className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-slate-200 cursor-pointer transition-colors hover:bg-slate-50/50"
-        onClick={scrollToTop}
-      >
-        <div className="max-w-2xl mx-auto px-4 py-3.5 md:py-4 flex items-center justify-between">
-          <h1 className="text-lg md:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            Home
-          </h1>
-        </div>
-      </div>
-
-      {/* 🌟 FIXED MARGIN: Removed 'md:mt-6', added smooth padding for desktop only */}
-      <div className="max-w-2xl mx-auto md:pt-4">
+      {/* 🌟 FULL WIDTH CONTAINER, NO EXTRA MARGINS */}
+      <div className="max-w-2xl mx-auto w-full">
         
         <div className="space-y-0 md:space-y-4">
           
           {/* POST COMPOSER */}
           {isAuthenticated ? (
-            <div className="bg-white md:rounded-2xl border-b md:border border-slate-200 p-4 md:p-6 shadow-sm">
+            <div className="bg-white md:rounded-b-2xl border-b md:border md:border-t-0 border-slate-200 p-4 md:p-6 shadow-sm relative z-10">
               <form onSubmit={handlePostSubmit}>
                 
                 <div className="flex gap-3 md:gap-4 mb-3">
@@ -116,7 +99,7 @@ export default function CommunityPage({ showToast }) {
             </div>
           ) : (
             /* Login Banner */
-            <div className="bg-slate-50 border-b md:border border-slate-200 p-8 md:rounded-2xl flex flex-col items-center justify-center text-center shadow-sm">
+            <div className="bg-slate-50 border-b md:border md:border-t-0 border-slate-200 p-8 md:rounded-b-2xl flex flex-col items-center justify-center text-center shadow-sm relative z-10">
               <div className="h-12 w-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mb-4">
                 <i className="fa-solid fa-feather-pointed text-xl"></i>
               </div>
@@ -148,4 +131,4 @@ export default function CommunityPage({ showToast }) {
       </div>
     </div>
   );
-      }
+                                          }
