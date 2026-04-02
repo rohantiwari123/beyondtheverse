@@ -10,175 +10,156 @@ export default function StorySection() {
   
   const [subjects, setSubjects] = useState([]);
   const [activeSubject, setActiveSubject] = useState(null);
+  const [wikiData, setWikiData] = useState(null);
+  const [isLoadingWiki, setIsLoadingWiki] = useState(false);
 
-  // Firestore से डेटा लाना
+  // 1. Live Fetch from Admin Dashboard (Firestore)
   useEffect(() => {
     const q = query(collection(db, "subjects"), orderBy("timestamp", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setSubjects(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setSubjects(docs);
+      // Default: Pehla subject select kar lo agar list empty nahi hai
+      if (docs.length > 0 && !activeSubject) {
+        handleSubjectClick(docs[0]);
+      }
     });
     return () => unsubscribe();
   }, []);
 
-  // 🌟 Auto-Categorization Logic (Science vs Philosophy)
-  const scienceKeywords = ['science', 'quantum', 'mechanics', 'biology', 'neuro', 'astro', 'physics', 'tech'];
-  const scienceSubjects = subjects.filter(sub =>
-    scienceKeywords.some(kw => sub.name?.toLowerCase().includes(kw) || sub.category?.toLowerCase().includes(kw))
-  );
-  const philosophySubjects = subjects.filter(sub => !scienceSubjects.includes(sub));
+  // 2. Wikipedia API Integration
+  const fetchWikipediaData = async (subjectName) => {
+    setIsLoadingWiki(true);
+    try {
+      const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(subjectName)}`);
+      const data = await res.json();
+      setWikiData(data.extract || "Definition currently unavailable on Wikipedia.");
+    } catch (e) {
+      setWikiData("Failed to link with Wikipedia.");
+    } finally {
+      setIsLoadingWiki(false);
+    }
+  };
+
+  const handleSubjectClick = (sub) => {
+    setActiveSubject(sub);
+    fetchWikipediaData(sub.name);
+  };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10 py-8 px-4 md:px-0">
+    <div className="max-w-5xl mx-auto space-y-12 py-10 px-4 md:px-0">
       
-      {/* 🌟 1. HERO SECTION */}
-      <div className="text-center space-y-3 mb-12">
+      {/* 🌟 MISSION HEADER */}
+      <div className="text-center space-y-4">
         <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-          Science explains the <span className="text-blue-600">Mechanics</span>.<br />
-          Philosophy asks the <span className="text-purple-600">Purpose</span>.
+          Science for the <span className="text-teal-600">How</span>.<br />
+          Philosophy for the <span className="text-indigo-600">Why</span>.
         </h2>
-        <p className="text-slate-500 text-sm md:text-base font-medium max-w-xl mx-auto">
-          Welcome to a platform where we destroy the artificial boundaries between exploring the universe and exploring the self.
+        <p className="max-w-2xl mx-auto text-slate-500 font-medium text-sm md:text-base leading-relaxed">
+          Hum science (Physics, Psychology, Sociology) ko philosophy ke saath jodte hain taaki gyaan sirf kitabon mein na rahe, balki aapki **Life** ko elevate kare.
         </p>
       </div>
 
-      {/* 🌟 2. THE VISUALIZER LAYOUT (Exactly like your screenshot) */}
-      <div className="bg-[#fafcff] border border-slate-200/80 rounded-[2rem] p-6 md:p-10 shadow-sm">
+      {/* 🌟 THE RESEARCH EXPLORER (Split Layout) */}
+      <div className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm flex flex-col md:flex-row min-h-[550px]">
         
-        {/* Top Status Bar */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 mb-8 gap-6">
-          <div className="flex-1 min-h-[60px]">
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Content Scalability Explorer</h3>
-            <p className="text-sm text-slate-600 transition-all">
-              {activeSubject ? (
-                <span className="animate-fade-in">
-                  <strong className="text-slate-900">{activeSubject.name}:</strong> {activeSubject.definition}
+        {/* LEFT: Subjects List (Admin Dashboard se synced) */}
+        <div className="w-full md:w-80 bg-slate-50 border-r border-slate-200 flex flex-col">
+          <div className="p-6 border-b border-slate-200">
+            <h3 className="font-black text-slate-800 uppercase tracking-widest text-xs">Research Topics</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 space-y-1 no-scrollbar">
+            {subjects.map((sub) => (
+              <button
+                key={sub.id}
+                onClick={() => handleSubjectClick(sub)}
+                className={`w-full text-left px-5 py-4 rounded-2xl transition-all flex items-center justify-between group ${
+                  activeSubject?.id === sub.id 
+                  ? 'bg-slate-900 text-white shadow-lg' 
+                  : 'hover:bg-white text-slate-600'
+                }`}
+              >
+                <span className="font-bold text-sm md:text-base">{sub.name}</span>
+                <i className={`fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 ${activeSubject?.id === sub.id ? 'opacity-100' : ''}`}></i>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT: Content Display */}
+        <div className="flex-1 p-6 md:p-12 overflow-y-auto">
+          {activeSubject ? (
+            <div className="animate-fade-in space-y-8">
+              
+              {/* Subject Title & Category */}
+              <div>
+                <span className="text-[10px] font-black text-teal-600 bg-teal-50 px-3 py-1 rounded-full uppercase tracking-widest border border-teal-100">
+                  {activeSubject.category || 'Core Subject'}
                 </span>
-              ) : (
-                <span className="italic text-slate-400">Select a subject below to view its definition.</span>
-              )}
-            </p>
-          </div>
-          
-          <div className="flex gap-6 md:gap-10 text-right shrink-0">
-            <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Subjects</p>
-              <p className="text-lg font-black text-slate-800">{subjects.length}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Layout Mode</p>
-              <p className="text-lg font-black text-slate-800">Split View</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Two Columns Grid */}
-        <div className="flex flex-col md:flex-row gap-8 md:gap-12 relative">
-          
-          {/* Middle Divider Line (Desktop only) */}
-          <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-slate-200 -translate-x-1/2"></div>
-
-          {/* 🔵 SCIENCE COLUMN */}
-          <div className="flex-1 space-y-4">
-            <h4 className="text-center font-black text-blue-600 tracking-[0.2em] uppercase mb-6">Science</h4>
-            
-            {scienceSubjects.length === 0 ? <p className="text-center text-xs text-slate-400">Loading...</p> : null}
-            
-            {scienceSubjects.map(sub => (
-              <div 
-                key={sub.id}
-                onClick={() => setActiveSubject(sub)}
-                className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 border ${
-                  activeSubject?.id === sub.id 
-                  ? 'bg-blue-50/80 border-blue-400 shadow-sm ring-1 ring-blue-400' 
-                  : 'bg-blue-50/30 border-transparent hover:bg-blue-50 hover:border-blue-200'
-                }`}
-              >
-                <div className={`h-10 w-10 shrink-0 flex items-center justify-center text-lg transition-colors ${activeSubject?.id === sub.id ? 'text-blue-600' : 'text-blue-400'}`}>
-                  <i className="fa-solid fa-microscope"></i>
-                </div>
-                <div>
-                  <h5 className="font-bold text-slate-800 text-[15px]">{sub.name}</h5>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Science</p>
-                </div>
+                <h3 className="text-4xl md:text-5xl font-black text-slate-900 mt-3 tracking-tighter">
+                  {activeSubject.name}
+                </h3>
               </div>
-            ))}
-          </div>
 
-          {/* 🟣 PHILOSOPHY COLUMN */}
-          <div className="flex-1 space-y-4">
-            <h4 className="text-center font-black text-purple-700 tracking-[0.2em] uppercase mb-6">Philosophy</h4>
-            
-            {philosophySubjects.length === 0 ? <p className="text-center text-xs text-slate-400">Loading...</p> : null}
-
-            {philosophySubjects.map(sub => (
-              <div 
-                key={sub.id}
-                onClick={() => setActiveSubject(sub)}
-                className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 border ${
-                  activeSubject?.id === sub.id 
-                  ? 'bg-purple-50/80 border-purple-400 shadow-sm ring-1 ring-purple-400' 
-                  : 'bg-purple-50/30 border-transparent hover:bg-purple-50 hover:border-purple-200'
-                }`}
-              >
-                <div className={`h-10 w-10 shrink-0 flex items-center justify-center text-lg transition-colors ${activeSubject?.id === sub.id ? 'text-purple-600' : 'text-purple-400'}`}>
-                  <i className="fa-solid fa-brain"></i>
-                </div>
-                <div>
-                  <h5 className="font-bold text-slate-800 text-[15px]">{sub.name}</h5>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Philosophy</p>
-                </div>
+              {/* 📖 Wikipedia Definition Section */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                   <i className="fa-brands fa-wikipedia-w"></i> Scientific Definition
+                </h4>
+                {isLoadingWiki ? (
+                  <div className="h-20 flex items-center gap-2 text-slate-400 font-bold text-sm">
+                    <div className="h-4 w-4 border-2 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+                    Syncing Knowledge...
+                  </div>
+                ) : (
+                  <p className="text-slate-700 text-lg md:text-xl leading-relaxed verse-thought-serif">
+                    {wikiData}
+                  </p>
+                )}
               </div>
-            ))}
-          </div>
 
-        </div>
+              {/* ⚡ LIFE APPLICATION (Beyond The Verse Perspective) */}
+              <div className="bg-slate-900 text-white p-8 rounded-[2rem] shadow-xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-3xl group-hover:bg-teal-500/20 transition-all"></div>
+                <h4 className="text-teal-400 text-xs font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                  <i className="fa-solid fa-bolt"></i> Life Application
+                </h4>
+                <p className="text-slate-200 text-lg md:text-xl leading-relaxed verse-thought-serif">
+                  {activeSubject.definition || "How this subject elevates your daily life is being processed by our researchers."}
+                </p>
+              </div>
 
-        {/* Footer Actions */}
-        <div className="mt-8 pt-6 border-t border-slate-200 flex items-center justify-between">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden sm:block">Select any card</p>
-          <button 
-            onClick={() => setActiveSubject(null)}
-            disabled={!activeSubject}
-            className="w-full sm:w-auto bg-slate-200/70 hover:bg-slate-300 text-slate-600 disabled:opacity-40 px-8 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all"
-          >
-            Clear Selection
-          </button>
-        </div>
-      </div>
-
-      {/* 🌟 3. CTA (Join WhatsApp) */}
-      <div className="bg-slate-900 rounded-[2rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl mt-12">
-        <div className="flex items-center gap-5 text-center md:text-left">
-          <div className="h-14 w-14 bg-teal-500/10 rounded-full flex items-center justify-center text-teal-400 border border-teal-500/20">
-            <i className="fa-brands fa-whatsapp text-2xl"></i>
-          </div>
-          <div>
-            <h4 className="text-white font-bold text-lg">Join the Inner Circle</h4>
-            <p className="text-slate-400 text-sm font-medium">Debate, discuss, and evolve with us on WhatsApp.</p>
-          </div>
-        </div>
-        
-        <div className="w-full md:w-auto">
-          {isAuthenticated ? (
-            <a 
-              href="https://chat.whatsapp.com/EXTq8cGEOcwAcrZN8fr4qw" 
-              target="_blank" 
-              rel="noreferrer"
-              className="block text-center w-full bg-teal-500 hover:bg-teal-400 text-slate-900 font-black py-3 px-8 rounded-full text-sm transition-all"
-            >
-              Enter Community
-            </a>
+            </div>
           ) : (
-            <button 
-              onClick={() => navigate('/login')} 
-              className="w-full bg-white hover:bg-slate-100 text-slate-900 font-black py-3 px-8 rounded-full text-sm transition-all"
-            >
-              Login to Unlock
-            </button>
+            <div className="h-full flex flex-col items-center justify-center text-slate-300">
+               <i className="fa-solid fa-atom text-6xl mb-4 animate-pulse"></i>
+               <p className="font-bold uppercase tracking-widest text-xs">Select a topic to explore</p>
+            </div>
           )}
         </div>
+
+      </div>
+
+      {/* 🌟 FINAL CTA */}
+      <div className="bg-white border border-slate-200 rounded-[2rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="h-14 w-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl border border-indigo-100">
+            <i className="fa-solid fa-users"></i>
+          </div>
+          <div>
+            <h4 className="text-slate-900 font-bold text-lg">Talk to the Thinkers</h4>
+            <p className="text-slate-500 text-sm font-medium">Ye subjects aapki life mein kaise fit hote hain? Community mein discuss karein.</p>
+          </div>
+        </div>
+        
+        <button 
+          onClick={() => navigate(isAuthenticated ? '/community' : '/login')}
+          className="w-full md:w-auto bg-slate-900 text-white font-black py-4 px-10 rounded-2xl text-xs uppercase tracking-widest hover:bg-teal-600 transition-all active:scale-95"
+        >
+          {isAuthenticated ? "Go to Community" : "Login to Join"}
+        </button>
       </div>
 
     </div>
   );
-          }
+        }
