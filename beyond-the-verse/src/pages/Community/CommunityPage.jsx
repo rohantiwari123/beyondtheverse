@@ -63,134 +63,124 @@ export default function CommunityPage({ showToast }) {
   };
 
   return (
-    // 🌟 MAIN WRAPPER: Responsive padding and background
-    <div className="min-h-screen bg-slate-50/30 py-6 md:py-12 px-0 sm:px-4 lg:px-8">
+    <div className="min-h-screen bg-white md:bg-[#f8fafc] pb-20">
       
-      {/* 🌟 GRID LAYOUT: 1 column on mobile, 3 columns on desktop (2 for feed, 1 for sidebar) */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        
-        {/* ========================================== */}
-        {/* LEFT COLUMN: Main Feed (Takes up 2/3 space) */}
-        {/* ========================================== */}
-        <div className="lg:col-span-2 space-y-6 md:space-y-8">
-          
-          {/* Header */}
-          <div className="px-4 sm:px-0 mb-2">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-800 tracking-tight">
-              The Thought <span className="text-teal-600">Verse</span>
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-bold uppercase tracking-widest opacity-80 mt-1">
-              Explore Science & Philosophy
-            </p>
-          </div>
+      {/* 🌟 HERO SECTION: Minimal for Mobile, Bold for Desktop */}
+      <div className="bg-white border-b border-slate-100 pt-8 pb-6 md:pt-16 md:pb-12 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl md:text-6xl font-[900] text-slate-900 tracking-tighter">
+            The Thought <span className="text-teal-600 italic">Verse</span>
+          </h1>
+          <p className="mt-1 text-[10px] md:text-sm text-slate-400 font-black uppercase tracking-[0.3em]">
+            Science • Philosophy • Logic
+          </p>
+        </div>
+      </div>
 
-          {/* Post Creation Box */}
-          <div className="bg-white sm:rounded-3xl shadow-xl shadow-slate-200/50 border-y sm:border border-slate-100 relative overflow-hidden">
+      {/* 🌟 MAIN CONTENT AREA */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-0 md:gap-10 items-start">
+        
+        {/* LEFT COLUMN: Feed (Edge-to-Edge on Mobile) */}
+        <div className="lg:col-span-8 space-y-0 md:space-y-8">
+          
+          {/* Post Creation Box: Edge-to-edge on mobile */}
+          <div className="bg-white md:rounded-[2rem] md:shadow-xl md:shadow-slate-200/50 border-b md:border border-slate-100 relative">
             {!isAuthenticated && (
-              <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center text-center p-6">
-                <div className="h-12 w-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center mb-3 shadow-lg">
-                  <i className="fa-solid fa-lock text-lg"></i>
-                </div>
-                <h3 className="font-black text-slate-800 text-sm sm:text-base uppercase">Community Locked</h3>
-                <p className="text-slate-500 text-[10px] sm:text-xs font-bold mb-4">Login to join the discussion</p>
+              <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-30 flex flex-col items-center justify-center text-center p-6">
                 <button 
                   onClick={() => navigate('/login')}
-                  className="bg-teal-600 text-white px-8 py-2 rounded-xl font-black text-xs shadow-lg shadow-teal-500/30 active:scale-95 transition-all"
+                  className="bg-slate-900 text-white px-8 py-3 rounded-full font-black text-[10px] tracking-widest shadow-xl active:scale-95 transition-all"
                 >
-                  JOIN US
+                  LOGIN TO POST
                 </button>
               </div>
             )}
 
-            <form onSubmit={handlePostSubmit} className={`p-4 sm:p-6 space-y-4 ${!isAuthenticated ? 'opacity-20 blur-sm pointer-events-none select-none' : ''}`}>
+            <form onSubmit={handlePostSubmit} className={`p-4 md:p-8 space-y-4 ${!isAuthenticated ? 'opacity-20 blur-sm pointer-events-none' : ''}`}>
               <textarea 
                 value={newPost}
                 onChange={(e) => setNewPost(e.target.value)}
-                placeholder="What's your scientific or philosophical reflection?"
-                className="w-full bg-slate-50 border-none rounded-2xl p-4 text-base md:text-lg text-slate-700 font-medium focus:ring-2 focus:ring-teal-500/20 resize-none min-h-[120px]"
+                placeholder="Share a scientific reflection..."
+                className="w-full bg-slate-50 md:bg-white border-none md:border-2 border-transparent md:focus:border-teal-500/20 rounded-2xl p-0 md:p-4 text-lg md:text-xl text-slate-800 font-semibold placeholder:text-slate-300 focus:ring-0 resize-none min-h-[120px] md:min-h-[160px] transition-all"
                 maxLength="300"
               />
               
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex w-full sm:w-auto gap-2 overflow-x-auto pb-2 sm:pb-0 no-scrollbar">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                {/* Horizontal Scrollable Categories */}
+                <div className="flex w-full sm:w-auto gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
                   {categories.map(cat => (
                     <button
                       key={cat}
                       type="button"
                       onClick={() => setCategory(cat)}
-                      className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${category === cat ? 'bg-teal-600 text-white shadow-md' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                      className={`whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-tighter transition-all ${category === cat ? 'bg-teal-600 text-white shadow-lg shadow-teal-600/30' : 'bg-slate-100 text-slate-400'}`}
                     >
                       {cat}
                     </button>
                   ))}
                 </div>
+
                 <button 
                   type="submit" 
                   disabled={isSubmitting}
-                  className="w-full sm:w-auto bg-slate-900 text-white px-10 py-3 rounded-xl font-black text-sm tracking-wide hover:bg-slate-800 active:scale-95 disabled:opacity-50 transition-all shadow-lg shadow-slate-900/20"
+                  className="w-full sm:w-auto bg-teal-600 text-white px-8 py-3.5 rounded-full font-black text-xs tracking-widest hover:bg-slate-900 active:scale-95 disabled:opacity-50 transition-all shadow-lg shadow-teal-600/20"
                 >
-                  {isSubmitting ? "POSTING..." : "SHARE THOUGHT"}
+                  {isSubmitting ? "..." : "POST THOUGHT"}
                 </button>
               </div>
             </form>
           </div>
 
-          {/* Posts Feed */}
-          <div className="space-y-2 sm:space-y-6 pb-24">
+          {/* Posts Feed: No side margins on mobile */}
+          <div className="space-y-0 md:space-y-6">
             {posts.length === 0 ? (
-              <div className="text-center py-20 text-slate-300 italic font-medium">Waiting for reflections...</div>
+              <div className="py-20 text-center text-slate-200 uppercase font-black tracking-widest text-xs">Verses Loading...</div>
             ) : (
               posts.map((post) => (
-                <PostCard key={post.id} post={post} showToast={showToast} />
+                <div key={post.id} className="border-b md:border-none border-slate-50">
+                  <PostCard post={post} showToast={showToast} />
+                </div>
               ))
             )}
           </div>
         </div>
 
-        {/* ========================================== */}
-        {/* RIGHT COLUMN: Sticky Sidebar (Hidden on Mobile) */}
-        {/* ========================================== */}
-        <div className="hidden lg:block lg:col-span-1 space-y-6 sticky top-24">
+        {/* RIGHT COLUMN: Sidebar (Hidden on Mobile) */}
+        <div className="hidden lg:block lg:col-span-4 space-y-6 sticky top-28 px-4 md:px-0">
           
-          {/* Info Card */}
-          <div className="bg-gradient-to-br from-teal-600 to-indigo-900 rounded-[2rem] p-8 text-white shadow-xl shadow-teal-900/20 relative overflow-hidden">
-             {/* Decorative background element */}
-             <div className="absolute -top-10 -right-10 text-9xl opacity-10 font-black"><i className="fa-solid fa-atom"></i></div>
-             
-             <h3 className="text-xl font-black mb-2 relative z-10">Logic & Reason</h3>
-             <p className="text-teal-100 text-sm font-medium leading-relaxed mb-6 relative z-10">
-               Welcome to the Verse. A space where pure science meets deep philosophy. Share thoughts, challenge ideas, and elevate the discussion.
-             </p>
-             
-             <div className="space-y-3 relative z-10">
-               <div className="flex items-center gap-3 text-sm font-bold text-teal-50">
-                 <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm"><i className="fa-solid fa-check-double"></i></div>
-                 Support with Facts
-               </div>
-               <div className="flex items-center gap-3 text-sm font-bold text-teal-50">
-                 <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm"><i className="fa-solid fa-bolt"></i></div>
-                 Challenge with Logic
-               </div>
-               <div className="flex items-center gap-3 text-sm font-bold text-teal-50">
-                 <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm"><i className="fa-solid fa-microscope"></i></div>
-                 Question Everything
-               </div>
-             </div>
+          <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group">
+            <div className="absolute -top-10 -right-10 text-9xl text-white/5 font-black rotate-12 transition-transform group-hover:rotate-0">
+              <i className="fa-solid fa-microscope"></i>
+            </div>
+            
+            <h3 className="text-xl font-black mb-4 relative z-10">The Explorer's Guide</h3>
+            <p className="text-slate-400 text-sm font-medium leading-relaxed mb-6 relative z-10">
+              This is a sanctuary for those who seek truth through logic and science. Keep the discourse elevated.
+            </p>
+            
+            <ul className="space-y-4 relative z-10">
+              <li className="flex items-center gap-3 text-xs font-black text-teal-400 tracking-widest uppercase">
+                <i className="fa-solid fa-circle-check"></i> Logic Over Emotion
+              </li>
+              <li className="flex items-center gap-3 text-xs font-black text-teal-400 tracking-widest uppercase">
+                <i className="fa-solid fa-circle-check"></i> Support with Facts
+              </li>
+              <li className="flex items-center gap-3 text-xs font-black text-teal-400 tracking-widest uppercase">
+                <i className="fa-solid fa-circle-check"></i> Respect the Verse
+              </li>
+            </ul>
           </div>
 
-          {/* User Status Card (Optional little UI element) */}
           {isAuthenticated && (
-            <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="h-12 w-12 bg-slate-100 rounded-xl flex items-center justify-center font-black text-slate-700 text-lg">
-                  {userName?.charAt(0).toUpperCase() || "U"}
+             <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm flex items-center gap-4">
+                <div className="h-12 w-12 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center font-black">
+                  {userName?.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800">{userName}</h4>
-                  <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest">Active Explorer</p>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-tighter leading-none">Logged In As</p>
+                  <p className="font-bold text-slate-800 mt-1">{userName}</p>
                 </div>
-              </div>
-            </div>
+             </div>
           )}
 
         </div>

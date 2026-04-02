@@ -10,7 +10,6 @@ import { useAuth } from './context/AuthContext';
 // Components & Layout
 import Header from './components/Layout/Header';
 import Toast from './components/Toast';
-// ❌ AdminModal hata diya yahan se
 
 // Phase 1 Pages
 import LoginPage from './pages/Auth/LoginPage';
@@ -23,7 +22,7 @@ import CommunityPage from './pages/Community/CommunityPage';
 import ExamList from './components/Academy/ExamList';
 import ExamEngine from './components/Academy/ExamEngine';
 
-// 🌟 NAYA IMPORT: Admin Dashboard Page
+// Admin Dashboard Page
 import AdminDashboard from './pages/Admin/AdminDashboard';
 
 export default function App() {
@@ -62,16 +61,15 @@ export default function App() {
     setTimeout(() => setToast({ show: false, message: '', isSuccess: true }), 3500);
   };
 
-  // 🌟 '/admin' ko is list mein add kiya taaki design center mein rahe
   const isStandardLayout = ['/', '/donate', '/about', '/community', '/library', '/vault', '/academy', '/admin'].includes(location.pathname);
 
   return (
-    <div className="relative min-h-screen bg-[#f8fafc] font-[Poppins] text-slate-800 antialiased overflow-x-hidden">
+// font-[Poppins] hata kar sirf 'font-sans' kar diya ya class nikal di
+<div className="relative min-h-screen bg-[#f8fafc] text-slate-800 antialiased overflow-x-hidden">      
       {/* Background Decorations */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none"></div>
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-teal-400/20 rounded-full blur-[100px] pointer-events-none"></div>
 
-      {/* 🌟 Header ab simple ho gaya, Modal Open karne ka function nikal diya */}
       {location.pathname !== '/login' && (
         <Header />
       )}
@@ -90,7 +88,6 @@ export default function App() {
           <Route path="/academy/exam/:examId" element={<ExamEngine showToast={showToast} />} />
           <Route path="/vault" element={<VaultPage showToast={showToast} />} />
           
-          {/* 🌟 NAYA ROUTE: Admin Dashboard ka full page */}
           <Route path="/admin" element={
             <AdminDashboard 
               showToast={showToast}
@@ -104,8 +101,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
-
-      {/* ❌ Bottom se AdminModal ka poora block hata diya gaya hai */}
       
       <Toast toast={toast} />
     </div>
