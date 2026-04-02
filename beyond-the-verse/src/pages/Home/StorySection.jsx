@@ -10,18 +10,14 @@ export default function StorySection() {
   
   const [subjects, setSubjects] = useState([]);
   const [activeSubject, setActiveSubject] = useState(null);
-  
-  // Gemini States
   const [geminiData, setGeminiData] = useState("");
   const [isLoadingGemini, setIsLoadingGemini] = useState(false);
 
-  // 1. Live Fetch from Admin Dashboard (Firestore)
   useEffect(() => {
     const q = query(collection(db, "subjects"), orderBy("timestamp", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setSubjects(docs);
-      // Default selection (Jab page load ho toh pehla subject apne aap khul jaye)
       if (docs.length > 0 && !activeSubject) {
         handleSubjectClick(docs[0]);
       }
@@ -29,27 +25,31 @@ export default function StorySection() {
     return () => unsubscribe();
   }, []);
 
-  // 2. 🌟 GEMINI API INTEGRATION (With Strict Error Tracking) 🌟
   const fetchGeminiData = async (subjectName) => {
     setIsLoadingGemini(true);
     setGeminiData("");
     
     try {
-      // API Key fetch (Vite ya CRA dono ke liye support)
-      const apiKey = import.meta.env?.VITE_GEMINI_API_KEY || process.env.REACT_APP_GEMINI_API_KEY;
+      // 🌟 Vite check: import.meta.env.VITE_... use karein
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
       
+      console.log("Checking API Key availability...", apiKey ? "Key Found ✅" : "Key Missing ❌");
+
       if (!apiKey) {
-        setGeminiData("🚨 Error: API Key is missing! Apni .env file check karein aur server restart karein.");
+        setGeminiData("🚨 Error: VITE_GEMINI_API_KEY is not defined in .env file.");
         setIsLoadingGemini(false);
         return;
       }
 
-      const promptText = `You are an expert who bridges science and philosophy. Explain the subject '${subjectName}'. 
-      First paragraph: Provide a concise, factual, and scientific definition. 
-      Second paragraph: Explain its 'Life Application'—how understanding this concept can elevate human consciousness and daily life. 
-      Return strictly these two paragraphs separated by a double newline. Do not use any markdown formatting like bolding or asterisks.`;
+      const promptText = `Explain the subject '${subjectName}' in two distinct parts. 
+      Part 1: A precise scientific and factual definition. 
+      Part 2: How this knowledge practically applies to human life and philosophy. 
+      Keep it simple, clear, and around 150 words total. No markdown stars.`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+      // 🚀 Standard v1beta Endpoint for Gemini 1.5 Flash
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -58,26 +58,22 @@ export default function StorySection() {
       });
 
       const data = await response.json();
-      
-      // 🚨 Error Catching Logic (API Error Pakadne ke liye)
+      console.log("Full API Response:", data); // Isse Console me pura error dikhega
+
       if (!response.ok) {
-        console.error("Gemini API Error Detail:", data);
-        setGeminiData(`🚨 Google API Error: ${data.error?.message || "Invalid Request"}`);
+        setGeminiData(`🚨 Error ${response.status}: ${data.error?.message || "Something went wrong"}`);
         return;
       }
 
-      // ✅ Success Logic
-      if (data.candidates && data.candidates.length > 0) {
-        const generatedText = data.candidates[0].content.parts[0].text;
-        setGeminiData(generatedText);
+      if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+        setGeminiData(data.candidates[0].content.parts[0].text);
       } else {
-        console.log("Empty Response Data:", data);
-        setGeminiData("🚨 Google Gemini ne koi jawab nahi diya. Console check karein.");
+        setGeminiData("🚨 Received an empty response from Gemini.");
       }
 
     } catch (e) {
-      console.error("Fetch Catch Error:", e);
-      setGeminiData("🚨 Network Error! Ya toh aapka internet band hai, ya API connect nahi ho pa rahi.");
+      console.error("Catch Block Error:", e);
+      setGeminiData("🚨 Connection failed. Check Console (F12) for details.");
     } finally {
       setIsLoadingGemini(false);
     }
@@ -90,151 +86,78 @@ export default function StorySection() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10 py-10 px-4 md:px-0 overflow-hidden">
+    <div className="max-w-5xl mx-auto space-y-10 py-10 px-4 md:px-0">
       
-      {/* 🌟 MISSION HEADER */}
       <div className="text-center space-y-4 mb-8">
         <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
           Science for the <span className="text-teal-600">How</span>.<br />
           Philosophy for the <span className="text-indigo-600">Why</span>.
         </h2>
-        <p className="max-w-2xl mx-auto text-slate-500 font-medium text-sm md:text-base leading-relaxed px-4 md:px-0">
-          Hum science (Physics, Psychology, Sociology) ko philosophy ke saath jodte hain taaki gyaan sirf kitabon mein na rahe, balki aapki **Life** ko elevate kare.
+        <p className="max-w-2xl mx-auto text-slate-500 font-medium text-sm md:text-base leading-relaxed">
+          Uniting Science and Philosophy to elevate daily life.
         </p>
       </div>
 
-      {/* 🌟 THE RESEARCH EXPLORER (Edge-to-Edge on Mobile, Split on Desktop) */}
-      <div className="-mx-4 md:mx-0 bg-white md:border border-slate-200 md:rounded-[2rem] overflow-hidden shadow-sm flex flex-col md:flex-row h-[70vh] min-h-[500px] max-h-[800px]">
+      <div className="-mx-4 md:mx-0 bg-white md:border border-slate-200 md:rounded-[2rem] overflow-hidden shadow-sm flex flex-col md:flex-row h-[70vh] min-h-[500px]">
         
-        {/* LEFT: Subjects List */}
+        {/* Sidebar */}
         <div className="w-full md:w-80 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 flex flex-col shrink-0">
-          <div className="hidden md:block p-6 border-b border-slate-200">
-            <h3 className="font-black text-slate-800 uppercase tracking-widest text-xs">Research Topics</h3>
-          </div>
-          
-          {/* Mobile swipeable / Desktop scrollable */}
-          <div className="flex md:flex-col overflow-x-auto md:overflow-y-auto p-3 gap-2 md:gap-1 no-scrollbar">
-            {subjects.map((sub) => {
-              const isActive = activeSubject?.id === sub.id;
-              return (
-                <button
-                  key={sub.id}
-                  onClick={() => handleSubjectClick(sub)}
-                  className={`shrink-0 md:w-full text-left px-5 py-3 md:py-4 rounded-xl transition-all flex items-center justify-between group whitespace-nowrap md:whitespace-normal border md:border-none ${
-                    isActive 
-                    ? 'bg-slate-900 text-white shadow-md border-slate-900' 
-                    : 'bg-white md:bg-transparent text-slate-600 border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  <span className="font-bold text-sm md:text-base">{sub.name}</span>
-                  <i className={`hidden md:block fa-solid fa-chevron-right text-[10px] opacity-0 group-hover:opacity-100 ${isActive ? 'opacity-100' : ''}`}></i>
-                </button>
-              );
-            })}
+          <div className="flex md:flex-col overflow-x-auto md:overflow-y-auto p-3 gap-2 no-scrollbar">
+            {subjects.map((sub) => (
+              <button
+                key={sub.id}
+                onClick={() => handleSubjectClick(sub)}
+                className={`shrink-0 md:w-full text-left px-5 py-3 md:py-4 rounded-xl transition-all font-bold text-sm ${
+                  activeSubject?.id === sub.id ? 'bg-slate-900 text-white shadow-md' : 'bg-white md:bg-transparent text-slate-600'
+                }`}
+              >
+                {sub.name}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* RIGHT: Gemini Content Display (Scrollable) */}
-        <div className="flex-1 p-6 md:p-12 overflow-y-auto bg-white relative scroll-smooth">
+        {/* Content Area */}
+        <div className="flex-1 p-6 md:p-12 overflow-y-auto bg-white relative">
           {activeSubject ? (
             <div className="animate-fade-in max-w-2xl">
-              
-              {/* Subject Title & Category */}
-              <div className="mb-8">
-                <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-widest border border-indigo-100 mb-4 inline-block">
-                  {activeSubject.category || 'Core Subject'}
-                </span>
-                <h3 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter">
-                  {activeSubject.name}
-                </h3>
-              </div>
+              <h3 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter mb-8">
+                {activeSubject.name}
+              </h3>
 
-              {/* ✨ AI Definition Section */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2 border-b border-slate-100 pb-3">
-                   <i className="fa-solid fa-sparkles text-amber-400 text-lg"></i> 
-                   <span>AI Synthesized Knowledge</span>
-                </div>
-                
                 {isLoadingGemini ? (
-                  <div className="flex flex-col items-center justify-center text-slate-400 font-bold text-sm py-16 gap-4">
-                    <div className="relative flex justify-center items-center">
-                      <div className="absolute animate-ping inline-flex h-12 w-12 rounded-full bg-indigo-400 opacity-20"></div>
-                      <div className="relative inline-flex rounded-full h-8 w-8 bg-indigo-500 items-center justify-center text-white">
-                        <i className="fa-solid fa-sparkles text-xs"></i>
-                      </div>
-                    </div>
-                    <span>Synthesizing science and philosophy...</span>
+                  <div className="flex items-center gap-3 text-slate-400 font-bold text-sm py-10">
+                    <div className="h-5 w-5 border-2 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+                    Synthesizing...
                   </div>
                 ) : (
-                  <div className="space-y-6 mt-4">
-                    {/* Error Handling UI Box */}
+                  <div className="space-y-6">
                     {geminiData.startsWith("🚨") ? (
-                      <div className="bg-rose-50 text-rose-700 p-6 rounded-2xl border border-rose-200 font-bold text-sm">
-                        {geminiData}
-                      </div>
+                       <div className="p-4 bg-rose-50 text-rose-600 rounded-xl border border-rose-100 text-sm font-bold">
+                         {geminiData}
+                       </div>
                     ) : (
-                      /* Render Gemini Success Response */
-                      geminiData.split('\n\n').map((paragraph, idx) => {
-                        if (!paragraph.trim()) return null;
-                        
-                        // Life Application (2nd Paragraph) Highlight
-                        if (idx === 1) {
-                          return (
-                            <div key={idx} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mt-8">
-                              <h4 className="text-[10px] font-black text-teal-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                                <i className="fa-solid fa-bolt"></i> Life Application
-                              </h4>
-                              <p className="text-slate-700 text-lg leading-[1.8] font-medium">
-                                {paragraph}
-                              </p>
-                            </div>
-                          );
-                        }
-                        
-                        // Normal Scientific Definition (1st Paragraph)
-                        return (
-                          <p key={idx} className="text-slate-800 text-lg md:text-xl leading-[1.8] verse-thought-serif">
+                      geminiData.split('\n\n').map((paragraph, idx) => (
+                        <div key={idx} className={idx === 1 ? "bg-slate-50 p-6 rounded-2xl border border-slate-200" : ""}>
+                          {idx === 1 && <h4 className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-3">Life Application</h4>}
+                          <p className="text-slate-700 text-lg leading-relaxed font-medium">
                             {paragraph}
                           </p>
-                        );
-                      })
+                        </div>
+                      ))
                     )}
                   </div>
                 )}
               </div>
-
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-slate-300">
-               <i className="fa-solid fa-atom text-6xl mb-4 animate-pulse"></i>
-               <p className="font-bold uppercase tracking-widest text-xs">Select a topic to explore</p>
+            <div className="h-full flex items-center justify-center text-slate-300 font-bold uppercase tracking-widest text-xs">
+               Select a topic
             </div>
           )}
         </div>
-
       </div>
-
-      {/* 🌟 FINAL CTA */}
-      <div className="bg-white border border-slate-200 rounded-[2rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm mt-8">
-        <div className="flex items-center gap-4">
-          <div className="h-14 w-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl border border-indigo-100">
-            <i className="fa-solid fa-users"></i>
-          </div>
-          <div>
-            <h4 className="text-slate-900 font-bold text-lg">Talk to the Thinkers</h4>
-            <p className="text-slate-500 text-sm font-medium">Ye subjects aapki life mein kaise fit hote hain? Community mein discuss karein.</p>
-          </div>
-        </div>
-        
-        <button 
-          onClick={() => navigate(isAuthenticated ? '/community' : '/login')}
-          className="w-full md:w-auto bg-slate-900 text-white font-black py-4 px-10 rounded-2xl text-xs uppercase tracking-widest hover:bg-teal-600 transition-all active:scale-95"
-        >
-          {isAuthenticated ? "Go to Community" : "Login to Join"}
-        </button>
-      </div>
-
     </div>
   );
-    }
+      }
