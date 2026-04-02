@@ -55,6 +55,18 @@
   background: #94a3b8; 
 }
 
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+
 /* 🌟 Ninja Mode: Hide Google Translate Top Bar if used */
 .skiptranslate > iframe { display: none !important; }
 body { top: 0 !important; position: static !important; }
