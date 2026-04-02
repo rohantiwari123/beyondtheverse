@@ -13,7 +13,7 @@ export default function StorySection() {
   const [geminiData, setGeminiData] = useState("");
   const [isLoadingGemini, setIsLoadingGemini] = useState(false);
 
-  // 1. Firebase Live Sync
+  // 1. Live Sync from Firestore
   useEffect(() => {
     const q = query(collection(db, "subjects"), orderBy("timestamp", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -26,17 +26,24 @@ export default function StorySection() {
     return () => unsubscribe();
   }, []);
 
-  // 2. 🚀 THE FINAL STABLE GEMINI CALL (v1 Version)
+  // 2. 🧠 THE ULTIMATE GEMINI FIX (v1beta + 1.5 Flash)
   const fetchGeminiData = async (subjectName) => {
     setIsLoadingGemini(true);
     setGeminiData("");
     
-    // GitHub Actions se inject hui key yahan se uthayega
+    // GitHub Actions se key uthana (VITE_ prefix is must)
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
+    if (!apiKey) {
+      setGeminiData("🚨 Error: VITE_GEMINI_API_KEY is not found in environment.");
+      setIsLoadingGemini(false);
+      return;
+    }
+
     try {
-      // 🌟 STABLE ENDPOINT: Switching to 'v1' instead of 'v1beta'
-      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      // 🌟 GEMINI 1.5 FLASH + v1beta is the best combo right now
+      // Hum URL ko bilkul Google ke documentation ke hisab se use kar rahe hain
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
       const response = await fetch(url, {
         method: "POST",
@@ -45,9 +52,9 @@ export default function StorySection() {
           contents: [{ 
             parts: [{ 
               text: `Explain '${subjectName}' for a life-philosophy platform. 
-              Paragraph 1: Precise scientific definition. 
-              Paragraph 2: Practical life application (How it elevates human life). 
-              Keep it simple, strictly text, no markdown/stars.` 
+              Part 1: Scientific and factual definition. 
+              Part 2: How this helps in practical daily life and philosophy. 
+              Give me around 150 words. Plain text only, no stars, no markdown.` 
             }] 
           }]
         })
@@ -58,14 +65,14 @@ export default function StorySection() {
       if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
         setGeminiData(data.candidates[0].content.parts[0].text);
       } else {
-        // Asli Error yahan screen par dikhega agar abhi bhi fail hua
-        const errorMsg = data.error?.message || "AI response failed. Check API dashboard.";
+        // Asli error message yahan pakdenge
+        const errorMsg = data.error?.message || "Model mismatch or API restricted.";
         setGeminiData(`🚨 Error: ${errorMsg}`);
         console.error("Gemini Failure Detail:", data);
       }
     } catch (err) {
-      setGeminiData("🚨 Connection failed. Please check internet.");
-      console.error("Fetch Error:", err);
+      setGeminiData("🚨 Connection Error: API unreachable.");
+      console.error("Fetch Catch:", err);
     } finally {
       setIsLoadingGemini(false);
     }
@@ -78,47 +85,54 @@ export default function StorySection() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10 py-10 px-4 md:px-0">
+    <div className="max-w-5xl mx-auto space-y-10 py-10 px-4 md:px-0 overflow-hidden">
       
-      {/* Header Section */}
+      {/* 🌟 MISSION HEADER */}
       <div className="text-center space-y-4 mb-8 px-4">
-        <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-          Science for the <span className="text-teal-600">How</span>.<br />
-          Philosophy for the <span className="text-indigo-600">Why</span>.
+        <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight uppercase italic">
+          Science Meets <span className="text-teal-600">Philosophy</span>
         </h2>
         <p className="max-w-2xl mx-auto text-slate-500 font-medium text-sm md:text-base leading-relaxed">
-          Beyond the Verse: Uniting scientific mechanics with philosophical purpose.
+          Hum scientific mechanics ko philosophical purpose ke saath jodte hain taaki gyaan aapki life ko elevate kare.
         </p>
       </div>
 
-      {/* Explorer Container (Edge-to-Edge on Mobile) */}
-      <div className="-mx-4 md:mx-0 bg-white md:border border-slate-200 md:rounded-[2.5rem] overflow-hidden shadow-sm flex flex-col md:flex-row h-[75vh] min-h-[550px]">
+      {/* 🌟 THE EXPLORER (Edge-to-Edge on Mobile) */}
+      <div className="-mx-4 md:mx-0 bg-white md:border border-slate-200 md:rounded-[2.5rem] overflow-hidden shadow-sm flex flex-col md:flex-row h-[75vh] min-h-[550px] max-h-[850px]">
         
-        {/* Sidebar */}
+        {/* LEFT: Subjects List (Horizontal Tabs on Mobile) */}
         <div className="w-full md:w-80 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 flex flex-col shrink-0">
           <div className="hidden md:block p-6 border-b border-slate-200">
-            <h3 className="font-black text-slate-800 uppercase tracking-widest text-[10px]">Research Library</h3>
+            <h3 className="font-black text-slate-800 uppercase tracking-widest text-[10px]">Research Topics</h3>
           </div>
           <div className="flex md:flex-col overflow-x-auto md:overflow-y-auto p-3 gap-2 no-scrollbar">
-            {subjects.map((sub) => (
-              <button
-                key={sub.id}
-                onClick={() => handleSubjectClick(sub)}
-                className={`shrink-0 md:w-full text-left px-5 py-3 md:py-4 rounded-xl transition-all font-bold text-sm border md:border-none ${
-                  activeSubject?.id === sub.id ? 'bg-slate-900 text-white shadow-md border-slate-900' : 'bg-white md:bg-transparent text-slate-600 border-slate-200'
-                }`}
-              >
-                {sub.name}
-              </button>
-            ))}
+            {subjects.map((sub) => {
+              const isActive = activeSubject?.id === sub.id;
+              return (
+                <button
+                  key={sub.id}
+                  onClick={() => handleSubjectClick(sub)}
+                  className={`shrink-0 md:w-full text-left px-5 py-3 md:py-4 rounded-xl transition-all font-bold text-sm border md:border-none ${
+                    isActive 
+                    ? 'bg-slate-900 text-white shadow-md border-slate-900' 
+                    : 'bg-white md:bg-transparent text-slate-600 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  {sub.name}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* AI Content Area (Scrollable) */}
-        <div className="flex-1 p-6 md:p-12 overflow-y-auto bg-white scroll-smooth">
+        {/* RIGHT: AI Content (Scrollable & Clean) */}
+        <div className="flex-1 p-6 md:p-12 overflow-y-auto bg-white scroll-smooth no-scrollbar">
           {activeSubject ? (
             <div className="animate-fade-in max-w-2xl">
-              <h3 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter mb-8 uppercase italic">
+              <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-widest border border-indigo-100 mb-4 inline-block">
+                Core Logic
+              </span>
+              <h3 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter mb-8 uppercase italic leading-none">
                 {activeSubject.name}
               </h3>
 
@@ -126,31 +140,44 @@ export default function StorySection() {
                 {isLoadingGemini ? (
                   <div className="py-20 flex flex-col items-center gap-4 text-slate-400 font-bold text-sm">
                     <div className="h-8 w-8 border-4 border-slate-100 border-t-teal-500 rounded-full animate-spin"></div>
-                    <span className="animate-pulse">Accessing consciousness...</span>
+                    <span className="animate-pulse tracking-widest uppercase text-[10px]">Synthesizing...</span>
                   </div>
                 ) : (
                   <div className="space-y-8">
+                    {/* Gemini Response Parsing */}
                     {geminiData.startsWith("🚨") ? (
-                      <div className="p-5 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 text-xs font-mono">
+                      <div className="p-5 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 text-[10px] font-mono leading-relaxed">
                         {geminiData}
                       </div>
                     ) : (
-                      geminiData.split('\n\n').map((paragraph, idx) => (
-                        <div key={idx} className={idx === 1 ? "bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-inner" : ""}>
-                          {idx === 1 && <h4 className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-3 flex items-center gap-2"><i className="fa-solid fa-bolt"></i> Life Application</h4>}
-                          <p className="text-slate-800 text-lg leading-[1.8] font-medium">{paragraph}</p>
-                        </div>
-                      ))
+                      geminiData.split('\n\n').map((paragraph, idx) => {
+                        if (!paragraph.trim()) return null;
+                        return (
+                          <div key={idx} className={idx === 1 ? "bg-slate-50 p-6 rounded-2xl border border-slate-200" : "pb-4"}>
+                            {idx === 1 && (
+                              <h4 className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <i className="fa-solid fa-bolt"></i> Beyond The Verse: Purpose
+                              </h4>
+                            )}
+                            <p className="text-slate-800 text-lg md:text-xl leading-[1.8] font-medium">
+                              {paragraph}
+                            </p>
+                          </div>
+                        );
+                      })
                     )}
                   </div>
                 )}
               </div>
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center text-slate-300 font-bold uppercase tracking-widest text-[10px]">Select a Topic to Explore</div>
+            <div className="h-full flex items-center justify-center text-slate-300 font-bold uppercase tracking-widest text-[10px]">
+               Select a topic to explore
+            </div>
           )}
         </div>
       </div>
+
     </div>
   );
-        }
+                }
