@@ -1,51 +1,84 @@
 import React from 'react';
 
 export default function CommentBox({ interactions }) {
-  // Agar koi interaction nahi hai, toh kuch mat dikhao
   if (!interactions || interactions.length === 0) return null;
 
-  // Har type ke liye alag design
+  // Ekdum flat color config (No shadows, No 3D)
   const typeConfig = {
-    support: { icon: 'fa-check-double', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', label: 'Supported' },
-    counter: { icon: 'fa-bolt', color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200', label: 'Countered' },
-    doubt: { icon: 'fa-microscope', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', label: 'Doubted' }
+    support: { 
+      color: 'text-emerald-700', 
+      bg: 'bg-emerald-50', 
+      border: 'border-emerald-100', 
+      label: 'SUPPORTED',
+      indicator: 'bg-emerald-600'
+    },
+    counter: { 
+      color: 'text-rose-700', 
+      bg: 'bg-rose-50', 
+      border: 'border-rose-100', 
+      label: 'COUNTERED',
+      indicator: 'bg-rose-600'
+    },
+    doubt: { 
+      color: 'text-amber-700', 
+      bg: 'bg-amber-50', 
+      border: 'border-amber-100', 
+      label: 'DOUBTED',
+      indicator: 'bg-amber-600'
+    }
   };
 
   return (
-    <div className="mt-6 pt-6 border-t border-slate-100">
-      <h4 className="font-black text-slate-800 text-sm mb-4 uppercase tracking-wider">
-        Logic Tracker ({interactions.length})
-      </h4>
+    <div className="mt-10 pt-10 border-t border-slate-200">
+      {/* Clean & Flat Header */}
+      <div className="flex items-center gap-2 mb-8 px-1">
+        <h4 className="font-black text-slate-900 text-xs uppercase tracking-[0.25em]">
+          LOGIC TRACKER / {interactions.length} REFLECTIONS
+        </h4>
+      </div>
       
-      <div className="space-y-3">
+      <div className="space-y-0">
         {interactions.map((interaction, idx) => {
           const config = typeConfig[interaction.type];
           
           return (
-            <div key={idx} className="p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+            <div key={idx} className="border-b border-slate-100 last:border-none py-6 md:py-8 px-1">
               
-              {/* User Name & Badge */}
-              <div className="flex items-center gap-2 mb-2">
-                <span className="font-bold text-slate-800 text-xs sm:text-sm">{interaction.userName}</span>
+              {/* Info Row: User & Badge */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  {/* Flat square indicator */}
+                  <div className={`h-2 w-2 ${config.indicator}`}></div>
+                  
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                    <span className="font-black text-slate-900 text-xs tracking-tight uppercase">
+                      {interaction.userName}
+                    </span>
+                    <span className={`inline-block text-[8px] font-black px-1.5 py-0.5 border ${config.border} ${config.bg} ${config.color} tracking-tighter`}>
+                      {config.label}
+                    </span>
+                  </div>
+                </div>
                 
-                <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-md border ${config.bg} ${config.color} ${config.border} flex items-center gap-1`}>
-                  <i className={`fa-solid ${config.icon}`}></i> {config.label}
-                </span>
-                
-                {/* Time */}
-                <span className="text-[10px] text-slate-400 font-medium ml-auto">
+                <span className="text-[9px] text-slate-400 font-bold uppercase">
                   {new Date(interaction.timestamp).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
                 </span>
               </div>
               
-              {/* The Reason/Comment */}
-              <p className="text-slate-600 text-sm font-medium leading-relaxed">
+              {/* 🌟 Content: No extra padding, just clean text */}
+              <p className="text-slate-700 text-base md:text-xl leading-[1.8] verse-thought-serif">
                 {interaction.text}
               </p>
+
             </div>
           );
         })}
       </div>
+
+      {/* End line */}
+      <div className="mt-12 border-t border-slate-100 pt-4 text-center">
+         <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.4em]">End of Verse</span>
+      </div>
     </div>
   );
-    }
+}

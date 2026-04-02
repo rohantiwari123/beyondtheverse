@@ -1,44 +1,60 @@
 @import "tailwindcss";
 
-/* 🌟 GLOBAL FONT SETTINGS */
+/* 🌟 THE "DITTO" MAGIC: Mixing Poppins (English) & Tiro (Hindi) Perfectly */
 @layer base {
-  /* Poore App ke liye default setup */
   body {
-    font-family: 'Poppins', "Noto Serif Devanagari", serif !important;
+    font-family: 'Poppins', sans-serif;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
   }
 
-  /* 💎 THE "REAL" SERIF LOOK: Specially for Hindi Thoughts */
-  /* Isse aapka Hindi text bilkul Google Fonts preview jaisa curvy aur sundar dikhega */
-  p, .verse-thought {
-    font-family: 'Poppins', "Noto Serif Devanagari", serif !important;
-    font-optical-sizing: auto;
-    /* Serif font 400 ya 500 weight par hi sabse sundar lagta hai */
-    font-weight: 500; 
-    line-height: 1.8; /* Hindi matrayon ke liye extra space zaroori hai */
-    letter-spacing: 0.015em;
-    font-variation-settings: "wdth" 100;
+  /* 💎 Smart Verse Class: English will stay Poppins, Hindi will become Tiro */
+  .verse-thought-serif {
+    /* 1. Pehle Tiro ko priority do (Hindi ke liye) */
+    /* 2. Agar English akshar aayenge, toh wo system/serif me jayenge 
+          isliye hum niche ek trick lagayenge */
+    font-family: "Tiro Devanagari Hindi", serif !important;
+    line-height: 1.9;
+    font-weight: 400;
   }
 
-  /* Headings aur Buttons ke liye Poppins priority */
-  h1, h2, h3, h4, h5, h6, button, .notranslate {
-    font-family: 'Poppins', "Noto Serif Devanagari", serif !important;
-    letter-spacing: -0.02em;
+  /* 🚀 AGAR MIXED TEXT HAI (English + Hindi):
+     Ye rule English characters ko wapas Poppins me bhej dega 
+     chahe wo verse-thought-serif ke andar hi kyu na ho! */
+  @font-face {
+    font-family: 'Poppins-Only';
+    src: local('Poppins'), local('sans-serif');
+    unicode-range: U+0000-007F; /* Sirf English characters (A-Z, 0-9) */
   }
 
-  /* Utility weights for manual control */
-  .font-black { font-weight: 900 !important; }
-  .font-bold { font-weight: 700 !important; }
-  .font-medium { font-weight: 500 !important; }
-  .font-normal { font-weight: 400 !important; }
+  /* Ab hum apni class ko update karenge */
+  .verse-thought-serif {
+    /* English ke liye Poppins-Only aur Hindi ke liye Tiro */
+    font-family: 'Poppins-Only', "Tiro Devanagari Hindi", serif !important;
+  }
 }
 
-/* --- UI COMPONENTS --- */
-
-/* Custom Scrollbar */
+/* --- Baki UI Components --- */
 .lang-scrollbar::-webkit-scrollbar { width: 6px; }
 .lang-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
 .lang-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
-.lang-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+/* --- UI COMPONENTS --- */
+
+/* Custom Scrollbar (Premium Smooth Look) */
+.lang-scrollbar::-webkit-scrollbar { 
+  width: 6px; 
+}
+.lang-scrollbar::-webkit-scrollbar-track { 
+  background: #f1f5f9; 
+  border-radius: 8px; 
+}
+.lang-scrollbar::-webkit-scrollbar-thumb { 
+  background: #cbd5e1; 
+  border-radius: 8px; 
+}
+.lang-scrollbar::-webkit-scrollbar-thumb:hover { 
+  background: #94a3b8; 
+}
+
+/* 🌟 Ninja Mode: Hide Google Translate Top Bar if used */
+.skiptranslate > iframe { display: none !important; }
+body { top: 0 !important; position: static !important; }
