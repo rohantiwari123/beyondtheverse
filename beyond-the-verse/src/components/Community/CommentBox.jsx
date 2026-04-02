@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { formatDateTime } from './PostCard'; // 🌟 Importing EXACT DATE FORMATTER
 
 // 🌟 REUSABLE COMPONENT: For both Main Comments and Nested Replies
 function InteractionNode({ interaction, allInteractions, post, showToast, isMainComment }) {
@@ -19,7 +20,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
   const doubtCount = gates.doubt.length;
   const hasReacted = gates.support.includes(userId) || gates.counter.includes(userId) || gates.doubt.includes(userId);
 
-  // Styling Config (Works for both Main Comments and Replies now)
+  // Styling Config
   const typeConfig = {
     support: { icon: 'fa-regular fa-circle-check', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-100', label: 'Supported' },
     counter: { icon: 'fa-solid fa-bolt', color: 'text-rose-700', bg: 'bg-rose-50', border: 'border-rose-100', label: 'Countered' },
@@ -52,7 +53,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
         parentId: targetId, 
         userId, 
         userName: userName || "Explorer", 
-        type: replyType, // 🌟 Now saving Support/Counter/Doubt instead of just 'reply'
+        type: replyType, 
         text: replyText.trim(), 
         timestamp: new Date().toISOString(),
         commentGates: { support: [], counter: [], doubt: [] }
@@ -66,7 +67,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     } catch (e) { showToast("Failed to reply.", false); }
   };
 
-  // ⚡ QUICK REACTION (Without typing a reply)
+  // ⚡ QUICK REACTION
   const handleCommentGateClick = async (type) => {
     if (!isAuthenticated) return showToast("Please login first.", false);
     if (hasReacted) return showToast("Already reacted to this.", false);
@@ -80,7 +81,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
   return (
     <div className={`py-4 transition-all group ${isMainComment ? '' : 'border-t border-slate-100'}`}>
       
-      {/* 🌟 WHO IS REPLYING TO WHOM? (Only for nested replies) */}
+      {/* 🌟 WHO IS REPLYING TO WHOM? */}
       {!isMainComment && parentInteraction && (
         <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mb-2 ml-10 md:ml-12">
           <i className="fa-solid fa-reply text-slate-300"></i>
@@ -101,15 +102,16 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
             <div className="flex items-center gap-2 flex-wrap">
               <span className={`font-bold text-slate-900 ${isMainComment ? 'text-sm' : 'text-sm'}`}>{interaction.userName}</span>
               
-              {/* 🌟 BADGE: Now visible on BOTH Main Comments and Replies */}
+              {/* BADGE */}
               <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-wide flex items-center gap-1.5 ${config.color} ${config.bg} border ${config.border} px-2 py-0.5 rounded-md`}>
                 <i className={config.icon}></i> {config.label}
               </span>
             </div>
             
             <div className="flex items-center gap-2">
+              {/* 🌟 APPLIED EXACT FORMATTED DATE AND TIME */}
               <span className="text-[9px] md:text-[10px] text-slate-400 font-medium">
-                {new Date(interaction.timestamp).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                {formatDateTime(interaction.timestamp)}
               </span>
               {isAdmin && (
                 <button onClick={handleDeleteComment} className="text-[10px] text-slate-300 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -129,7 +131,6 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
               <i className="fa-solid fa-reply"></i> Reply
             </button>
             
-            {/* Quick Counters */}
             <button onClick={() => handleCommentGateClick('support')} className={`flex items-center gap-1 text-[11px] font-bold ${hasReacted && gates.support.includes(userId) ? 'text-emerald-600' : 'text-slate-400 hover:text-emerald-600'}`}>
               <i className="fa-regular fa-circle-check"></i> {supportCount > 0 && <span>{supportCount}</span>}
             </button>
@@ -141,12 +142,11 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
             </button>
           </div>
 
-          {/* 🌟 NEW ADVANCED REPLY BOX */}
+          {/* ADVANCED REPLY BOX */}
           {isReplying && isAuthenticated && (
             <div className="mt-3 bg-slate-50 p-3 md:p-4 rounded-2xl animate-fade-in border border-slate-100">
               <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Choose Your Logic Stance:</label>
               
-              {/* Gate Selectors */}
               <div className="flex flex-wrap gap-2 mb-3">
                 <button onClick={() => setReplyType('support')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold transition-all ${replyType === 'support' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-100'}`}>
                   <i className="fa-regular fa-circle-check"></i> Support
@@ -185,7 +185,6 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
 function ThreadBlock({ mainComment, allInteractions, post, showToast }) {
   const [showReplies, setShowReplies] = useState(true);
 
-  // Recursively fetch all replies
   const getAllDescendants = (parentId) => {
     let result = [];
     const children = allInteractions.filter(i => i.parentId === parentId);
@@ -201,10 +200,8 @@ function ThreadBlock({ mainComment, allInteractions, post, showToast }) {
 
   return (
     <div className="border-b border-slate-100 py-3 md:py-4">
-      {/* Main Thread Origin */}
       <InteractionNode interaction={mainComment} allInteractions={allInteractions} post={post} showToast={showToast} isMainComment={true} />
 
-      {/* Flat Nested Replies */}
       {descendants.length > 0 && (
         <div className="mt-1 ml-4 md:ml-10 border-l-[1.5px] border-slate-100 pl-3 md:pl-5">
           <button onClick={() => setShowReplies(!showReplies)} className="text-[10px] font-bold text-slate-400 hover:text-teal-600 mb-1 mt-1 flex items-center gap-1.5">
@@ -279,4 +276,4 @@ export default function CommentBox({ post, showToast }) {
       </div>
     </div>
   );
-        }
+            }
