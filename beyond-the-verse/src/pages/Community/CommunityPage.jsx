@@ -34,8 +34,14 @@ export default function CommunityPage({ showToast }) {
     setIsSubmitting(true);
     try {
       await addDoc(collection(db, "posts"), {
-        text: newPost, category: category, userName: userName || "Explorer", userId: userId,
-        isPinned: false, createdAt: serverTimestamp(), interactions: [], bookmarks: []
+        text: newPost.trim(), // Trim spaces
+        category: category, 
+        userName: userName || "Explorer", 
+        userId: userId,
+        isPinned: false, 
+        createdAt: serverTimestamp(), 
+        interactions: [], 
+        bookmarks: []
       });
       setNewPost("");
       showToast("Post published!");
@@ -54,26 +60,30 @@ export default function CommunityPage({ showToast }) {
         
         <div className="space-y-0 md:space-y-4">
           
-          {/* POST COMPOSER */}
+          {/* 🌟 POST COMPOSER */}
           {isAuthenticated ? (
             <div className="bg-white md:rounded-b-2xl border-b md:border md:border-t-0 border-slate-200 p-4 md:p-6 shadow-sm relative z-10">
               <form onSubmit={handlePostSubmit}>
                 
                 <div className="flex gap-3 md:gap-4 mb-3">
+                  {/* Avatar keeps its place at the top-left */}
                   <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 shrink-0 mt-1">
                     {userName?.charAt(0).toUpperCase() || "U"}
                   </div>
                   
-                  <textarea 
-                    value={newPost}
-                    onChange={(e) => setNewPost(e.target.value)}
-                    placeholder="What's on your mind?"
-                    className="w-full bg-transparent border-0 outline-none focus:ring-0 focus:outline-none focus:border-transparent p-0 pt-2 md:pt-3 text-lg md:text-xl text-slate-900 placeholder:text-slate-400 resize-none min-h-[80px]"
-                    maxLength="500"
-                  />
+                  {/* 🌟 BIGGER & LIMITLESS TEXTAREA */}
+                  <div className="flex-1">
+                    <textarea 
+                      value={newPost}
+                      onChange={(e) => setNewPost(e.target.value)}
+                      placeholder="Share your thoughts, logic, or reflections..."
+                      className="w-full bg-transparent border-0 outline-none focus:ring-0 focus:outline-none focus:border-transparent p-0 pt-2 md:pt-3 text-lg md:text-xl text-slate-900 placeholder:text-slate-400 resize-y min-h-[150px] md:min-h-[200px] overflow-y-auto leading-[1.7]"
+                    />
+                  </div>
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-3 border-t border-slate-100">
+                  {/* Categories Row */}
                   <div className="flex w-full sm:w-auto gap-2 overflow-x-auto no-scrollbar py-1">
                     {categories.map(cat => (
                       <button
@@ -87,11 +97,12 @@ export default function CommunityPage({ showToast }) {
                     ))}
                   </div>
 
+                  {/* Submit Button */}
                   <button 
                     type="submit" disabled={!newPost.trim() || isSubmitting}
-                    className="w-full sm:w-auto bg-teal-600 text-white px-6 py-2 rounded-full text-sm font-bold tracking-wide disabled:bg-slate-200 disabled:text-slate-400 transition-colors shrink-0"
+                    className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-8 py-2.5 rounded-full text-sm font-bold tracking-widest uppercase disabled:bg-slate-200 disabled:text-slate-400 transition-colors shrink-0 shadow-sm"
                   >
-                    {isSubmitting ? "Posting..." : "Post"}
+                    {isSubmitting ? "POSTING..." : "POST"}
                   </button>
                 </div>
 
@@ -111,7 +122,7 @@ export default function CommunityPage({ showToast }) {
             </div>
           )}
 
-          {/* POSTS FEED */}
+          {/* 🌟 POSTS FEED */}
           <div className="space-y-0 md:space-y-4">
             {posts.length === 0 ? (
               <div className="py-20 flex flex-col items-center justify-center text-slate-300">
@@ -131,4 +142,4 @@ export default function CommunityPage({ showToast }) {
       </div>
     </div>
   );
-                                          }
+}

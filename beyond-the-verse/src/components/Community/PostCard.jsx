@@ -4,15 +4,15 @@ import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import CommentBox from './CommentBox'; 
 
-// 🌟 NEW EXACT TIME FORMATTER (e.g., "12 Oct 2023 • 03:30 PM")
+// 🌟 EXACT TIME FORMATTER
 export const formatDateTime = (timestamp) => {
   if (!timestamp) return "";
   
   let date;
   if (typeof timestamp.toDate === 'function') {
-    date = timestamp.toDate(); // For Firebase ServerTimestamp
+    date = timestamp.toDate(); 
   } else {
-    date = new Date(timestamp); // For ISO Strings
+    date = new Date(timestamp); 
   }
 
   const dateString = date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -28,31 +28,43 @@ export default function PostCard({ post, showToast }) {
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // New States for Features
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(post.text);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   const interactions = post.interactions || [];
   const bookmarks = post.bookmarks || [];
   
-  const hasInteracted = interactions.some(i => i.userId === userId);
+  // 🌟 TOP LEVEL COMMENTS ONLY
+  const topLevelInteractions = interactions.filter(i => !i.parentId);
+  
+  // 🌟 CHECK USER INTERACTION
+  const userInteraction = topLevelInteractions.find(i => i.userId === userId);
+  const hasInteracted = !!userInteraction;
+  const userInteractionType = userInteraction ? userInteraction.type : null; 
+  
   const isBookmarked = bookmarks.includes(userId);
   const isOwner = post.userId === userId;
 
-  const supportCount = interactions.filter(i => i.type === 'support').length;
-  const counterCount = interactions.filter(i => i.type === 'counter').length;
-  const doubtCount = interactions.filter(i => i.type === 'doubt').length;
+  const supportCount = topLevelInteractions.filter(i => i.type === 'support').length;
+  const counterCount = topLevelInteractions.filter(i => i.type === 'counter').length;
+  const doubtCount = topLevelInteractions.filter(i => i.type === 'doubt').length;
 
   // 🛡️ Post Actions
   const handleEditSubmit = async () => {
-    if (editText.trim().length < 10) return;
+    if (!editText.trim()) return; // 🌟 NO LIMIT: Just check if not empty
+    setIsSavingEdit(true);
     try {
-      await updateDoc(doc(db, "posts", post.id), { text: editText, isEdited: true });
+      await updateDoc(doc(db, "posts", post.id), { text: editText.trim(), isEdited: true });
       setIsEditing(false);
       setShowMenu(false);
-      showToast("Post updated.");
-    } catch (e) { showToast("Failed to update.", false); }
+      showToast("Post updated successfully! ✏️");
+    } catch (e) { 
+      showToast("Failed to update.", false); 
+    } finally {
+      setIsSavingEdit(false);
+    }
   };
 
   const confirmDelete = async () => {
@@ -69,7 +81,6 @@ export default function PostCard({ post, showToast }) {
     } catch (e) { console.error(e); }
   };
 
-  // 🌟 New Features
   const handleBookmark = async () => {
     if (!isAuthenticated) return showToast("Login to save posts.", false);
     try {
@@ -99,13 +110,13 @@ export default function PostCard({ post, showToast }) {
   };
 
   const handleSubmitReason = async () => {
-    if (reason.trim().length < 15 || hasInteracted) return;
+    if (!reason.trim() || hasInteracted) return; // 🌟 NO LIMIT: Just check if not empty
     setIsSubmitting(true);
     try {
       await updateDoc(doc(db, "posts", post.id), {
         interactions: arrayUnion({
           id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-          userId, userName: userName || "Explorer", type: activeGate, text: reason, timestamp: new Date().toISOString(),
+          userId, userName: userName || "Explorer", type: activeGate, text: reason.trim(), timestamp: new Date().toISOString(),
           isPinned: false, replies: [], commentGates: { support: [], counter: [], doubt: [] }
         })
       });
@@ -123,7 +134,6 @@ export default function PostCard({ post, showToast }) {
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 bg-slate-900 rounded-full flex items-center justify-center font-bold text-white text-sm relative">
             {post.userName?.charAt(0).toUpperCase()}
-            {/* Expert Badge Example (Can be dynamic later) */}
             {(isAdmin || supportCount > 5) && (
               <div className="absolute -bottom-1 -right-1 bg-teal-500 text-white rounded-full h-4 w-4 flex items-center justify-center border-2 border-white">
                 <i className="fa-solid fa-check text-[7px]"></i>
@@ -137,7 +147,6 @@ export default function PostCard({ post, showToast }) {
             </div>
             <span className="text-[11px] text-slate-500 font-medium tracking-wide">
               {post.category} <span className="mx-1 opacity-50">•</span> 
-              {/* 🌟 APPLIED EXACT DATE AND TIME HERE */}
               {formatDateTime(post.createdAt)} 
               {post.isEdited && <span className="ml-1 italic opacity-70">(Edited)</span>}
             </span>
@@ -178,17 +187,25 @@ export default function PostCard({ post, showToast }) {
         )}
       </div>
 
-      {/* Main Thought Text or Edit Mode */}
+      {/* 🌟 Main Thought Text or Edit Mode */}
       <div className="mb-5 pl-1">
         {isEditing ? (
           <div className="animate-fade-in">
             <textarea 
-              value={editText} onChange={(e) => setEditText(e.target.value)} 
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-lg verse-thought-serif focus:ring-1 focus:ring-slate-300 resize-none" rows="3"
+              value={editText} 
+              onChange={(e) => setEditText(e.target.value)} 
+              className="w-full bg-white border border-slate-200 rounded-xl p-4 text-base md:text-lg verse-thought-serif focus:outline-none focus:ring-2 focus:ring-slate-300 resize-y min-h-[140px] md:min-h-[180px] overflow-y-auto shadow-sm" 
+              placeholder="Edit your thought..."
             />
-            <div className="flex gap-2 mt-2 justify-end">
-              <button onClick={() => setIsEditing(false)} className="text-xs font-bold text-slate-500 px-3 py-1.5 hover:bg-slate-100 rounded-lg">Cancel</button>
-              <button onClick={handleEditSubmit} className="text-xs font-bold text-white bg-slate-900 px-4 py-1.5 rounded-lg">Save</button>
+            <div className="flex justify-end items-center mt-3 px-1">
+              <div className="flex gap-2">
+                <button onClick={() => { setIsEditing(false); setEditText(post.text); }} className="text-xs font-bold text-slate-500 px-4 py-2 hover:bg-slate-100 rounded-lg transition-colors">
+                  Cancel
+                </button>
+                <button onClick={handleEditSubmit} disabled={!editText.trim() || isSavingEdit} className="text-xs font-bold text-white bg-slate-900 px-6 py-2 rounded-lg disabled:opacity-40 transition-colors shadow-md">
+                  {isSavingEdit ? "Saving..." : "Save"}
+                </button>
+              </div>
             </div>
           </div>
         ) : (
@@ -202,16 +219,30 @@ export default function PostCard({ post, showToast }) {
       <div className="flex items-center justify-between pt-2 border-t border-slate-50">
         
         {/* Gates */}
-        <div className={`flex items-center gap-6 ${hasInteracted ? 'opacity-40 pointer-events-none' : ''}`}>
-          <button onClick={() => handleGateClick('support')} className={`flex items-center gap-2 transition-colors ${activeGate === 'support' ? 'text-emerald-600' : 'text-slate-500 hover:text-emerald-600'}`}>
-            <i className="fa-regular fa-circle-check text-lg"></i>
+        <div className={`flex items-center gap-6 ${hasInteracted ? 'pointer-events-none' : ''}`}>
+          <button onClick={() => handleGateClick('support')} className={`flex items-center gap-2 transition-all ${
+            hasInteracted 
+              ? (userInteractionType === 'support' ? 'text-emerald-600 drop-shadow-md' : 'text-slate-300 opacity-40') 
+              : (activeGate === 'support' ? 'text-emerald-600' : 'text-slate-500 hover:text-emerald-600')
+          }`}>
+            <i className={`${hasInteracted && userInteractionType === 'support' ? 'fa-solid' : 'fa-regular'} fa-circle-check text-lg`}></i>
             <span className="text-sm font-semibold">{supportCount > 0 ? supportCount : ''}</span>
           </button>
-          <button onClick={() => handleGateClick('counter')} className={`flex items-center gap-2 transition-colors ${activeGate === 'counter' ? 'text-rose-600' : 'text-slate-500 hover:text-rose-600'}`}>
+
+          <button onClick={() => handleGateClick('counter')} className={`flex items-center gap-2 transition-all ${
+            hasInteracted 
+              ? (userInteractionType === 'counter' ? 'text-rose-600 drop-shadow-md' : 'text-slate-300 opacity-40') 
+              : (activeGate === 'counter' ? 'text-rose-600' : 'text-slate-500 hover:text-rose-600')
+          }`}>
             <i className="fa-solid fa-bolt text-lg"></i>
             <span className="text-sm font-semibold">{counterCount > 0 ? counterCount : ''}</span>
           </button>
-          <button onClick={() => handleGateClick('doubt')} className={`flex items-center gap-2 transition-colors ${activeGate === 'doubt' ? 'text-amber-600' : 'text-slate-500 hover:text-amber-600'}`}>
+
+          <button onClick={() => handleGateClick('doubt')} className={`flex items-center gap-2 transition-all ${
+            hasInteracted 
+              ? (userInteractionType === 'doubt' ? 'text-amber-600 drop-shadow-md' : 'text-slate-300 opacity-40') 
+              : (activeGate === 'doubt' ? 'text-amber-600' : 'text-slate-500 hover:text-amber-600')
+          }`}>
             <i className="fa-solid fa-magnifying-glass text-lg"></i>
             <span className="text-sm font-semibold">{doubtCount > 0 ? doubtCount : ''}</span>
           </button>
@@ -229,20 +260,34 @@ export default function PostCard({ post, showToast }) {
 
       </div>
 
-      {/* Input Area */}
+      {/* 🌟 BIGGER & RESPONSIVE POST REPLY BOX */}
       {activeGate && !hasInteracted && (
-        <div className="mt-4 p-4 bg-slate-50 rounded-2xl animate-fade-in">
+        <div className="mt-5 p-4 md:p-5 bg-slate-50 rounded-2xl animate-fade-in border border-slate-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-3 px-1">
+             <span className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${
+               activeGate === 'support' ? 'text-emerald-600' : 
+               activeGate === 'counter' ? 'text-rose-600' : 
+               'text-amber-600'
+             }`}>
+               Adding {activeGate} logic...
+             </span>
+          </div>
+          
           <textarea 
-            value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Add your logic..." 
-            className="w-full bg-transparent border-none p-2 text-sm text-slate-800 placeholder:text-slate-400 focus:ring-0 resize-none mb-2" rows="2" 
+            value={reason} 
+            onChange={(e) => setReason(e.target.value)} 
+            placeholder="Add your logic..." 
+            className="w-full bg-white border border-slate-200 rounded-xl p-3 md:p-4 text-sm md:text-base text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300 resize-y min-h-[100px] md:min-h-[140px] overflow-y-auto mb-3" 
           />
-          <div className="flex justify-between items-center px-2">
-            <span className={`text-[10px] font-bold ${reason.length < 15 ? 'text-rose-400' : 'text-emerald-500'}`}>
-               {reason.length < 15 ? `${15 - reason.length} chars needed` : "Ready to post"}
-            </span>
-            <button onClick={handleSubmitReason} disabled={reason.length < 15 || isSubmitting} className="bg-slate-900 text-white px-5 py-2 rounded-full text-[11px] font-bold tracking-wide disabled:bg-slate-200 disabled:text-slate-400">
-              {isSubmitting ? "Posting..." : "Reply"}
-            </button>
+          <div className="flex justify-end items-center px-1">
+            <div className="flex items-center gap-2">
+              <button onClick={() => { setActiveGate(null); setReason(""); }} className="px-4 py-2 text-[11px] font-bold text-slate-500 hover:bg-slate-200 rounded-xl transition-colors">
+                CANCEL
+              </button>
+              <button onClick={handleSubmitReason} disabled={!reason.trim() || isSubmitting} className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-xl text-[11px] font-bold tracking-widest uppercase disabled:opacity-40 transition-colors shadow-md">
+                {isSubmitting ? "POSTING..." : "POST"}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -252,4 +297,4 @@ export default function PostCard({ post, showToast }) {
 
     </div>
   );
-    }
+}
