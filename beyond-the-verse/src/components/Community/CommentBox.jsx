@@ -41,16 +41,13 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
   // 🛡️ ADMIN / OWNER ACTIONS
   const handleDeleteComment = async () => {
     try {
-      // 1. Comment ko post interactions array se hatayen
       let newInteractions = post.interactions.filter(i => (i.id || i.timestamp) !== targetId);
 
-      // 2. 🌟 THE MAGIC FIX: Agar ye ek Nested Reply tha, toh Parent Comment se iska 'Vote' (userId) bhi hata dein!
       if (interaction.parentId) {
         newInteractions = newInteractions.map(i => {
           if ((i.id || i.timestamp) === interaction.parentId) {
             const updatedGates = { ...i.commentGates };
             if (updatedGates[interaction.type]) {
-              // Remove the user's ID from the specific gate (support/counter/doubt)
               updatedGates[interaction.type] = updatedGates[interaction.type].filter(uid => uid !== interaction.userId);
             }
             return { ...i, commentGates: updatedGates };
@@ -69,7 +66,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     if (editText.trim().length < 2) return;
     try {
       const newInteractions = post.interactions.map(i =>
-        (i.id || i.timestamp) === targetId ? { ...i, text: editText, isEdited: true } : i
+        (i.id || i.timestamp) === targetId ? { ...i, text: editText.trim(), isEdited: true } : i
       );
       await updateDoc(doc(db, "posts", post.id), { interactions: newInteractions });
       setIsEditing(false);
@@ -89,7 +86,6 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     } catch (e) { console.error(e); }
   };
 
-  // 💬 ICON CLICK -> OPENS CLEAN REPLY BOX
   const handleIconClick = (type) => {
     if (!isAuthenticated) return showToast("Please login first.", false);
     if (hasReacted) return showToast("You have already added logic to this.", false);
@@ -98,7 +94,6 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     setIsReplying(true);
   };
 
-  // 🚀 SUBMIT THE LOGIC
   const handleReplySubmit = async () => {
     if (replyText.trim().length < 2) return;
 
@@ -203,12 +198,18 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
             )}
           </div>
 
-          {/* 🌟 TEXT OR EDIT MODE */}
+          {/* 🌟 TEXT OR EDIT MODE (Auto-Expand Added) */}
           {isEditing ? (
             <div className="animate-fade-in mb-2 mt-1">
               <textarea 
-                value={editText} onChange={(e) => setEditText(e.target.value)} 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm verse-thought-serif focus:ring-1 focus:ring-slate-300 resize-none" rows="2"
+                value={editText} 
+                onChange={(e) => {
+                  setEditText(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
+                }} 
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm verse-thought-serif focus:ring-1 focus:ring-slate-300 resize-none overflow-hidden" 
+                rows="2"
               />
               <div className="flex gap-2 mt-2 justify-end">
                 <button onClick={() => setIsEditing(false)} className="text-xs font-bold text-slate-500 px-3 py-1.5 hover:bg-slate-100 rounded-lg">Cancel</button>
@@ -216,7 +217,8 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
               </div>
             </div>
           ) : (
-            <p className={`text-slate-800 leading-[1.7] verse-thought-serif ${isMainComment ? 'text-lg md:text-xl mt-1.5' : 'text-base md:text-lg mt-0.5'} mb-1.5`}>
+            /* 🌟 TEXT FORMATTING FIX APPLIED HERE 🌟 */
+            <p className={`text-slate-800 leading-[1.7] verse-thought-serif whitespace-pre-wrap text-justify break-words ${isMainComment ? 'text-lg md:text-xl mt-1.5' : 'text-base md:text-lg mt-0.5'} mb-1.5`}>
               {interaction.text}
             </p>
           )}
@@ -243,14 +245,18 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
             </div>
           )}
 
-          {/* 🌟 THE CLEAN REPLY BOX (Like Main Post input) */}
+          {/* 🌟 THE CLEAN REPLY BOX (Auto-Expand Added) */}
           {isReplying && isAuthenticated && !hasReacted && !isEditing && (
             <div className="mt-3 animate-fade-in">
               <textarea
                 value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
+                onChange={(e) => {
+                  setReplyText(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
+                }}
                 placeholder="Add your reply..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 placeholder:text-slate-400 focus:ring-1 focus:ring-slate-300 outline-none resize-none mb-2"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 placeholder:text-slate-400 focus:ring-1 focus:ring-slate-300 outline-none resize-none overflow-hidden mb-2"
                 rows="2"
                 autoFocus
               />
@@ -377,4 +383,4 @@ export default function CommentBox({ post, showToast }) {
       </div>
     </div>
   );
-}
+    }
