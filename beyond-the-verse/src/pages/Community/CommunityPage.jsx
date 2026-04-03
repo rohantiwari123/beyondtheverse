@@ -81,6 +81,7 @@ export default function CommunityPage({ showToast }) {
         category: category, 
         userName: userName || "Explorer", 
         userId: userId,
+        isAdminPost: isAdmin, // 🌟 YAHAN ADD HUA HAI: Agar Admin post kar raha hai, to Flag true ho jayega
         isPinned: false, 
         createdAt: serverTimestamp(), 
         interactions: [], 
@@ -120,7 +121,7 @@ export default function CommunityPage({ showToast }) {
                 </div>
               </div>
               
-              {/* 🌟 NEW LAYOUT: CATEGORIES ROW */}
+              {/* 🌟 LAYOUT: CATEGORIES ROW */}
               <div className="pt-4 border-t border-slate-100 flex flex-col gap-4">
                 
                 <div className="flex items-center justify-between gap-3">
@@ -242,4 +243,4 @@ export default function CommunityPage({ showToast }) {
       </div>
     </div>
   );
-        }
+      }
