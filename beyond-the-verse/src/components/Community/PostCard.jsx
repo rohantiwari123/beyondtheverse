@@ -209,7 +209,8 @@ export default function PostCard({ post, showToast }) {
             </div>
           </div>
         ) : (
-          <p className="text-slate-900 text-xl md:text-[26px] verse-thought-serif leading-[1.85]">
+          /* 🌟 TEXT FORMATTING FIX APPLIED HERE: whitespace-pre-wrap, text-justify, break-words 🌟 */
+          <p className="text-slate-900 text-xl md:text-[26px] verse-thought-serif leading-[1.85] whitespace-pre-wrap text-justify break-words">
             {post.text}
           </p>
         )}
@@ -297,4 +298,4 @@ export default function PostCard({ post, showToast }) {
 
     </div>
   );
-}
+        }
