@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { doc, updateDoc, arrayUnion, deleteDoc, arrayRemove } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
@@ -47,14 +47,16 @@ export default function PostCard({ post, showToast }) {
   const isBookmarked = bookmarks.includes(userId);
   const isOwner = post.userId === userId;
 
-  // 🌟 NEW: Check if the post was created by an admin
-  // This assumes you might store a flag like `isAdminPost` in DB, or you check the user ID. 
-  // For now, let's pretend we pass or store `role: 'admin'` in the post document when it's created.
-  // If you don't have it in DB, you can check: post.userName === "AdminName" or similar.
-  // Assuming 'post.isAdminPost' is saved during creation, OR we check the post's author ID if known.
-  // For demo, let's simulate that if 'post.userName' contains specific admin logic, or we rely on a db flag.
-  // Let's use a fallback check if you haven't added `isAdminPost` to DB yet.
+  // 🌟 ADMIN POST CHECK
   const isAdminPost = post.isAdminPost === true || post.role === 'admin'; 
+
+  // 🚀 🌟 AUTO-UPGRADE MAGIC: Ye automatically purani posts ko Admin Post bana dega (Bina kisi button ke!)
+  useEffect(() => {
+    if (isOwner && isAdmin && !isAdminPost) {
+      updateDoc(doc(db, "posts", post.id), { isAdminPost: true })
+        .catch(err => console.error("Failed to auto-upgrade post", err));
+    }
+  }, [isOwner, isAdmin, isAdminPost, post.id]);
 
   const supportCount = topLevelInteractions.filter(i => i.type === 'support').length;
   const counterCount = topLevelInteractions.filter(i => i.type === 'counter').length;
@@ -142,31 +144,29 @@ export default function PostCard({ post, showToast }) {
     finally { setIsSubmitting(false); }
   };
 
-  // 🌟 ADMIN POST STYLING LOGIC
+  // 🌟 ADMIN POST STYLING
   const bgClass = isAdminPost ? "bg-amber-50/40 border-amber-200 shadow-sm" : "bg-white border-slate-200";
   const avatarClass = isAdminPost ? "bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-md shadow-amber-500/20" : "bg-slate-900 text-white";
   const nameColorClass = isAdminPost ? "text-amber-900" : "text-slate-900";
-  const textColorClass = isAdminPost ? "text-slate-900" : "text-slate-900";
   const borderSepClass = isAdminPost ? "border-amber-100" : "border-slate-50";
 
   return (
-    <div className={`border-b md:border pt-6 pb-4 md:pt-8 md:pb-6 px-4 md:px-6 transition-colors ${bgClass} ${post.isPinned ? 'ring-2 ring-teal-500/20' : ''}`}>
+    <div className={`border-b md:border pt-6 pb-4 md:pt-8 md:pb-6 px-4 md:px-6 transition-colors duration-500 ${bgClass} ${post.isPinned ? 'ring-2 ring-teal-500/20' : ''}`}>
       
       {/* 🌟 Header with 3-Dot Menu */}
       <div className="flex items-start justify-between mb-4 relative">
         <div className="flex items-center gap-3">
           
-          {/* Avatar */}
-          <div className={`h-10 w-10 md:h-12 md:w-12 rounded-full flex items-center justify-center font-bold text-sm relative ${avatarClass}`}>
+          <div className={`h-10 w-10 md:h-12 md:w-12 rounded-full flex items-center justify-center font-bold text-sm relative transition-all ${avatarClass}`}>
             {post.userName?.charAt(0).toUpperCase()}
             {(isAdmin || supportCount > 5) && !isAdminPost && (
               <div className="absolute -bottom-1 -right-1 bg-teal-500 text-white rounded-full h-4 w-4 flex items-center justify-center border-2 border-white">
                 <i className="fa-solid fa-check text-[7px]"></i>
               </div>
             )}
-            {/* Admin Crown Icon (Optional extra flair for admin avatar) */}
+            {/* Crown for Admin */}
             {isAdminPost && (
-              <div className="absolute -top-1 -right-1 text-amber-500 bg-white rounded-full h-4 w-4 flex items-center justify-center shadow-sm">
+              <div className="absolute -top-1 -right-1 text-amber-500 bg-white rounded-full h-4 w-4 flex items-center justify-center shadow-sm border border-amber-100">
                 <i className="fa-solid fa-crown text-[8px]"></i>
               </div>
             )}
@@ -174,18 +174,15 @@ export default function PostCard({ post, showToast }) {
 
           <div className="flex flex-col">
             <div className="flex items-center gap-2 flex-wrap">
-              <h4 className={`font-bold text-sm tracking-tight ${nameColorClass}`}>{post.userName}</h4>
-              
-              {/* 🌟 ADMIN BADGE */}
+              <h4 className={`font-bold text-sm tracking-tight transition-colors ${nameColorClass}`}>{post.userName}</h4>
+              {/* Admin Badge */}
               {isAdminPost && (
-                <span className="bg-amber-100 text-amber-700 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-200">
+                <span className="bg-amber-100 text-amber-700 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-200 animate-fade-in">
                   <i className="fa-solid fa-shield-halved"></i> Admin
                 </span>
               )}
-              
               {post.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-[10px]"></i>}
             </div>
-            
             <span className="text-[11px] text-slate-500 font-medium tracking-wide">
               {post.category} <span className="mx-1 opacity-50">•</span> 
               {formatDateTime(post.createdAt)} 
@@ -235,7 +232,7 @@ export default function PostCard({ post, showToast }) {
             <textarea 
               value={editText} 
               onChange={(e) => setEditText(e.target.value)} 
-              className="w-full bg-white border border-slate-200 rounded-xl p-4 text-base md:text-lg verse-thought-serif focus:outline-none focus:ring-1 focus:ring-slate-300 resize-none h-40 md:h-56 overflow-y-auto shadow-sm" 
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-base md:text-lg verse-thought-serif focus:outline-none focus:ring-1 focus:ring-slate-300 resize-none h-40 md:h-56 overflow-y-auto shadow-sm" 
               placeholder="Edit your thought..."
             />
             <div className="flex justify-end items-center mt-3 px-1">
@@ -250,14 +247,14 @@ export default function PostCard({ post, showToast }) {
             </div>
           </div>
         ) : (
-          <p className={`${textColorClass} verse-thought-serif whitespace-pre-wrap text-justify break-words transition-all ${getTextSizeClass(post.text)}`}>
+          <p className={`text-slate-900 verse-thought-serif whitespace-pre-wrap text-justify break-words transition-all ${getTextSizeClass(post.text)}`}>
             {post.text}
           </p>
         )}
       </div>
 
       {/* 🌟 Interaction Bar with Share & Bookmark */}
-      <div className={`flex items-center justify-between pt-2 border-t ${borderSepClass}`}>
+      <div className={`flex items-center justify-between pt-2 border-t ${borderSepClass} transition-colors`}>
         
         {/* Gates */}
         <div className={`flex items-center gap-6 ${hasInteracted ? 'pointer-events-none' : ''}`}>
@@ -335,7 +332,7 @@ export default function PostCard({ post, showToast }) {
 
       {/* 🌟 TOGGLE COMMENTS DROPDOWN BUTTON */}
       {topLevelInteractions.length > 0 && (
-        <div className={`mt-4 pt-3 flex items-center justify-between border-t ${borderSepClass}`}>
+        <div className={`mt-4 pt-3 flex items-center justify-between border-t transition-colors ${borderSepClass}`}>
           <button 
             onClick={() => setShowComments(!showComments)} 
             className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-slate-800 uppercase tracking-widest transition-colors"
@@ -355,4 +352,4 @@ export default function PostCard({ post, showToast }) {
 
     </div>
   );
-      }
+         }
