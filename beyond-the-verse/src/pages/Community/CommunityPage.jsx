@@ -21,21 +21,17 @@ export default function CommunityPage({ showToast }) {
 
   // 🌟 FETCH POSTS & CATEGORIES FROM FIREBASE
   useEffect(() => {
-    // Fetch Categories
     const catRef = doc(db, "settings", "categories");
     const unsubCat = onSnapshot(catRef, (docSnap) => {
       if (docSnap.exists() && docSnap.data().items) {
         const fetchedCats = docSnap.data().items;
         setCategories(fetchedCats);
-        // Agar current selected category delete ho jaye, toh pehli wali select kar lo
         setCategory(prev => fetchedCats.includes(prev) ? prev : (fetchedCats[0] || "General"));
       } else {
-        // Initialize if database is empty
         setDoc(catRef, { items: ["Philosophy", "Science", "Quantum", "Spirituality", "Reflection"] });
       }
     });
 
-    // Fetch Posts
     const q = query(collection(db, "posts"), orderBy("isPinned", "desc"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -108,7 +104,8 @@ export default function CommunityPage({ showToast }) {
           <div className="bg-white md:rounded-2xl border-b md:border border-slate-200 p-4 md:p-6 md:shadow-sm relative z-10 w-full">
             <form onSubmit={handlePostSubmit}>
               
-              <div className="flex gap-3 md:gap-4 mb-2">
+              {/* TEXTAREA SECTION */}
+              <div className="flex gap-3 md:gap-4 mb-4">
                 <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 shrink-0 mt-1">
                   {userName?.charAt(0).toUpperCase() || "U"}
                 </div>
@@ -123,87 +120,97 @@ export default function CommunityPage({ showToast }) {
                 </div>
               </div>
               
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t border-slate-100">
+              {/* 🌟 NEW LAYOUT: CATEGORIES ROW */}
+              <div className="pt-4 border-t border-slate-100 flex flex-col gap-4">
                 
-                {/* 🌟 CATEGORIES & ADMIN EDIT MODE */}
-                <div className="w-full sm:w-auto flex items-center overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 pb-1">
-                  <div className="flex items-center gap-2 w-max">
-                    {categories.map(cat => (
-                      <div key={cat} className="relative flex shrink-0 group">
-                        <button
-                          type="button" 
-                          onClick={() => !isEditingCategories && setCategory(cat)}
-                          className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wide transition-colors border ${
-                            category === cat && !isEditingCategories 
+                <div className="flex items-center justify-between gap-3">
+                  {/* Category Scrollable List */}
+                  <div className="flex-1 overflow-x-auto no-scrollbar pb-2 -mb-2">
+                    <div className="flex gap-2 w-max">
+                      {categories.map(cat => (
+                        <div 
+                          key={cat} 
+                          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-[11px] font-bold tracking-wide transition-all shrink-0 ${
+                            category === cat 
                               ? 'bg-slate-900 text-white border-slate-900 shadow-sm' 
                               : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
-                          } ${isEditingCategories ? 'pr-7 bg-rose-50 border-rose-100 text-rose-700 opacity-80 cursor-default' : ''}`}
+                          }`}
                         >
-                          {cat}
-                        </button>
-                        
-                        {/* Delete Button (Only in Admin Edit Mode) */}
-                        {isEditingCategories && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteCategory(cat)}
-                            className="absolute right-1.5 top-1/2 -translate-y-1/2 h-4 w-4 rounded-full bg-rose-200 text-rose-700 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-colors"
-                            title="Delete Category"
-                          >
-                            <i className="fa-solid fa-xmark text-[8px]"></i>
-                          </button>
-                        )}
-                      </div>
-                    ))}
-
-                    {/* 🌟 ADMIN CONTROLS: EDIT TOGGLE & ADD FORM */}
-                    {isAdmin && (
-                      <div className="flex items-center gap-2 border-l border-slate-200 pl-2 ml-1 shrink-0">
-                        {isEditingCategories ? (
-                          <div className="flex items-center gap-1 bg-slate-50 rounded-full p-1 border border-slate-200 shadow-inner">
-                            <input
-                              type="text"
-                              value={newCatText}
-                              onChange={(e) => setNewCatText(e.target.value)}
-                              placeholder="New..."
-                              className="bg-transparent text-[11px] font-bold w-20 outline-none px-2 text-slate-700 placeholder:text-slate-400"
-                              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCategory())}
-                            />
-                            <button type="button" onClick={handleAddCategory} className="bg-teal-600 text-white h-5 w-5 rounded-full flex items-center justify-center hover:bg-teal-700">
-                              <i className="fa-solid fa-plus text-[8px]"></i>
-                            </button>
-                            <button type="button" onClick={() => setIsEditingCategories(false)} className="bg-slate-300 text-slate-700 h-5 w-5 rounded-full flex items-center justify-center hover:bg-slate-400">
-                              <i className="fa-solid fa-check text-[8px]"></i>
-                            </button>
-                          </div>
-                        ) : (
                           <button 
                             type="button" 
-                            onClick={() => setIsEditingCategories(true)} 
-                            className="h-7 w-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors"
-                            title="Edit Categories"
+                            onClick={() => !isEditingCategories && setCategory(cat)}
+                            className="focus:outline-none"
                           >
-                            <i className="fa-solid fa-pen text-[10px]"></i>
+                            {cat}
                           </button>
-                        )}
-                      </div>
-                    )}
+                          
+                          {/* Admin Delete Icon inline with category text */}
+                          {isAdmin && isEditingCategories && (
+                            <button 
+                              type="button" 
+                              onClick={() => handleDeleteCategory(cat)}
+                              className="ml-1 text-rose-400 hover:text-rose-600 transition-colors"
+                            >
+                              <i className="fa-solid fa-xmark text-[10px]"></i>
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
+
+                  {/* Admin Edit Toggle Button */}
+                  {isAdmin && (
+                    <button 
+                      type="button" 
+                      onClick={() => setIsEditingCategories(!isEditingCategories)} 
+                      className={`h-8 w-8 shrink-0 rounded-full flex items-center justify-center transition-colors border ${
+                        isEditingCategories ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
+                      }`}
+                      title="Manage Categories"
+                    >
+                      <i className={`fa-solid ${isEditingCategories ? 'fa-check' : 'fa-pen'} text-[10px]`}></i>
+                    </button>
+                  )}
                 </div>
 
-                {/* Submit Button */}
-                <button 
-                  type="submit" disabled={!newPost.trim() || isSubmitting || isEditingCategories}
-                  className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-8 py-2.5 rounded-full text-sm font-bold tracking-widest uppercase disabled:bg-slate-200 disabled:text-slate-400 transition-colors shrink-0 shadow-sm"
-                >
-                  {isSubmitting ? "POSTING..." : "POST"}
-                </button>
+                {/* 🌟 ADMIN ADD CATEGORY INPUT */}
+                {isAdmin && isEditingCategories && (
+                  <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 animate-fade-in">
+                    <input
+                      type="text"
+                      value={newCatText}
+                      onChange={(e) => setNewCatText(e.target.value)}
+                      placeholder="Add new category..."
+                      className="bg-transparent flex-1 text-xs font-bold outline-none px-2 text-slate-700 placeholder:text-slate-400"
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCategory())}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={handleAddCategory} 
+                      disabled={!newCatText.trim()}
+                      className="bg-teal-600 text-white px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-teal-700 disabled:opacity-50 transition-colors"
+                    >
+                      ADD
+                    </button>
+                  </div>
+                )}
+
+                {/* 🌟 POST BUTTON ROW */}
+                <div className="flex justify-end pt-2">
+                  <button 
+                    type="submit" disabled={!newPost.trim() || isSubmitting || isEditingCategories}
+                    className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-10 py-3 rounded-full text-sm font-bold tracking-widest uppercase disabled:bg-slate-200 disabled:text-slate-400 transition-colors shadow-sm"
+                  >
+                    {isSubmitting ? "POSTING..." : "POST"}
+                  </button>
+                </div>
 
               </div>
             </form>
           </div>
         ) : (
-          /* 🌟 Login Banner */
+          /* Login Banner */
           <div className="bg-white md:bg-slate-50 border-b md:border border-slate-200 p-8 md:rounded-2xl flex flex-col items-center justify-center text-center md:shadow-sm relative z-10 w-full">
             <div className="h-12 w-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mb-4">
               <i className="fa-solid fa-feather-pointed text-xl"></i>
@@ -235,4 +242,4 @@ export default function CommunityPage({ showToast }) {
       </div>
     </div>
   );
-      }
+        }
