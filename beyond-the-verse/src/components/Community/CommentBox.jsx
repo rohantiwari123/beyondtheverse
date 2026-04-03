@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -10,11 +10,11 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
 
   // Reply States
   const [isReplying, setIsReplying] = useState(false);
-  const [replyType, setReplyType] = useState('support'); // Stores which icon was clicked
+  const [replyType, setReplyType] = useState('support'); 
   const [replyText, setReplyText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🌟 NEW STATES FOR 3-DOT MENU & EDITING
+  // 3-DOT MENU & EDITING
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(interaction.text);
@@ -22,6 +22,20 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
 
   const targetId = interaction.id || interaction.timestamp;
   const gates = interaction.commentGates || { support: [], counter: [], doubt: [] };
+
+  // 🌟 ADMIN COMMENT CHECK
+  const isAdminComment = interaction.isAdminComment === true || interaction.role === 'admin';
+
+  // 🚀 🌟 AUTO-UPGRADE MAGIC FOR COMMENTS: Bina button dabaye purane comments ko Admin Comment bana dega
+  useEffect(() => {
+    if (isOwner && isAdmin && !isAdminComment) {
+      const updatedInteractions = post.interactions.map(i => 
+        (i.id || i.timestamp) === targetId ? { ...i, isAdminComment: true } : i
+      );
+      updateDoc(doc(db, "posts", post.id), { interactions: updatedInteractions })
+        .catch(err => console.error("Failed to auto-upgrade comment", err));
+    }
+  }, [isOwner, isAdmin, isAdminComment, post.id, targetId, post.interactions]);
 
   const supportCount = gates.support.length;
   const counterCount = gates.counter.length;
@@ -94,6 +108,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     setIsReplying(true);
   };
 
+  // 🚀 SUBMIT THE LOGIC
   const handleReplySubmit = async () => {
     if (replyText.trim().length < 2) return;
 
@@ -104,7 +119,8 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
       const newReply = {
         id: superUniqueId, parentId: targetId, userId, userName: userName || "Explorer",
         type: replyType, text: replyText.trim(), timestamp: new Date().toISOString(),
-        commentGates: { support: [], counter: [], doubt: [] }
+        commentGates: { support: [], counter: [], doubt: [] },
+        isAdminComment: isAdmin // 🌟 Naye replies mein direct Admin Flag save hoga
       };
 
       const newGates = { ...gates };
@@ -127,10 +143,14 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     finally { setIsSubmitting(false); }
   };
 
+  // 🌟 ADMIN COMMENT STYLING
+  const avatarClass = isAdminComment ? "bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-sm shadow-amber-500/20" : "bg-slate-100 text-slate-600";
+  const nameColorClass = isAdminComment ? "text-amber-900" : "text-slate-900";
+
   return (
     <div className={`py-4 transition-all group ${isMainComment ? '' : 'border-t border-slate-100'}`}>
 
-      {/* 🌟 WHO IS REPLYING TO WHOM? */}
+      {/* WHO IS REPLYING TO WHOM? */}
       {!isMainComment && parentInteraction && (
         <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mb-2 ml-10 md:ml-12">
           <i className="fa-solid fa-reply text-slate-300"></i>
@@ -140,9 +160,14 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
 
       <div className="flex items-start gap-3 px-1">
 
-        {/* Avatar */}
-        <div className={`${isMainComment ? 'h-9 w-9 md:h-10 md:w-10 text-sm' : 'h-8 w-8 text-xs'} rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 shrink-0 mt-0.5`}>
+        {/* 🌟 AVATAR WITH CROWN */}
+        <div className={`${isMainComment ? 'h-9 w-9 md:h-10 md:w-10 text-sm' : 'h-8 w-8 text-xs'} rounded-full flex items-center justify-center font-bold shrink-0 mt-0.5 relative transition-all ${avatarClass}`}>
           {interaction.userName?.charAt(0).toUpperCase()}
+          {isAdminComment && (
+            <div className="absolute -top-1 -right-1 text-amber-500 bg-white rounded-full h-3.5 w-3.5 flex items-center justify-center shadow-sm border border-amber-100">
+              <i className="fa-solid fa-crown text-[6px]"></i>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -150,10 +175,20 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
           {/* 🌟 HEADER WITH 3-DOT MENU */}
           <div className="flex items-center justify-between mb-0.5 relative">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`font-bold text-slate-900 ${isMainComment ? 'text-sm' : 'text-sm'}`}>{interaction.userName}</span>
+              <span className={`font-bold ${isMainComment ? 'text-sm' : 'text-sm'} transition-colors ${nameColorClass}`}>
+                {interaction.userName}
+              </span>
+              
+              {/* 🌟 ADMIN BADGE */}
+              {isAdminComment && (
+                <span className="bg-amber-100 text-amber-700 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-200">
+                  <i className="fa-solid fa-shield-halved"></i> Admin
+                </span>
+              )}
+
               {interaction.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-[10px]"></i>}
 
-              {/* BADGE */}
+              {/* LOGIC BADGE (Supported/Countered/Doubted) */}
               <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-wide flex items-center gap-1.5 ${config.color} ${config.bg} border ${config.border} px-2 py-0.5 rounded-md`}>
                 <i className={config.icon}></i> {config.label}
               </span>
@@ -198,7 +233,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
             )}
           </div>
 
-          {/* 🌟 TEXT OR EDIT MODE (Auto-Expand Added) */}
+          {/* TEXT OR EDIT MODE */}
           {isEditing ? (
             <div className="animate-fade-in mb-2 mt-1">
               <textarea 
@@ -217,13 +252,12 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
               </div>
             </div>
           ) : (
-            /* 🌟 TEXT FORMATTING FIX APPLIED HERE 🌟 */
             <p className={`text-slate-800 leading-[1.7] verse-thought-serif whitespace-pre-wrap text-justify break-words ${isMainComment ? 'text-lg md:text-xl mt-1.5' : 'text-base md:text-lg mt-0.5'} mb-1.5`}>
               {interaction.text}
             </p>
           )}
 
-          {/* 🌟 REACTION / ICONS BAR (Reply triggers) */}
+          {/* REACTION / ICONS BAR (Reply triggers) */}
           {!isEditing && (
             <div className="flex items-center gap-4 mt-3">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-2">Reply:</span>
@@ -245,7 +279,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
             </div>
           )}
 
-          {/* 🌟 THE CLEAN REPLY BOX (Auto-Expand Added) */}
+          {/* THE CLEAN REPLY BOX */}
           {isReplying && isAuthenticated && !hasReacted && !isEditing && (
             <div className="mt-3 animate-fade-in">
               <textarea
@@ -383,4 +417,4 @@ export default function CommentBox({ post, showToast }) {
       </div>
     </div>
   );
-    }
+}
