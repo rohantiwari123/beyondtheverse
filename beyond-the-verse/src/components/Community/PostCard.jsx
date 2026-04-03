@@ -32,6 +32,9 @@ export default function PostCard({ post, showToast }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(post.text);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  
+  // 🌟 NEW STATE: To toggle comments visibility
+  const [showComments, setShowComments] = useState(false);
 
   const interactions = post.interactions || [];
   const bookmarks = post.bookmarks || [];
@@ -51,9 +54,17 @@ export default function PostCard({ post, showToast }) {
   const counterCount = topLevelInteractions.filter(i => i.type === 'counter').length;
   const doubtCount = topLevelInteractions.filter(i => i.type === 'doubt').length;
 
+  // 🌟 DYNAMIC FONT SIZE LOGIC
+  const getTextSizeClass = (text) => {
+    const len = text.length;
+    if (len < 80) return "text-3xl md:text-4xl font-medium leading-[1.4]"; // Bahut chota text -> Bada font
+    if (len < 250) return "text-xl md:text-2xl leading-[1.7]"; // Medium text -> Medium font
+    return "text-lg md:text-xl leading-[1.85]"; // Bada text -> Normal/Chota font
+  };
+
   // 🛡️ Post Actions
   const handleEditSubmit = async () => {
-    if (!editText.trim()) return; // 🌟 NO LIMIT: Just check if not empty
+    if (!editText.trim()) return;
     setIsSavingEdit(true);
     try {
       await updateDoc(doc(db, "posts", post.id), { text: editText.trim(), isEdited: true });
@@ -110,7 +121,7 @@ export default function PostCard({ post, showToast }) {
   };
 
   const handleSubmitReason = async () => {
-    if (!reason.trim() || hasInteracted) return; // 🌟 NO LIMIT: Just check if not empty
+    if (!reason.trim() || hasInteracted) return; 
     setIsSubmitting(true);
     try {
       await updateDoc(doc(db, "posts", post.id), {
@@ -122,6 +133,7 @@ export default function PostCard({ post, showToast }) {
       });
       setActiveGate(null);
       setReason("");
+      setShowComments(true); // 🌟 Jaise hi user post karega, comments open ho jayenge taaki use apna reply dikhe
     } catch (e) { showToast("Failed to record.", false); } 
     finally { setIsSubmitting(false); }
   };
@@ -193,8 +205,12 @@ export default function PostCard({ post, showToast }) {
           <div className="animate-fade-in">
             <textarea 
               value={editText} 
-              onChange={(e) => setEditText(e.target.value)} 
-              className="w-full bg-white border border-slate-200 rounded-xl p-4 text-base md:text-lg verse-thought-serif focus:outline-none focus:ring-2 focus:ring-slate-300 resize-y min-h-[140px] md:min-h-[180px] overflow-y-auto shadow-sm" 
+              onChange={(e) => {
+                setEditText(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }} 
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-base md:text-lg verse-thought-serif focus:outline-none focus:ring-1 focus:ring-slate-300 resize-y min-h-[140px] md:min-h-[180px] overflow-hidden shadow-sm" 
               placeholder="Edit your thought..."
             />
             <div className="flex justify-end items-center mt-3 px-1">
@@ -209,8 +225,8 @@ export default function PostCard({ post, showToast }) {
             </div>
           </div>
         ) : (
-          /* 🌟 TEXT FORMATTING FIX APPLIED HERE: whitespace-pre-wrap, text-justify, break-words 🌟 */
-          <p className="text-slate-900 text-xl md:text-[26px] verse-thought-serif leading-[1.85] whitespace-pre-wrap text-justify break-words">
+          /* 🌟 TEXT FORMATTING & DYNAMIC SIZE APPLIED HERE 🌟 */
+          <p className={`text-slate-900 verse-thought-serif whitespace-pre-wrap text-justify break-words transition-all ${getTextSizeClass(post.text)}`}>
             {post.text}
           </p>
         )}
@@ -276,9 +292,14 @@ export default function PostCard({ post, showToast }) {
           
           <textarea 
             value={reason} 
-            onChange={(e) => setReason(e.target.value)} 
+            onChange={(e) => {
+              setReason(e.target.value);
+              e.target.style.height = 'auto';
+              e.target.style.height = e.target.scrollHeight + 'px';
+            }} 
             placeholder="Add your logic..." 
-            className="w-full bg-white border border-slate-200 rounded-xl p-3 md:p-4 text-sm md:text-base text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300 resize-y min-h-[100px] md:min-h-[140px] overflow-y-auto mb-3" 
+            className="w-full bg-white border border-slate-200 rounded-xl p-3 md:p-4 text-sm md:text-base text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300 resize-none overflow-hidden min-h-[80px] mb-3" 
+            rows="2" 
           />
           <div className="flex justify-end items-center px-1">
             <div className="flex items-center gap-2">
@@ -293,9 +314,26 @@ export default function PostCard({ post, showToast }) {
         </div>
       )}
 
-      {/* Discussion List */}
-      <CommentBox post={post} showToast={showToast} />
+      {/* 🌟 TOGGLE COMMENTS DROPDOWN BUTTON */}
+      {topLevelInteractions.length > 0 && (
+        <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between">
+          <button 
+            onClick={() => setShowComments(!showComments)} 
+            className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-slate-800 uppercase tracking-widest transition-colors"
+          >
+            {showComments ? 'Hide Reflections' : `View ${topLevelInteractions.length} Reflections`}
+            <i className={`fa-solid fa-chevron-${showComments ? 'up' : 'down'} text-[10px]`}></i>
+          </button>
+        </div>
+      )}
+
+      {/* 🌟 CONDITIONALLY RENDER COMMENT BOX */}
+      {showComments && (
+        <div className="animate-fade-in">
+          <CommentBox post={post} showToast={showToast} />
+        </div>
+      )}
 
     </div>
   );
-        }
+  }
