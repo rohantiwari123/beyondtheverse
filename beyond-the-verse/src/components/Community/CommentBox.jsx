@@ -138,7 +138,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
       {!isMainComment && parentInteraction && (
         <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mb-2 ml-11 md:ml-12">
           <i className="fa-solid fa-reply text-slate-300"></i>
-          Replying to <span className="text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded uppercase tracking-wider">@{parentInteraction.userName}</span>
+          Replying to <span className="text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded  tracking-wider">@{parentInteraction.userName}</span>
         </div>
       )}
 
