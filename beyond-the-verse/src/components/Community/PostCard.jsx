@@ -133,7 +133,7 @@ export default function PostCard({ post, showToast }) {
       });
       setActiveGate(null);
       setReason("");
-      setShowComments(true); // 🌟 Jaise hi user post karega, comments open ho jayenge taaki use apna reply dikhe
+      setShowComments(true); // 🌟 Jaise hi user post karega, comments open ho jayenge
     } catch (e) { showToast("Failed to record.", false); } 
     finally { setIsSubmitting(false); }
   };
@@ -205,12 +205,9 @@ export default function PostCard({ post, showToast }) {
           <div className="animate-fade-in">
             <textarea 
               value={editText} 
-              onChange={(e) => {
-                setEditText(e.target.value);
-                e.target.style.height = 'auto';
-                e.target.style.height = e.target.scrollHeight + 'px';
-              }} 
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-base md:text-lg verse-thought-serif focus:outline-none focus:ring-1 focus:ring-slate-300 resize-y min-h-[140px] md:min-h-[180px] overflow-hidden shadow-sm" 
+              onChange={(e) => setEditText(e.target.value)} 
+              /* 🌟 FIXED: Fixed height, smooth scroll inside, NO drag to resize */
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-base md:text-lg verse-thought-serif focus:outline-none focus:ring-1 focus:ring-slate-300 resize-none h-40 md:h-56 overflow-y-auto shadow-sm" 
               placeholder="Edit your thought..."
             />
             <div className="flex justify-end items-center mt-3 px-1">
@@ -277,7 +274,7 @@ export default function PostCard({ post, showToast }) {
 
       </div>
 
-      {/* 🌟 BIGGER & RESPONSIVE POST REPLY BOX */}
+      {/* 🌟 POST REPLY BOX (Fixed Scroll, No Resize Drag) */}
       {activeGate && !hasInteracted && (
         <div className="mt-5 p-4 md:p-5 bg-slate-50 rounded-2xl animate-fade-in border border-slate-100 shadow-sm">
           <div className="flex items-center gap-2 mb-3 px-1">
@@ -292,14 +289,10 @@ export default function PostCard({ post, showToast }) {
           
           <textarea 
             value={reason} 
-            onChange={(e) => {
-              setReason(e.target.value);
-              e.target.style.height = 'auto';
-              e.target.style.height = e.target.scrollHeight + 'px';
-            }} 
+            onChange={(e) => setReason(e.target.value)} 
             placeholder="Add your logic..." 
-            className="w-full bg-white border border-slate-200 rounded-xl p-3 md:p-4 text-sm md:text-base text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300 resize-none overflow-hidden min-h-[80px] mb-3" 
-            rows="2" 
+            /* 🌟 FIXED: Fixed height, smooth scroll inside, NO drag to resize */
+            className="w-full bg-white border border-slate-200 rounded-xl p-3 md:p-4 text-sm md:text-base text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300 resize-none h-28 md:h-36 overflow-y-auto mb-3" 
           />
           <div className="flex justify-end items-center px-1">
             <div className="flex items-center gap-2">
@@ -336,4 +329,4 @@ export default function PostCard({ post, showToast }) {
 
     </div>
   );
-  }
+}
