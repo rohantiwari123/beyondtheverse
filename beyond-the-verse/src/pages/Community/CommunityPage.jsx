@@ -72,7 +72,7 @@ export default function CommunityPage({ showToast }) {
                   </div>
                   
                   {/* 🌟 BIGGER & LIMITLESS TEXTAREA */}
-                  <div className="flex-1">
+                  <div className="flex-1 verse-thought-serif">
                     <textarea 
                       value={newPost}
                       onChange={(e) => setNewPost(e.target.value)}
