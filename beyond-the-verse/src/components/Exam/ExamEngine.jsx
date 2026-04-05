@@ -51,9 +51,14 @@ export default function ExamEngine({ showToast }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
 
+  // 🌟 NAYA: Timer State (Default 30 Minutes = 1800 seconds)
+  // Aap chahein toh backend se 'duration' fetch karke yahan set kar sakte hain
+  const [timeLeft, setTimeLeft] = useState(30 * 60);
+
   const showAlert = (message) => setModalConfig({ isOpen: true, type: 'alert', message, onConfirm: null });
   const showConfirm = (message, onConfirm) => setModalConfig({ isOpen: true, type: 'confirm', message, onConfirm });
 
+  // 1. Fetch Exam
   useEffect(() => {
     const fetchExam = async () => {
       try {
@@ -63,6 +68,8 @@ export default function ExamEngine({ showToast }) {
           let initialAnswers = {};
           examData.questions.forEach(q => { initialAnswers[q.id] = []; });
           setAnswers(initialAnswers);
+          // Agar DB me duration hai toh yahan set karein: 
+          // if(examData.duration) setTimeLeft(examData.duration * 60);
         } else {
           showToast("Assessment not found.", false);
           navigate('/exam'); 
@@ -74,6 +81,30 @@ export default function ExamEngine({ showToast }) {
     };
     fetchExam();
   }, [examId, navigate, showToast]);
+
+  // 🌟 NAYA: Auto-Submit Timer Logic
+  useEffect(() => {
+    if (!exam || isSubmitting) return;
+
+    if (timeLeft <= 0) {
+      if (showToast) showToast("Time is up! Auto-submitting...", false);
+      executeSubmit();
+      return;
+    }
+
+    const timerId = setInterval(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timerId);
+  }, [timeLeft, exam, isSubmitting]);
+
+  // Format time (MM:SS) for display
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
   const toggleOption = (questionId, optionId) => {
     setAnswers(prev => {
@@ -110,9 +141,8 @@ export default function ExamEngine({ showToast }) {
   };
 
   const handlePreSubmit = () => {
-    // 🌟 NAYA: Native window.confirm ki jagah hamara Custom Modal
     showConfirm(
-      "Are you sure you want to submit? Negative marking (-2 points) applies for incorrect or omitted answers.", 
+      "Are you sure you want to submit early? Negative marking (-2 points) applies for incorrect or omitted answers.", 
       executeSubmit
     );
   };
@@ -149,17 +179,35 @@ export default function ExamEngine({ showToast }) {
     <div className="w-full min-h-screen bg-slate-50 pb-28 md:py-10 sm:px-6 lg:px-8 font-sans relative">
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
 
-      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
+      {/* 🌟 STICKY TIMER FOR MOBILE */}
+      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-slate-200 px-4 py-3 flex justify-between items-center sm:hidden shadow-sm">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Time Remaining</span>
+        <div className={`font-black text-xl tracking-wider transition-colors ${timeLeft <= 300 ? 'text-rose-600 animate-pulse' : 'text-slate-800'}`}>
+          {formatTime(timeLeft)}
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 animate-fade-in pt-4 sm:pt-0">
         
         {/* Back Button (Safe Exit) */}
-        <div className="px-4 sm:px-0 pt-4 sm:pt-0">
+        <div className="px-4 sm:px-0">
           <BackButton to="/exam" label="Exit Assessment" />
         </div>
 
         {/* 1. HEADER SECTION (Edge-to-edge on mobile) */}
-        <div className="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-6 sm:p-8 lg:p-10">
-          <h1 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">{exam.title}</h1>
-          <p className="text-xs font-bold text-teal-600 uppercase tracking-widest mt-2">{exam.category}</p>
+        <div className="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-6 sm:p-8 lg:p-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">{exam.title}</h1>
+            <p className="text-xs font-bold text-teal-600 uppercase tracking-widest mt-2">{exam.category}</p>
+          </div>
+          
+          {/* 🌟 DESKTOP TIMER */}
+          <div className="hidden sm:flex flex-col items-end bg-slate-50 border border-slate-200 px-5 py-3 rounded-xl min-w-[140px]">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Time Remaining</span>
+            <div className={`font-black text-2xl tracking-wider transition-colors ${timeLeft <= 300 ? 'text-rose-600 animate-pulse' : 'text-slate-800'}`}>
+              {formatTime(timeLeft)}
+            </div>
+          </div>
         </div>
 
         {/* 2. QUESTIONS LIST */}
@@ -211,7 +259,7 @@ export default function ExamEngine({ showToast }) {
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
           <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest text-center sm:text-left">
             <span className="text-rose-500 mr-1"><i className="fa-solid fa-triangle-exclamation"></i> Notice:</span> 
-            Negative marking (-2) applies.
+            Auto-submits when time expires.
           </div>
           <button 
             onClick={handlePreSubmit} 

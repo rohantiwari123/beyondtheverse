@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 import { useAuth } from '../../context/AuthContext';
-import { getAllExams, getUserExamResults, deleteExam } from '../../services/firebaseServices'; // 🌟 NAYA: deleteExam import kiya
+import { getAllExams, getUserExamResults, deleteExam } from '../../services/firebaseServices'; 
 import { formatDateTime } from '../../utils/dateFormatter';
 import BackButton from '../../components/common/BackButton';
 
@@ -38,10 +38,30 @@ function CustomModal({ config, onClose }) {
 }
 
 // ==========================================
+// 🌟 HELPER: Calculate Remaining Time
+// ==========================================
+const getRemainingTime = (dateStr, timeStr, currentTime) => {
+  if (!dateStr || !timeStr) return "AVAILABLE";
+  
+  const targetDate = new Date(`${dateStr} ${timeStr}`);
+  if (isNaN(targetDate.getTime())) return "AVAILABLE"; // Fallback if format is weird
+
+  const diff = targetDate - currentTime;
+  if (diff <= 0) return "AVAILABLE";
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((diff / 1000 / 60) % 60);
+
+  if (days > 0) return `Opens in ${days}d ${hours}h`;
+  if (hours > 0) return `Opens in ${hours}h ${minutes}m`;
+  return `Opens in ${minutes > 0 ? minutes : 1}m`;
+};
+
+// ==========================================
 // 🌟 MAIN COMPONENT
 // ==========================================
 export default function ExamPage({ showToast }) {
-  // 🌟 NAYA: isAdmin ko context se nikala
   const { userId, isAdmin } = useAuth();
   const navigate = useNavigate();
   
@@ -49,10 +69,17 @@ export default function ExamPage({ showToast }) {
   const [exams, setExams] = useState([]);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(new Date()); // State to force re-render for countdown
 
   // Modal State
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
   const showConfirm = (message, onConfirm) => setModalConfig({ isOpen: true, type: 'confirm', message, onConfirm });
+
+  // ⏱️ Update current time every minute for the countdown
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,12 +105,11 @@ export default function ExamPage({ showToast }) {
     fetchData();
   }, [userId]);
 
-  // 🌟 NAYA: Delete Exam Handler
+  // Delete Exam Handler
   const handleDeleteExam = (examId, examTitle) => {
     showConfirm(`Are you sure you want to permanently delete "${examTitle}"? This action cannot be undone.`, async () => {
       try {
         await deleteExam(examId);
-        // UI se turant hata do (No need to refresh)
         setExams(prevExams => prevExams.filter(exam => exam.id !== examId));
         if(showToast) showToast("Assessment deleted successfully!");
       } catch (error) {
@@ -154,54 +180,68 @@ export default function ExamPage({ showToast }) {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 sm:gap-6">
-                    {exams.map((exam) => (
-                      <div key={exam.id} className="bg-white p-6 sm:p-8 border-y sm:border border-slate-200 sm:rounded-2xl flex flex-col justify-between hover:border-teal-400 transition-colors group mb-4 sm:mb-0 relative">
-                        
-                        <div>
-                          <div className="flex justify-between items-start mb-4">
-                            <span className="bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border border-slate-200">
-                              {exam.category}
-                            </span>
-                            
-                            {/* 🌟 NAYA: Action Buttons (Delete for Admin, Pulse for Users) */}
-                            <div className="flex items-center gap-3">
-                              {isAdmin && (
-                                <button 
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteExam(exam.id, exam.title); }} 
-                                  className="text-slate-300 hover:text-rose-500 hover:bg-rose-50 h-7 w-7 rounded-md flex items-center justify-center transition-colors"
-                                  title="Delete Assessment"
-                                >
-                                  <i className="fa-solid fa-trash-can text-sm"></i>
-                                </button>
-                              )}
-                              <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
-                            </div>
-                          </div>
-                          
-                          <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-6 leading-snug group-hover:text-teal-700 transition-colors">
-                            {exam.title}
-                          </h3>
-                          
-                          <div className="space-y-2 mb-6">
-                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                              <i className="fa-solid fa-list-ol w-4 text-center text-slate-400"></i> {exam.questions?.length || 0} Questions
-                            </div>
-                            {exam.date && (
-                              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                                <i className="fa-solid fa-calendar-day w-4 text-center text-slate-400"></i> Due: {exam.date}
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                    {exams.map((exam) => {
+                      
+                      // 🌟 TIMER LOGIC
+                      const timeStatus = getRemainingTime(exam.date, exam.time, now);
+                      const isAvailable = timeStatus === "AVAILABLE";
 
-                        <button 
-                          onClick={() => navigate(`/exam/engine/${exam.id}`)} 
-                          className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition-colors flex justify-center items-center gap-2 text-xs uppercase tracking-widest active:scale-[0.98]"
-                        >
-                          Start Assessment <i className="fa-solid fa-arrow-right text-[10px]"></i>
-                        </button>
-                      </div>
-                    ))}
+                      return (
+                        <div key={exam.id} className={`p-6 sm:p-8 border-y sm:border border-slate-200 sm:rounded-2xl flex flex-col justify-between transition-all group mb-4 sm:mb-0 relative ${isAvailable ? 'bg-white hover:border-teal-400' : 'bg-slate-50/80'}`}>
+                          
+                          <div>
+                            <div className="flex justify-between items-start mb-4">
+                              <span className="bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border border-slate-200">
+                                {exam.category}
+                              </span>
+                              
+                              {/* Action Buttons */}
+                              <div className="flex items-center gap-3">
+                                {isAdmin && (
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteExam(exam.id, exam.title); }} 
+                                    className="text-slate-300 hover:text-rose-500 hover:bg-rose-50 h-7 w-7 rounded-md flex items-center justify-center transition-colors"
+                                    title="Delete Assessment"
+                                  >
+                                    <i className="fa-solid fa-trash-can text-sm"></i>
+                                  </button>
+                                )}
+                                {isAvailable && <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>}
+                              </div>
+                            </div>
+                            
+                            <h3 className={`text-lg sm:text-xl font-bold mb-6 leading-snug transition-colors ${isAvailable ? 'text-slate-800 group-hover:text-teal-700' : 'text-slate-500'}`}>
+                              {exam.title}
+                            </h3>
+                            
+                            <div className="space-y-2 mb-6">
+                              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                                <i className="fa-solid fa-list-ol w-4 text-center text-slate-400"></i> {exam.questions?.length || 0} Questions
+                              </div>
+                              {exam.date && (
+                                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                                  <i className="fa-regular fa-calendar-day w-4 text-center text-slate-400"></i> {exam.date} at {exam.time}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* 🌟 CONDITIONAL BUTTON */}
+                          {isAvailable ? (
+                            <button 
+                              onClick={() => navigate(`/exam/engine/${exam.id}`)} 
+                              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition-colors flex justify-center items-center gap-2 text-xs uppercase tracking-widest active:scale-[0.98]"
+                            >
+                              Start Assessment <i className="fa-solid fa-arrow-right text-[10px]"></i>
+                            </button>
+                          ) : (
+                            <div className="w-full bg-slate-200/50 text-slate-500 font-bold py-3.5 rounded-xl flex justify-center items-center gap-2 text-xs uppercase tracking-widest border border-slate-200 cursor-not-allowed">
+                              <i className="fa-solid fa-lock text-[10px]"></i> {timeStatus}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
