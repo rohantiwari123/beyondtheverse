@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
-import AdminAcademy from '../../components/Academy/AdminAcademy';
+import AdminAcademy from '../../components/Exam/AdminExamEditor';
 
 export default function AdminDashboard({ showToast, donations, totalRaised, targetAmount }) {
   const { isAdmin } = useAuth();

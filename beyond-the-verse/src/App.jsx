@@ -2,25 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { onSnapshot, collection, doc } from 'firebase/firestore'; 
 import { db } from './firebase'; 
-import VaultPage from './pages/Vault/VaultPage';
 
 // Context Hook
 import { useAuth } from './context/AuthContext';
 
 // Components & Layout
 import Header from './components/Layout/Header';
-import Toast from './components/Toast';
+import Toast from './components/common/Toast';
 
 // Phase 1 Pages
 import LoginPage from './pages/Auth/LoginPage';
 import HomePage from './pages/Home/HomePage';
-import DonationPage from './pages/Donate/DonationPage';
+import DonationPage from './pages/Donation/DonationPage';
 import AboutPage from './pages/About/AboutPage';
 
 // Phase 2 Pages
 import CommunityPage from './pages/Community/CommunityPage';
-import ExamList from './components/Academy/ExamList';
-import ExamEngine from './components/Academy/ExamEngine';
+import ExamPage from './pages/Exam/ExamPage';
+import ExamEngine from './components/Exam/ExamEngine';
 
 // Admin Dashboard Page
 import AdminDashboard from './pages/Admin/AdminDashboard';
@@ -61,8 +60,8 @@ export default function App() {
     setTimeout(() => setToast({ show: false, message: '', isSuccess: true }), 3500);
   };
 
-  // 🌟 FIX: Removed '/community' from here so it doesn't get forced margins!
-  const isStandardLayout = ['/', '/donate', '/about', '/library', '/vault', '/academy', '/admin'].includes(location.pathname);
+  // 🌟 FIX: Removed old paths (library, vault, academy) and added '/exam'
+  const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin'].includes(location.pathname);
 
   return (
     <div className="relative min-h-screen bg-[#f8fafc] text-slate-800 antialiased overflow-x-hidden">      
@@ -74,7 +73,7 @@ export default function App() {
         <Header />
       )}
 
-      {/* 🌟 FIX: Added w-full so Community page can stretch properly */}
+      {/* Main Content Area */}
       <main className={`relative z-10 w-full ${isStandardLayout ? 'max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-10' : ''}`}>
         <Routes>
           <Route path="/login" element={!isAuthenticated ? <LoginPage showToast={showToast} /> : <Navigate to="/" />} />
@@ -82,12 +81,11 @@ export default function App() {
           <Route path="/" element={<HomePage onNavigateToDonate={() => navigate('/donate')} />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/donate" element={<DonationPage showToast={showToast} onBack={() => navigate('/')} />} />
-
           <Route path="/community" element={<CommunityPage showToast={showToast} />} />
           
-          <Route path="/academy" element={<ExamList />} />
-          <Route path="/academy/exam/:examId" element={<ExamEngine showToast={showToast} />} />
-          <Route path="/vault" element={<VaultPage showToast={showToast} />} />
+          {/* 🌟 FIX: Cleaned up Exam Routes (Academy is completely gone) */}
+          <Route path="/exam" element={<ExamPage showToast={showToast} />} />
+          <Route path="/exam/engine/:examId" element={<ExamEngine showToast={showToast} />} />
           
           <Route path="/admin" element={
             <AdminDashboard 
@@ -106,4 +104,4 @@ export default function App() {
       <Toast toast={toast} />
     </div>
   );
-      }
+}

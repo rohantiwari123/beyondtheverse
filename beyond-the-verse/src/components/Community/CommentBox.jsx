@@ -1,8 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
-import { formatDateTime } from './PostCard'; 
+
+// ==========================================
+// 🌟 FIREBASE AUR DATE-FORMATTER MOCKS
+// ==========================================
+
+const formatDateTime = (timestamp) => {
+  if (!timestamp) return "Just now";
+  const d = new Date(timestamp);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const db = {};
+const doc = () => ({});
+const updateDoc = async () => { console.log("Firebase Update Mocked"); };
+
+const upgradeCommentToAdmin = async () => { console.log("Mock: upgradeCommentToAdmin"); };
+const deleteCommentInteraction = async () => { console.log("Mock: deleteCommentInteraction"); };
+const editCommentInteraction = async () => { console.log("Mock: editCommentInteraction"); };
+const togglePinComment = async () => { console.log("Mock: togglePinComment"); };
+const addCommentReply = async () => { console.log("Mock: addCommentReply"); };
+
+// ==========================================
+
 
 // 🌟 REUSABLE COMPONENT: For both Main Comments and Nested Replies
 function InteractionNode({ interaction, allInteractions, post, showToast, isMainComment }) {
@@ -131,21 +151,19 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
   const nameColorClass = isAdminComment ? "text-amber-900" : "text-slate-900";
 
   return (
-    // 🌟 REMOVED border-t from nested replies to avoid breaking the thread line
-    <div className={`transition-all group ${isMainComment ? 'py-4' : 'pt-3 pb-3'}`}>
+    <div className={`transition-all group w-full ${isMainComment ? 'py-2' : ''}`}>
 
-      {/* WHO IS REPLYING TO WHOM? */}
+      {/* 🌟 Replying To Badge (Context ke liye) */}
       {!isMainComment && parentInteraction && (
-        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mb-2 ml-11 md:ml-12">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mb-2">
           <i className="fa-solid fa-reply text-slate-300"></i>
-          Replying to <span className="text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded  tracking-wider">@{parentInteraction.userName}</span>
+          Replying to <span className="text-teal-700 font-black tracking-wider">@{parentInteraction.userName}</span>
         </div>
       )}
 
       <div className="flex items-start gap-3 px-1">
-
-        {/* 🌟 AVATAR */}
-        <div className={`${isMainComment ? 'h-9 w-9 md:h-10 md:w-10 text-sm' : 'h-8 w-8 text-xs'} rounded-full flex items-center justify-center font-bold shrink-0 mt-0 relative transition-all ${avatarClass}`}>
+        
+        <div className={`${isMainComment ? 'h-10 w-10 text-sm' : 'h-8 w-8 text-xs'} rounded-full flex items-center justify-center font-bold shrink-0 relative transition-all ${avatarClass}`}>
           {interaction.userName?.charAt(0).toUpperCase()}
           {isAdminComment && (
             <div className="absolute -top-1 -right-1 text-amber-500 bg-white rounded-full h-3.5 w-3.5 flex items-center justify-center shadow-sm border border-amber-100">
@@ -155,11 +173,9 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
         </div>
 
         <div className="flex-1 min-w-0">
-
-          {/* HEADER */}
           <div className="flex items-center justify-between mb-0.5 relative">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`font-bold ${isMainComment ? 'text-sm' : 'text-sm'} transition-colors ${nameColorClass}`}>
+              <span className={`font-bold ${isMainComment ? 'text-sm' : 'text-[13px]'} transition-colors ${nameColorClass}`}>
                 {interaction.userName}
               </span>
               
@@ -171,7 +187,6 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
 
               {interaction.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-[10px]"></i>}
 
-              {/* LOGIC BADGE */}
               <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-wide flex items-center gap-1.5 ${config.color} ${config.bg} border ${config.border} px-2 py-0.5 rounded-md`}>
                 <i className={config.icon}></i> {config.label}
               </span>
@@ -200,7 +215,6 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
             )}
           </div>
 
-          {/* TEXT OR EDIT MODE */}
           {isEditing ? (
             <div className="animate-fade-in mb-2 mt-1">
               <textarea 
@@ -210,7 +224,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
                   e.target.style.height = 'auto';
                   e.target.style.height = e.target.scrollHeight + 'px';
                 }} 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm verse-thought-serif focus:ring-1 focus:ring-slate-300 resize-none overflow-hidden" 
+                className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm verse-thought-serif focus:ring-1 focus:ring-slate-300 resize-none overflow-hidden shadow-inner" 
                 rows="2"
               />
               <div className="flex gap-2 mt-2 justify-end">
@@ -219,15 +233,14 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
               </div>
             </div>
           ) : (
-            <p className={`text-slate-800 leading-[1.7] verse-thought-serif whitespace-pre-wrap text-justify break-words ${isMainComment ? 'text-lg md:text-xl mt-1.5' : 'text-base md:text-lg mt-0.5'} mb-1.5`}>
+            <p className={`text-slate-800 leading-[1.7] verse-thought-serif whitespace-pre-wrap text-justify break-words ${isMainComment ? 'text-[15px] mt-1.5' : 'text-sm mt-0.5'} mb-1.5`}>
               {interaction.text}
             </p>
           )}
 
-          {/* ICONS BAR */}
           {!isEditing && (
             <div className="flex items-center gap-4 mt-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-2">Reply:</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-2">Reaction:</span>
               <button onClick={() => handleIconClick('support')} className={`flex items-center gap-1.5 text-[11px] font-bold transition-all hover:-translate-y-0.5 ${hasReacted && gates.support.includes(userId) ? 'text-emerald-600' : 'text-slate-400 hover:text-emerald-600'}`}>
                 <i className="fa-regular fa-circle-check text-sm"></i>{supportCount > 0 && <span>{supportCount}</span>}
               </button>
@@ -240,7 +253,6 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
             </div>
           )}
 
-          {/* CLEAN REPLY BOX */}
           {isReplying && isAuthenticated && !hasReacted && !isEditing && (
             <div className="mt-3 animate-fade-in">
               <textarea
@@ -251,7 +263,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
                   e.target.style.height = e.target.scrollHeight + 'px';
                 }}
                 placeholder="Add your reply..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 placeholder:text-slate-400 focus:ring-1 focus:ring-slate-300 outline-none resize-none overflow-hidden mb-2"
+                className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm text-slate-800 placeholder:text-slate-400 focus:ring-1 focus:ring-slate-300 outline-none resize-none overflow-hidden mb-2 shadow-inner"
                 rows="2" autoFocus
               />
               <div className="flex justify-between items-center px-1">
@@ -267,16 +279,15 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>
   );
 }
 
-// 🌟 THREAD MANAGER
+// 🌟 MANAGER BLOCK (FLAT LIST, NO BUBBLES, NO THREADS)
 function ThreadBlock({ mainComment, allInteractions, post, showToast }) {
-  const [showReplies, setShowReplies] = useState(true);
+  const [showReplies, setShowReplies] = useState(false);
 
   const getAllDescendants = (parentId) => {
     let result = [];
@@ -292,32 +303,33 @@ function ThreadBlock({ mainComment, allInteractions, post, showToast }) {
   descendants.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
   return (
-    <div className="border-b border-slate-100 py-2 md:py-4">
+    <div className="border-b border-slate-100 py-4">
       <InteractionNode interaction={mainComment} allInteractions={allInteractions} post={post} showToast={showToast} isMainComment={true} />
 
       {descendants.length > 0 && (
-        /* 🌟 PERFECT THREAD LINE ALIGNMENT: 
-           - 'ml-[22px] md:ml-[24px]' ensures the line drops directly from the center of the main avatar above it. 
-           - 'border-l-2' ensures it's solid and visible.
-        */
-        <div className="mt-0 ml-[22px] md:ml-[24px] border-l-2 border-slate-200 pl-4 md:pl-5">
+        <div className="mt-2 ml-2 md:ml-12">
           
-          {/* 🌟 BRANCHING BUTTON STYLE */}
           <button 
             onClick={() => setShowReplies(!showReplies)} 
-            className="text-[10px] font-bold text-slate-500 hover:text-slate-800 mb-2 mt-1 flex items-center gap-1.5 transition-colors relative"
+            className="text-[11px] font-bold text-slate-500 hover:text-slate-800 mb-3 flex items-center gap-2 transition-colors w-max"
           >
-            {/* The small horizontal line connecting to the main vertical thread line */}
-            <div className="absolute -left-[16px] md:-left-[20px] top-1/2 h-[2px] w-4 md:w-5 bg-slate-200"></div>
-            
-            <i className={`fa-solid fa-chevron-${showReplies ? 'up' : 'down'} text-[8px] bg-white pr-1`}></i>
+            <i className={`fa-solid fa-reply ${!showReplies && 'rotate-180'} transition-transform`}></i>
             {showReplies ? 'Hide' : 'View'} {descendants.length} {descendants.length === 1 ? 'reply' : 'replies'}
           </button>
 
+          {/* 🌟 FLAT LIST OF REPLIES (No borders, No Backgrounds) */}
           {showReplies && (
-            <div className="space-y-0 animate-fade-in">
+            <div className="space-y-4 animate-fade-in mt-4">
               {descendants.map(reply => (
-                <InteractionNode key={reply.id || reply.timestamp} interaction={reply} allInteractions={allInteractions} post={post} showToast={showToast} isMainComment={false} />
+                <div key={reply.id || reply.timestamp}>
+                  <InteractionNode 
+                    interaction={reply} 
+                    allInteractions={allInteractions} 
+                    post={post} 
+                    showToast={showToast} 
+                    isMainComment={false} 
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -327,7 +339,6 @@ function ThreadBlock({ mainComment, allInteractions, post, showToast }) {
   );
 }
 
-// 🌟 MAIN EXPORT WRAPPER
 export default function CommentBox({ post, showToast }) {
   const [sortBy, setSortBy] = useState('new');
 
@@ -360,8 +371,8 @@ export default function CommentBox({ post, showToast }) {
 
   return (
     <div className="mt-4 pt-4 border-t border-slate-100">
-      <div className="flex justify-between items-center mb-2 px-1">
-        <span className="text-xs font-black text-slate-900 uppercase tracking-widest">{topLevelComments.length} Reflections</span>
+      <div className="flex justify-between items-center mb-4 px-1">
+        <span className="text-xs font-black text-slate-900 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">{topLevelComments.length} Reflections</span>
         <div className="flex gap-3 text-[11px] font-bold">
           <button onClick={() => setSortBy('new')} className={`${sortBy === 'new' ? 'text-teal-600 border-b-2 border-teal-600' : 'text-slate-400 hover:text-slate-600'} pb-1`}>Newest</button>
           <button onClick={() => setSortBy('top')} className={`${sortBy === 'top' ? 'text-teal-600 border-b-2 border-teal-600' : 'text-slate-400 hover:text-slate-600'} pb-1`}>Top Logic</button>
@@ -381,4 +392,4 @@ export default function CommentBox({ post, showToast }) {
       </div>
     </div>
   );
-            }
+}
