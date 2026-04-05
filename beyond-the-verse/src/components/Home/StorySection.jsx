@@ -90,7 +90,7 @@ export default function StorySection() {
       </div>
 
       {/* 🌟 2. MODERN HORIZONTAL PILLS (TABS) */}
-      <div className="flex overflow-x-auto justify-start md:justify-center gap-3 sm:gap-4 pb-4 mb-8 sm:mb-12 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex overflow-x-auto justify-start gap-3 sm:gap-4 p-4 mb-8 sm:mb-12 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
         {subjects.map((sub) => {
           const isActive = activeSubject?.id === sub.id;
           return (

@@ -136,7 +136,7 @@ export const addCommentReply = async (postId, allInteractions, targetId, replyDa
 };
 
 // ==========================================
-// 🎓 4. ACADEMY & MIND TRIALS (Exams)
+// 🎓 4. ACADEMY & ASSESSMENTS (Exams)
 // ==========================================
 
 export const saveExamToDb = async (examData) => {
@@ -158,6 +158,17 @@ export const getExamById = async (examId) => {
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) return { id: docSnap.id, ...docSnap.data() };
   return null;
+};
+
+// 🌟 NAYA: Admin ke liye Exam Delete karne ka function
+export const deleteExam = async (examId) => {
+  try {
+    await deleteDoc(doc(db, "exams", examId));
+    return true;
+  } catch (error) {
+    console.error("Error deleting exam: ", error);
+    throw error;
+  }
 };
 
 export const submitExamResult = async (resultData) => {
@@ -203,9 +214,6 @@ export const getUserExamResults = async (userId) => {
     throw error;
   }
 };
-
-// 1. Sabse upar 'onSnapshot' add karein imports mein:
-// import { collection, ..., onSnapshot } from 'firebase/firestore';
 
 // ==========================================
 // 💰 6. DONATION SERVICES (Real-time Listeners)
