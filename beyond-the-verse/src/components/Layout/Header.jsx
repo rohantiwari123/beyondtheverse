@@ -11,7 +11,7 @@ export default function Header() {
 
   const navLinks = [
     { name: 'Home', path: '/', icon: 'fa-house' },
-    { name: 'Exam', path: '/exam', icon: 'fa-file-signature' },
+    { name: 'Assessments', path: '/exam', icon: 'fa-file-signature' }, // Professional word
     { name: 'Community', path: '/community', icon: 'fa-users' },
     { name: 'Donate', path: '/donate', icon: 'fa-hand-holding-heart' },
     { name: 'About', path: '/about', icon: 'fa-circle-info' }
@@ -23,7 +23,6 @@ export default function Header() {
     navigate('/login');
   };
 
-  // 🌟 FIX: Scroll lock aur Overlay sync
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -44,13 +43,14 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-white/90 backdrop-blur-xl shadow-sm sticky top-0 z-40 border-b border-slate-100 transition-all duration-300">
+      {/* HEADER (No heavy shadows/blur) */}
+      <header className="bg-white/95 sticky top-0 z-40 border-b border-slate-200 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 flex justify-between items-center relative">
           
           {/* LEFT SIDE GROUP */}
           <div className="flex items-center gap-3 sm:gap-4 lg:gap-8 xl:gap-10">
             <Link to="/" className="flex items-center gap-2 sm:gap-2.5 lg:gap-3 select-none shrink-0 group">
-              <div className="flex items-center justify-center h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-100/50 rounded-lg sm:rounded-xl lg:rounded-2xl shadow-inner group-hover:scale-105 transition-transform">
+              <div className="flex items-center justify-center h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 bg-teal-50 border border-teal-100/50 rounded-lg sm:rounded-xl lg:rounded-2xl transition-colors group-hover:bg-teal-100/50">
                 <i className="fa-solid fa-atom text-base sm:text-lg lg:text-xl text-teal-600"></i>
               </div>
               <div className="flex flex-col justify-center">
@@ -87,24 +87,24 @@ export default function Header() {
           <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             <div className="hidden md:flex items-center md:gap-1.5 lg:gap-3 xl:gap-4">
               {isAuthenticated && userName && (
-                <div className="flex items-center gap-1.5 lg:gap-2 bg-indigo-50 border border-indigo-100 md:px-2.5 md:py-1 lg:px-3 lg:py-1.5 xl:px-4 xl:py-2 rounded-full text-indigo-700 shadow-sm">
-                  <i className="fa-solid fa-circle-user text-xs lg:text-sm xl:text-base"></i>
+                <div className="flex items-center gap-1.5 lg:gap-2 bg-slate-50 border border-slate-200 md:px-2.5 md:py-1 lg:px-3 lg:py-1.5 xl:px-4 xl:py-2 rounded-full text-slate-700">
+                  <i className="fa-solid fa-circle-user text-xs lg:text-sm xl:text-base text-slate-400"></i>
                   <span className="text-[10px] lg:text-xs xl:text-sm font-bold truncate md:max-w-[60px] lg:max-w-[100px] xl:max-w-[150px]">{userName.split(' ')[0]}</span>
                 </div>
               )}
 
               {isAdmin && (
-                <Link to="/admin" className="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 lg:px-4 lg:py-1.5 xl:px-5 xl:py-2 rounded-lg lg:rounded-xl text-[10px] lg:text-xs xl:text-sm font-bold transition-all shadow-md active:scale-95">
+                <Link to="/admin" className="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 lg:px-4 lg:py-1.5 xl:px-5 xl:py-2 rounded-lg lg:rounded-xl text-[10px] lg:text-xs xl:text-sm font-bold transition-colors active:scale-95">
                   Dashboard
                 </Link>
               )}
 
               {isAuthenticated ? (
-                <button onClick={handleLogout} className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 lg:px-4 lg:py-1.5 xl:px-5 xl:py-2 rounded-lg lg:rounded-xl text-[10px] lg:text-xs xl:text-sm font-bold transition-all">
+                <button onClick={handleLogout} className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 lg:px-4 lg:py-1.5 xl:px-5 xl:py-2 rounded-lg lg:rounded-xl text-[10px] lg:text-xs xl:text-sm font-bold transition-colors">
                   Logout
                 </button>
               ) : (
-                <Link to="/login" className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 lg:px-5 lg:py-1.5 xl:px-6 xl:py-2 rounded-lg lg:rounded-xl text-[10px] lg:text-xs xl:text-sm font-bold transition-all">
+                <Link to="/login" className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 lg:px-5 lg:py-1.5 xl:px-6 xl:py-2 rounded-lg lg:rounded-xl text-[10px] lg:text-xs xl:text-sm font-bold transition-colors">
                   Join Us
                 </Link>
               )}
@@ -114,7 +114,7 @@ export default function Header() {
             <div className="flex md:hidden">
               <button 
                 onClick={() => setIsMobileMenuOpen(true)} 
-                className="h-8 w-8 sm:h-10 sm:w-10 flex items-center justify-center bg-slate-800 text-white rounded-lg sm:rounded-xl shadow-sm active:scale-95"
+                className="h-8 w-8 sm:h-10 sm:w-10 flex items-center justify-center bg-slate-800 text-white rounded-lg sm:rounded-xl active:scale-95 transition-transform"
               >
                 <i className="fa-solid fa-bars text-sm sm:text-lg"></i>
               </button>
@@ -123,17 +123,17 @@ export default function Header() {
         </div>
       </header>
 
-      {/* 🌟 1. BACKGROUND OVERLAY (Flipped z-index and fixed position) */}
+      {/* 🌟 1. BACKGROUND OVERLAY */}
       <div 
-        className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 bg-slate-900/60 transition-opacity duration-300 md:hidden ${
           isMobileMenuOpen ? 'opacity-100 z-[100] pointer-events-auto' : 'opacity-0 z-[-1] pointer-events-none'
         }`}
         onClick={() => setIsMobileMenuOpen(false)}
       ></div>
 
-      {/* 🌟 2. MOBILE DRAWER CONTENT (Higher z-index than overlay) */}
+      {/* 🌟 2. MOBILE DRAWER CONTENT */}
       <div 
-        className={`fixed top-0 right-0 h-screen w-[280px] sm:w-[320px] bg-white shadow-2xl z-[110] md:hidden flex flex-col transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-screen w-[280px] sm:w-[320px] bg-white z-[110] md:hidden flex flex-col transform transition-transform duration-300 ease-in-out border-l border-slate-200 ${
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -144,7 +144,7 @@ export default function Header() {
           </div>
           <button 
             onClick={() => setIsMobileMenuOpen(false)} 
-            className="h-8 w-8 flex items-center justify-center bg-slate-50 text-slate-400 rounded-full"
+            className="h-8 w-8 flex items-center justify-center bg-slate-50 text-slate-400 rounded-full hover:bg-slate-100 hover:text-slate-600 transition-colors"
           >
             <i className="fa-solid fa-xmark text-lg"></i>
           </button>
@@ -158,7 +158,7 @@ export default function Header() {
                 key={link.name}
                 to={link.path}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-extrabold transition-all ${
+                className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold transition-all ${
                   isActive ? "bg-teal-50 text-teal-700" : "text-slate-600 hover:bg-slate-50"
                 }`}
               >
@@ -169,33 +169,34 @@ export default function Header() {
           })}
         </nav>
 
-        {/* Bottom Actions */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col gap-2.5">
+        {/* 🌟 Bottom Actions (Fixed Visibility & Professional Profile) */}
+        {/* pb-8 safe area ke liye lagaya hai taaki screen ke bilkul neeche na chhipe */}
+        <div className="p-4 border-t border-slate-200 bg-slate-50 flex flex-col gap-2.5 pb-8 sm:pb-6">
           {isAuthenticated && (
-            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-bold">
+            <div className="bg-white p-3 rounded-xl border border-slate-200 flex items-center gap-3 mb-1">
+              <div className="w-10 h-10 bg-slate-100 text-slate-500 border border-slate-200 rounded-full flex items-center justify-center font-bold text-lg">
                 {userName?.charAt(0).toUpperCase()}
               </div>
-              <div className="overflow-hidden">
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Active User</p>
-                <p className="text-sm font-black text-slate-800 truncate">{userName}</p>
+              <div className="overflow-hidden flex-1">
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Active Account</p>
+                <p className="text-sm font-bold text-slate-800 truncate">{userName}</p>
               </div>
             </div>
           )}
 
           {isAdmin && (
-            <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-slate-800 text-white py-3 rounded-xl text-center text-xs font-bold">
-              Admin Dashboard
+            <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl text-center text-xs font-bold transition-colors">
+              Admin Workspace
             </Link>
           )}
 
           {isAuthenticated ? (
-            <button onClick={handleLogout} className="w-full bg-rose-50 text-rose-600 py-3 rounded-xl text-xs font-bold border border-rose-100">
-              Logout
+            <button onClick={handleLogout} className="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 py-3 rounded-xl text-xs font-bold border border-rose-200 transition-colors">
+              Sign Out
             </button>
           ) : (
-            <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-teal-600 text-white py-3 rounded-xl text-center text-xs font-bold shadow-md shadow-teal-500/20">
-              Join Us
+            <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-xl text-center text-xs font-bold transition-colors">
+              Join Workspace
             </Link>
           )}
         </div>
