@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom"; 
 import { useAuth } from "../../context/AuthContext";
-import { subscribeToUserNotifications, markNotificationAsRead } from '../../services/firebaseServices'; // 🌟 Added
-import { formatDateTime } from '../../utils/dateFormatter'; // 🌟 Added
+import { subscribeToUserNotifications, markNotificationAsRead } from '../../services/firebaseServices'; 
+import { formatDateTime } from '../../utils/dateFormatter'; 
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation(); 
   const navigate = useNavigate();
-  const { isAuthenticated, isAdmin, userName, userId, logout } = useAuth(); // 🌟 Added userId
+  const { isAuthenticated, isAdmin, userName, userId, logout } = useAuth(); 
 
   // 🌟 Notification States
   const [notifications, setNotifications] = useState([]);
@@ -64,11 +64,11 @@ export default function Header() {
 
   return (
     <>
-      {/* 🌟 Changed overflow-hidden to overflow-visible so dropdown doesn't get cut off */}
+      {/* 🌟 Changed to overflow-visible so dropdown is not cut off */}
       <header className="bg-white/95 backdrop-blur-xl sticky top-0 z-40 border-b border-slate-200 w-full overflow-visible">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center">
           
-          {/* 1. LEFT ZONE: LOGO (Fixed Width Area) */}
+          {/* 1. LEFT ZONE: LOGO */}
           <div className="flex items-center justify-start min-w-max lg:w-1/4">
             <Link to="/" className="flex items-center gap-2 lg:gap-3 select-none group">
               <div className="flex items-center justify-center h-8 w-8 lg:h-10 lg:w-10 bg-teal-50 border border-teal-100 rounded-lg lg:rounded-xl shrink-0 transition-transform group-hover:scale-105">
@@ -83,7 +83,7 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* 2. CENTER ZONE: NAVIGATION (Hidden on medium/small laptops to prevent overlap) */}
+          {/* 2. CENTER ZONE: NAVIGATION */}
           <nav className="hidden xl:flex flex-1 justify-center px-4">
             <div className="flex items-center gap-1 xl:gap-2">
               {navLinks.map((link) => (
@@ -100,10 +100,10 @@ export default function Header() {
             </div>
           </nav>
 
-          {/* 3. RIGHT ZONE: ACTIONS (Stays on the right) */}
+          {/* 3. RIGHT ZONE: ACTIONS */}
           <div className="flex items-center justify-end flex-1 lg:w-1/4 gap-2">
             
-            {/* 🌟 UNIVERSAL NOTIFICATION BELL (Visible on all screens if authenticated) */}
+            {/* 🌟 UNIVERSAL NOTIFICATION BELL (Visible on both Mobile & Desktop) */}
             {isAuthenticated && (
               <div className="relative">
                 <button 
@@ -160,7 +160,7 @@ export default function Header() {
               </div>
             )}
 
-            {/* Desktop Icons Group (Hidden below XL if space is tight, otherwise visible above LG) */}
+            {/* Desktop Icons Group */}
             <div className="hidden lg:flex items-center gap-1.5 xl:gap-2">
               {isAuthenticated && userName && (
                 <>
@@ -211,7 +211,7 @@ export default function Header() {
               )}
             </div>
 
-            {/* Mobile Menu Toggle (Visible below XL to prevent nav overlap) */}
+            {/* Mobile Menu Toggle */}
             <div className="flex xl:hidden">
               <button 
                 onClick={() => setIsMobileMenuOpen(true)} 
@@ -301,4 +301,4 @@ export default function Header() {
       </div>
     </>
   );
-     }
+            }
