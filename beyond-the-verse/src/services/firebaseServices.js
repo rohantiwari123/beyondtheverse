@@ -36,19 +36,18 @@ export const createPost = async (postData) => {
       const batch = writeBatch(db); 
       
       usersSnap.forEach((userDoc) => {
-        // Don't notify the person who created the post
-        if (userDoc.id !== postData.userId) { 
-          const notifRef = doc(collection(db, "notifications"));
-          batch.set(notifRef, {
-            userId: userDoc.id, 
-            triggerUserId: postData.userId, 
-            title: "New Thought in Verse 🌟",
-            message: `${postData.userName || 'A user'} shared a new thought in ${postData.category || 'Community'}.`,
-            link: `/post/${docRef.id}`, 
-            isRead: false,
-            timestamp: serverTimestamp()
-          });
-        }
+        // 🚨 TESTING KE LIYE 'if' HATA DIYA HAI
+        // Ab aapko khud ki post par bhi notification aayegi
+        const notifRef = doc(collection(db, "notifications"));
+        batch.set(notifRef, {
+          userId: userDoc.id, 
+          triggerUserId: postData.userId, 
+          title: "New Thought in Verse 🌟",
+          message: `${postData.userName || 'A user'} shared a new thought in ${postData.category || 'Community'}.`,
+          link: `/post/${docRef.id}`, 
+          isRead: false,
+          timestamp: serverTimestamp()
+        });
       });
       
       await batch.commit();
