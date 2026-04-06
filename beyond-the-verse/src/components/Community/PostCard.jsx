@@ -10,7 +10,8 @@ import {
   deletePost, 
   togglePinPost, 
   toggleBookmarkPost, 
-  addPostInteraction 
+  addPostInteraction,
+  createNotification // 🌟 Added Notification Import
 } from '../../services/firebaseServices';
 
 export default function PostCard({ post, showToast }) {
@@ -123,6 +124,15 @@ export default function PostCard({ post, showToast }) {
         replies: [], 
         commentGates: { support: [], counter: [], doubt: [] }
       });
+
+      // 🌟 NAYA: Post Owner ko Notification bhejo
+      await createNotification(post.userId, {
+        triggerUserId: userId,
+        title: "New Reflection",
+        message: `${userName} added a ${activeGate} to your thought.`,
+        link: `/post/${post.id}`
+      });
+
       setActiveGate(null);
       setReason("");
       setShowComments(true); 
@@ -312,4 +322,4 @@ export default function PostCard({ post, showToast }) {
 
     </div>
   );
-}
+    }
