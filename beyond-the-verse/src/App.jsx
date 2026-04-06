@@ -16,7 +16,7 @@ import HomePage from './pages/Home/HomePage';
 import DonationPage from './pages/Donation/DonationPage';
 import AboutPage from './pages/About/AboutPage';
 import ProfilePage from './pages/Profile/ProfilePage'; // 🌟 NAYA
-
+import SinglePostPage from './pages/Community/SinglePostPage';
 // Phase 2 Pages
 import CommunityPage from './pages/Community/CommunityPage';
 import ExamPage from './pages/Exam/ExamPage';
@@ -63,7 +63,8 @@ export default function App() {
   };
 
   // 🌟 FIX: Removed strict paddings so child components can be Edge-to-Edge on mobile
-const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin', '/profile', '/settings'].includes(location.pathname);
+// Dhyan de: location.pathname.startsWith('/post/') add karna hai
+const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin', '/profile', '/settings', '/community'].includes(location.pathname) || location.pathname.startsWith('/post/');
   return (
     // 🌟 NAYA: Fluid Typography (text sizes scale automatically) & Premium Text Selection
 <div className="relative min-h-screen bg-[#f8fafc] text-slate-800 antialiased overflow-x-hidden selection:bg-teal-200 selection:text-teal-900">      
@@ -86,6 +87,8 @@ const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin', '/profile
           <Route path="/about" element={<AboutPage />} />
           <Route path="/donate" element={<DonationPage showToast={showToast} onBack={() => navigate('/')} />} />
           <Route path="/community" element={<CommunityPage showToast={showToast} />} />
+        
+<Route path="/post/:postId" element={<SinglePostPage showToast={showToast} />} /> {/* 🌟 YAHAN ADD KIYA */}
           
           {/* Exam Routes */}
           <Route path="/exam" element={<ExamPage showToast={showToast} />} />
