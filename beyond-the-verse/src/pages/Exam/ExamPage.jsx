@@ -120,7 +120,7 @@ export default function ExamPage({ showToast }) {
   };
 
   return (
-    <div className="w-full min-h-screen bg-slate-50 pb-20 pt-6 sm:pt-10 font-sans relative">
+    <div className="w-full min-h-screen sm:px-6 lg:px-8 bg-slate-50 pb-20 pt-6 sm:pt-10 font-sans relative">
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
 
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 animate-fade-in">
