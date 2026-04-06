@@ -360,3 +360,46 @@ export const updateUserSecurityPassword = async (newPassword) => {
     throw error;
   }
 };
+
+// ==========================================
+// 🔔 9. NOTIFICATIONS SYSTEM
+// ==========================================
+
+export const createNotification = async (targetUserId, data) => {
+  try {
+    if (targetUserId === data.triggerUserId) return; 
+
+    await addDoc(collection(db, "notifications"), {
+      userId: targetUserId, 
+      triggerUserId: data.triggerUserId, 
+      title: data.title,
+      message: data.message,
+      link: data.link || "/",
+      isRead: false,
+      timestamp: serverTimestamp()
+    });
+  } catch (error) {
+    console.error("Error creating notification: ", error);
+  }
+};
+
+export const subscribeToUserNotifications = (userId, callback) => {
+  const q = query(
+    collection(db, "notifications"),
+    where("userId", "==", userId),
+    orderBy("timestamp", "desc")
+  );
+  
+  return onSnapshot(q, (snapshot) => {
+    const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(notifs);
+  });
+};
+
+export const markNotificationAsRead = async (notifId) => {
+  try {
+    await updateDoc(doc(db, "notifications", notifId), { isRead: true });
+  } catch (error) {
+    console.error("Error updating notification: ", error);
+  }
+};
