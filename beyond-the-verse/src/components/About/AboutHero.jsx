@@ -1,10 +1,8 @@
-import React from 'react';
-
 export default function AboutHero() {
   return (
-    <div className="bg-slate-900 rounded-3xl p-8 sm:p-12 lg:p-20 flex flex-col lg:flex-row items-center gap-10 lg:gap-16 border border-slate-800">
+    <div className="bg-slate-900 antialiased rounded-3xl p-8 sm:p-12 lg:p-20 flex flex-col lg:flex-row items-center gap-10 lg:gap-16 border border-slate-800">
       <div className="flex-1 space-y-6 text-center lg:text-left">
-        <span className="inline-block bg-slate-800 text-teal-400 font-black px-4 py-1.5 rounded-md text-xs sm:text-sm uppercase tracking-widest">
+        <span className="inline-block bg-slate-800 text-teal-400 font-black px-4 py-1.5 rounded-md text-xs sm:text-sm uppercase ">
           About The Initiative
         </span>
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1]">

@@ -15,6 +15,7 @@ import LoginPage from './pages/Auth/LoginPage';
 import HomePage from './pages/Home/HomePage';
 import DonationPage from './pages/Donation/DonationPage';
 import AboutPage from './pages/About/AboutPage';
+import ProfilePage from './pages/Profile/ProfilePage'; // 🌟 NAYA
 
 // Phase 2 Pages
 import CommunityPage from './pages/Community/CommunityPage';
@@ -23,6 +24,7 @@ import ExamEngine from './components/Exam/ExamEngine';
 
 // Admin Dashboard Page
 import AdminDashboard from './pages/Admin/AdminDashboard';
+import SettingsPage from './pages/Settings/SettingsPage';
 
 export default function App() {
   const navigate = useNavigate();
@@ -60,21 +62,23 @@ export default function App() {
     setTimeout(() => setToast({ show: false, message: '', isSuccess: true }), 3500);
   };
 
-  // 🌟 FIX: Removed old paths (library, vault, academy) and added '/exam'
-  const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin'].includes(location.pathname);
-
+  // 🌟 FIX: Removed strict paddings so child components can be Edge-to-Edge on mobile
+const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin', '/profile', '/settings'].includes(location.pathname);
   return (
-    <div className="relative min-h-screen bg-[#f8fafc] text-slate-800 antialiased overflow-x-hidden">      
-      {/* Background Decorations */}
-      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none"></div>
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-teal-400/20 rounded-full blur-[100px] pointer-events-none"></div>
+    // 🌟 NAYA: Fluid Typography (text sizes scale automatically) & Premium Text Selection
+<div className="relative min-h-screen bg-[#f8fafc] text-slate-800 antialiased overflow-x-hidden selection:bg-teal-200 selection:text-teal-900">      
+      {/* Background Decorations (Fixed to background so they don't mess with scrolling) */}
+      <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none z-0"></div>
+      <div className="fixed -top-32 -left-32 w-96 h-96 bg-teal-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
       {location.pathname !== '/login' && (
-        <Header />
+        <div className="relative z-50">
+          <Header />
+        </div>
       )}
 
       {/* Main Content Area */}
-      <main className={`relative z-10 w-full ${isStandardLayout ? 'max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-10' : ''}`}>
+      <main className={`relative z-10 w-full ${isStandardLayout ? 'max-w-7xl mx-auto' : ''}`}>
         <Routes>
           <Route path="/login" element={!isAuthenticated ? <LoginPage showToast={showToast} /> : <Navigate to="/" />} />
 
@@ -83,9 +87,13 @@ export default function App() {
           <Route path="/donate" element={<DonationPage showToast={showToast} onBack={() => navigate('/')} />} />
           <Route path="/community" element={<CommunityPage showToast={showToast} />} />
           
-          {/* 🌟 FIX: Cleaned up Exam Routes (Academy is completely gone) */}
+          {/* Exam Routes */}
           <Route path="/exam" element={<ExamPage showToast={showToast} />} />
           <Route path="/exam/engine/:examId" element={<ExamEngine showToast={showToast} />} />
+
+          {/* 🌟 NAYA: Profile Route */}
+          <Route path="/profile" element={<ProfilePage showToast={showToast} />} />
+          
           
           <Route path="/admin" element={
             <AdminDashboard 
@@ -95,13 +103,18 @@ export default function App() {
               targetAmount={targetAmount}
             />
           } />
+
+          <Route path="/settings" element={<SettingsPage showToast={showToast} />} />
           
-          {/* Fallback */}
+          {/* Fallback Route */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
       
-      <Toast toast={toast} />
+      {/* Toast Notification Layer */}
+      <div className="relative z-[100]">
+        <Toast toast={toast} />
+      </div>
     </div>
   );
 }

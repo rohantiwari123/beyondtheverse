@@ -6,7 +6,7 @@ import {
   getDoc, 
   getDocs, 
   query, 
-  where,        // 🌟 NAYA: Iske bina Vault Error dega
+  where,        
   orderBy, 
   updateDoc, 
   deleteDoc, 
@@ -15,7 +15,8 @@ import {
   serverTimestamp,
   onSnapshot 
 } from 'firebase/firestore';
-import { db } from '../firebase'; // Aapka connection (Chulha)
+import { updateProfile, updatePassword } from 'firebase/auth'; // 🌟 NAYA: Auth imports for Settings
+import { db, auth } from '../firebase'; // 🌟 NAYA: auth import kiya
 
 // ==========================================
 // 📝 1. COMMUNITY & CATEGORIES
@@ -160,7 +161,6 @@ export const getExamById = async (examId) => {
   return null;
 };
 
-// 🌟 NAYA: Admin ke liye Exam Delete karne ka function
 export const deleteExam = async (examId) => {
   try {
     await deleteDoc(doc(db, "exams", examId));
@@ -219,7 +219,6 @@ export const getUserExamResults = async (userId) => {
 // 💰 6. DONATION SERVICES (Real-time Listeners)
 // ==========================================
 
-// 🎯 Target Amount (Goal) listen karna
 export const subscribeToTargetAmount = (callback) => {
   const docRef = doc(db, 'settings', 'config');
   return onSnapshot(docRef, (docSnap) => {
@@ -229,7 +228,6 @@ export const subscribeToTargetAmount = (callback) => {
   });
 };
 
-// 💖 Live Donations listen karna
 export const subscribeToDonations = (callback) => {
   const q = query(collection(db, 'donations'));
   return onSnapshot(q, (snapshot) => {
@@ -240,10 +238,121 @@ export const subscribeToDonations = (callback) => {
       total += (Number(data.amount) || 0);
       list.push({ id: doc.id, ...data });
     });
-    // Sorting: Newest first
     list.sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0));
-    
-    // UI ko data bhej dena
     callback({ list, total });
   });
+};
+
+// ==========================================
+// ❓ 7. FAQS & Q&A INBOX
+// ==========================================
+
+// User ke liye sabhi FAQs fetch karna
+export const getFAQs = async () => {
+  try {
+    const q = query(collection(db, "faqs"));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error fetching FAQs: ", error);
+    return [];
+  }
+};
+
+// User ka naya sawal save karna
+export const submitUserQuestion = async (questionText, user = null) => {
+  try {
+    await addDoc(collection(db, "user_questions"), {
+      question: questionText,
+      userId: user?.uid || "anonymous",
+      userName: user?.name || "Guest User",
+      status: "pending", 
+      timestamp: serverTimestamp()
+    });
+    return true;
+  } catch (error) {
+    console.error("Error submitting question:", error);
+    throw error;
+  }
+};
+
+// 🌟 Admin ke liye pending questions lana
+export const getPendingQuestions = async () => {
+  try {
+    const q = query(collection(db, "user_questions"), where("status", "==", "pending"));
+    const querySnapshot = await getDocs(q);
+    const questions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Memory sorting to avoid complex firebase indexes for simple setups
+    return questions.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
+  } catch (error) {
+    console.error("Error fetching pending questions: ", error);
+    return [];
+  }
+};
+
+// 🌟 Admin dwara answer dekar use FAQ me publish karna
+export const publishQuestionToFAQ = async (questionId, questionText, answerText) => {
+  try {
+    // 1. Naya FAQ create karo
+    await addDoc(collection(db, "faqs"), {
+      q: questionText,
+      a: answerText,
+      timestamp: serverTimestamp()
+    });
+    // 2. User question ka status update kardo taaki wo inbox se hat jaye
+    await updateDoc(doc(db, "user_questions", questionId), {
+      status: "answered",
+      answeredAt: serverTimestamp()
+    });
+    return true;
+  } catch (error) {
+    console.error("Error publishing FAQ:", error);
+    throw error;
+  }
+};
+
+// 🌟 Admin dwara invalid sawal delete karna
+export const deleteUserQuestion = async (questionId) => {
+  try {
+    await deleteDoc(doc(db, "user_questions", questionId));
+    return true;
+  } catch (error) {
+    console.error("Error deleting question:", error);
+    throw error;
+  }
+};
+
+// ==========================================
+// ⚙️ 8. USER SETTINGS (Profile & Security)  <-- 🌟 NAYA SECTION YAHAN HAI
+// ==========================================
+
+export const updateUserProfileName = async (newName) => {
+  try {
+    if (auth.currentUser) {
+      // 1. Firebase Auth me name update karo
+      await updateProfile(auth.currentUser, { displayName: newName });
+      
+      // 2. Firestore 'users' collection me bhi update karo
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      await updateDoc(userRef, { name: newName });
+      return true;
+    }
+    throw new Error("No user logged in");
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    throw error;
+  }
+};
+
+export const updateUserSecurityPassword = async (newPassword) => {
+  try {
+    if (auth.currentUser) {
+      await updatePassword(auth.currentUser, newPassword);
+      return true;
+    }
+    throw new Error("No user logged in");
+  } catch (error) {
+    console.error("Error updating password:", error);
+    throw error;
+  }
 };

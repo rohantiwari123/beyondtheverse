@@ -99,7 +99,7 @@ export default function StorySection() {
               onClick={() => handleSubjectClick(sub)}
               className={`shrink-0 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full font-bold text-xs sm:text-sm lg:text-base transition-all duration-300 ${
                 isActive 
-                ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/25 scale-105' 
+                ? 'bg-slate-900 text-white  scale-105' 
                 : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300'
               }`}
             >
