@@ -15,8 +15,8 @@ import {
   serverTimestamp,
   onSnapshot 
 } from 'firebase/firestore';
-import { updateProfile, updatePassword } from 'firebase/auth'; // 🌟 NAYA: Auth imports for Settings
-import { db, auth } from '../firebase'; // 🌟 NAYA: auth import kiya
+import { updateProfile, updatePassword } from 'firebase/auth'; 
+import { db, auth } from '../firebase'; 
 
 // ==========================================
 // 📝 1. COMMUNITY & CATEGORIES
@@ -41,6 +41,21 @@ export const saveCategories = async (updatedCats) => {
     return true;
   } catch (error) {
     console.error("Error saving categories: ", error);
+    throw error;
+  }
+};
+
+// 🌟 NAYA: Post ID se single post fetch karne ke liye (Share link fix)
+export const getPostById = async (postId) => {
+  try {
+    const docRef = doc(db, "posts", postId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching single post:", error);
     throw error;
   }
 };
@@ -247,7 +262,6 @@ export const subscribeToDonations = (callback) => {
 // ❓ 7. FAQS & Q&A INBOX
 // ==========================================
 
-// User ke liye sabhi FAQs fetch karna
 export const getFAQs = async () => {
   try {
     const q = query(collection(db, "faqs"));
@@ -259,7 +273,6 @@ export const getFAQs = async () => {
   }
 };
 
-// User ka naya sawal save karna
 export const submitUserQuestion = async (questionText, user = null) => {
   try {
     await addDoc(collection(db, "user_questions"), {
@@ -276,13 +289,11 @@ export const submitUserQuestion = async (questionText, user = null) => {
   }
 };
 
-// 🌟 Admin ke liye pending questions lana
 export const getPendingQuestions = async () => {
   try {
     const q = query(collection(db, "user_questions"), where("status", "==", "pending"));
     const querySnapshot = await getDocs(q);
     const questions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    // Memory sorting to avoid complex firebase indexes for simple setups
     return questions.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
   } catch (error) {
     console.error("Error fetching pending questions: ", error);
@@ -290,16 +301,13 @@ export const getPendingQuestions = async () => {
   }
 };
 
-// 🌟 Admin dwara answer dekar use FAQ me publish karna
 export const publishQuestionToFAQ = async (questionId, questionText, answerText) => {
   try {
-    // 1. Naya FAQ create karo
     await addDoc(collection(db, "faqs"), {
       q: questionText,
       a: answerText,
       timestamp: serverTimestamp()
     });
-    // 2. User question ka status update kardo taaki wo inbox se hat jaye
     await updateDoc(doc(db, "user_questions", questionId), {
       status: "answered",
       answeredAt: serverTimestamp()
@@ -311,7 +319,6 @@ export const publishQuestionToFAQ = async (questionId, questionText, answerText)
   }
 };
 
-// 🌟 Admin dwara invalid sawal delete karna
 export const deleteUserQuestion = async (questionId) => {
   try {
     await deleteDoc(doc(db, "user_questions", questionId));
@@ -323,16 +330,13 @@ export const deleteUserQuestion = async (questionId) => {
 };
 
 // ==========================================
-// ⚙️ 8. USER SETTINGS (Profile & Security)  <-- 🌟 NAYA SECTION YAHAN HAI
+// ⚙️ 8. USER SETTINGS (Profile & Security) 
 // ==========================================
 
 export const updateUserProfileName = async (newName) => {
   try {
     if (auth.currentUser) {
-      // 1. Firebase Auth me name update karo
       await updateProfile(auth.currentUser, { displayName: newName });
-      
-      // 2. Firestore 'users' collection me bhi update karo
       const userRef = doc(db, "users", auth.currentUser.uid);
       await updateDoc(userRef, { name: newName });
       return true;
