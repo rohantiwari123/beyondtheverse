@@ -421,6 +421,8 @@ export const subscribeToUserNotifications = (userId, callback) => {
     const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(notifs);
   }, (error) => {
+    // 🚨 MAGIC HACK: Phone par error dekhne ke liye Alert
+    alert("Firebase Error Check karo: " + error.message);
     console.error("Snapshot error on notifications:", error);
   });
 };
