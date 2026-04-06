@@ -1,12 +1,19 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom"; 
 import { useAuth } from "../../context/AuthContext";
+import { subscribeToUserNotifications, markNotificationAsRead } from '../../services/firebaseServices'; // 🌟 Added
+import { formatDateTime } from '../../utils/dateFormatter'; // 🌟 Added
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation(); 
   const navigate = useNavigate();
-  const { isAuthenticated, isAdmin, userName, logout } = useAuth();
+  const { isAuthenticated, isAdmin, userName, userId, logout } = useAuth(); // 🌟 Added userId
+
+  // 🌟 Notification States
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const navLinks = [
     { name: 'Home', path: '/', icon: 'fa-house' },
@@ -20,6 +27,27 @@ export default function Header() {
     await logout();
     setIsMobileMenuOpen(false);
     navigate('/login');
+  };
+
+  // 🌟 Fetch Notifications
+  useEffect(() => {
+    if (isAuthenticated && userId) {
+      const unsubscribe = subscribeToUserNotifications(userId, (notifs) => {
+        setNotifications(notifs);
+      });
+      return () => unsubscribe();
+    } else {
+      setNotifications([]);
+    }
+  }, [isAuthenticated, userId]);
+
+  // 🌟 Handle Notification Click
+  const handleNotificationClick = async (notif) => {
+    setShowNotifDropdown(false);
+    if (!notif.isRead) {
+      await markNotificationAsRead(notif.id);
+    }
+    navigate(notif.link);
   };
 
   useEffect(() => {
@@ -36,7 +64,8 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-white/95 backdrop-blur-xl  sticky top-0 z-40 border-b border-slate-200 w-full overflow-hidden">
+      {/* 🌟 Changed overflow-hidden to overflow-visible so dropdown doesn't get cut off */}
+      <header className="bg-white/95 backdrop-blur-xl sticky top-0 z-40 border-b border-slate-200 w-full overflow-visible">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center">
           
           {/* 1. LEFT ZONE: LOGO (Fixed Width Area) */}
@@ -74,6 +103,63 @@ export default function Header() {
           {/* 3. RIGHT ZONE: ACTIONS (Stays on the right) */}
           <div className="flex items-center justify-end flex-1 lg:w-1/4 gap-2">
             
+            {/* 🌟 UNIVERSAL NOTIFICATION BELL (Visible on all screens if authenticated) */}
+            {isAuthenticated && (
+              <div className="relative">
+                <button 
+                  onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+                  className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${
+                    showNotifDropdown ? 'bg-teal-50 text-teal-600 border-teal-200' : 'text-slate-500 border-transparent hover:bg-slate-100 hover:text-slate-800'
+                  }`}
+                >
+                  <i className="fa-regular fa-bell text-[15px] xl:text-base"></i>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 xl:top-1.5 right-1.5 h-2 w-2 bg-rose-500 rounded-full animate-pulse border border-white"></span>
+                  )}
+                </button>
+
+                {/* Dropdown Menu */}
+                {showNotifDropdown && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowNotifDropdown(false)}></div>
+                    <div className="absolute right-0 mt-2 w-[280px] sm:w-[320px] bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-fade-in origin-top-right">
+                      <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 bg-slate-50/80">
+                        <span className="font-black text-slate-800 text-[13px] uppercase tracking-wide">Notifications</span>
+                        {unreadCount > 0 && <span className="bg-teal-100 text-teal-700 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border border-teal-200">{unreadCount} New</span>}
+                      </div>
+                      
+                      <div className="max-h-[350px] overflow-y-auto hide-scrollbar">
+                        {notifications.length === 0 ? (
+                          <div className="p-8 text-center text-slate-400">
+                            <i className="fa-regular fa-bell-slash text-2xl mb-2 opacity-50"></i>
+                            <p className="text-[11px] font-bold uppercase tracking-widest">Quiet in the verse</p>
+                          </div>
+                        ) : (
+                          notifications.map(notif => (
+                            <div 
+                              key={notif.id} 
+                              onClick={() => handleNotificationClick(notif)}
+                              className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors flex gap-3.5 ${!notif.isRead ? 'bg-teal-50/40' : ''}`}
+                            >
+                              <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 border ${!notif.isRead ? 'bg-white text-teal-600 border-teal-200 shadow-sm' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
+                                <i className="fa-solid fa-bolt text-[10px]"></i>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-[13px] truncate leading-tight ${!notif.isRead ? 'font-black text-slate-800' : 'font-bold text-slate-600'}`}>{notif.title}</p>
+                                <p className="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-relaxed font-medium">{notif.message}</p>
+                                <p className="text-[9px] text-slate-400 font-bold mt-2 uppercase tracking-wider">{formatDateTime(notif.timestamp)}</p>
+                              </div>
+                              {!notif.isRead && <div className="h-1.5 w-1.5 rounded-full bg-teal-500 mt-2 shrink-0"></div>}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Desktop Icons Group (Hidden below XL if space is tight, otherwise visible above LG) */}
             <div className="hidden lg:flex items-center gap-1.5 xl:gap-2">
               {isAuthenticated && userName && (
@@ -215,4 +301,4 @@ export default function Header() {
       </div>
     </>
   );
-}
+     }
