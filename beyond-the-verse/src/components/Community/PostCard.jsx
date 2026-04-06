@@ -93,7 +93,11 @@ export default function PostCard({ post, showToast }) {
   };
 
   const handleShare = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}`);
+    // 🌟 FIX: HashRouter ke hisaab se sahi link generate karna
+    const baseUrl = window.location.href.split('#')[0]; // Ye base URL nikal lega
+    const shareUrl = `${baseUrl}#/post/${post.id}`; // Hash (#) ke sath link banayega
+    
+    navigator.clipboard.writeText(shareUrl);
     showToast("Link copied! 🔗");
   };
 
