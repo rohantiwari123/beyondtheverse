@@ -13,7 +13,8 @@ import {
   arrayUnion, 
   arrayRemove, 
   serverTimestamp,
-  onSnapshot 
+  onSnapshot,
+  writeBatch // 🌟 Added for Batch Notifications
 } from 'firebase/firestore';
 import { updateProfile, updatePassword } from 'firebase/auth'; 
 import { db, auth } from '../firebase'; 
@@ -28,6 +29,33 @@ export const createPost = async (postData) => {
       ...postData,
       createdAt: serverTimestamp(),
     });
+
+    // 🌟 BROADCAST NOTIFICATION TO ALL USERS
+    try {
+      const usersSnap = await getDocs(collection(db, "users")); 
+      const batch = writeBatch(db); 
+      
+      usersSnap.forEach((userDoc) => {
+        // Don't notify the person who created the post
+        if (userDoc.id !== postData.userId) { 
+          const notifRef = doc(collection(db, "notifications"));
+          batch.set(notifRef, {
+            userId: userDoc.id, 
+            triggerUserId: postData.userId, 
+            title: "New Thought in Verse 🌟",
+            message: `${postData.userName || 'A user'} shared a new thought in ${postData.category || 'Community'}.`,
+            link: `/post/${docRef.id}`, 
+            isRead: false,
+            timestamp: serverTimestamp()
+          });
+        }
+      });
+      
+      await batch.commit();
+    } catch (notifError) {
+      console.error("Failed to broadcast notifications:", notifError);
+    }
+
     return docRef;
   } catch (error) {
     console.error("Error creating post: ", error);
@@ -45,7 +73,6 @@ export const saveCategories = async (updatedCats) => {
   }
 };
 
-// 🌟 NAYA: Post ID se single post fetch karne ke liye (Share link fix)
 export const getPostById = async (postId) => {
   try {
     const docRef = doc(db, "posts", postId);
@@ -367,6 +394,7 @@ export const updateUserSecurityPassword = async (newPassword) => {
 
 export const createNotification = async (targetUserId, data) => {
   try {
+    // If the user triggers their own notification, don't save it
     if (targetUserId === data.triggerUserId) return; 
 
     await addDoc(collection(db, "notifications"), {
@@ -393,6 +421,8 @@ export const subscribeToUserNotifications = (userId, callback) => {
   return onSnapshot(q, (snapshot) => {
     const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(notifs);
+  }, (error) => {
+    console.error("Snapshot error on notifications:", error);
   });
 };
 
