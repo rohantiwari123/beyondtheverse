@@ -18,6 +18,8 @@ import {
 } from 'firebase/firestore';
 import { updateProfile, updatePassword } from 'firebase/auth'; 
 import { db, auth } from '../firebase'; 
+import { getToken } from "firebase/messaging";
+import { messaging } from "../firebase";
 
 // ==========================================
 // 📝 1. COMMUNITY & CATEGORIES
@@ -431,5 +433,31 @@ export const markNotificationAsRead = async (notifId) => {
     await updateDoc(doc(db, "notifications", notifId), { isRead: true });
   } catch (error) {
     console.error("Error updating notification: ", error);
+  }
+};
+
+// ==========================================
+// 📲 10. PUSH NOTIFICATIONS (FCM)
+// ==========================================
+
+export const requestPushNotificationPermission = async (userId) => {
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      // 🚨 YAHAN APNI VAPID KEY DAALEIN JO FIREBASE CONSOLE SE MILEGI
+      const token = await getToken(messaging, { vapidKey: "YOUR_VAPID_KEY_HERE" });
+      
+      if (token) {
+        console.log("Push Token Generated:", token);
+        // Is token ko user ke document me save kar do, taaki baad me server is par message bhej sake
+        await updateDoc(doc(db, "users", userId), { fcmToken: token });
+      } else {
+        console.log("No registration token available.");
+      }
+    } else {
+      console.log("User denied notification permission.");
+    }
+  } catch (error) {
+    console.error("Error asking for permission:", error);
   }
 };
