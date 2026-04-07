@@ -11,10 +11,10 @@ import {
   togglePinPost, 
   toggleBookmarkPost, 
   addPostInteraction,
-  createNotification // 🌟 Added Notification Import
+  createNotification 
 } from '../../services/firebaseServices';
 
-export default function PostCard({ post, showToast }) {
+export default function PostCard({ post, showToast, isSinglePost }) {
   const { isAuthenticated, userId, userName, isAdmin } = useAuth();
   
   const [activeGate, setActiveGate] = useState(null);
@@ -26,7 +26,10 @@ export default function PostCard({ post, showToast }) {
   const [editText, setEditText] = useState(post.text);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   
-  const [showComments, setShowComments] = useState(false);
+  // 🌟 NAYA: Custom Delete Modal ke liye state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
+  const [showComments, setShowComments] = useState(isSinglePost || false);
 
   const interactions = post.interactions || [];
   const bookmarks = post.bookmarks || [];
@@ -50,7 +53,6 @@ export default function PostCard({ post, showToast }) {
   const counterCount = topLevelInteractions.filter(i => i.type === 'counter').length;
   const doubtCount = topLevelInteractions.filter(i => i.type === 'doubt').length;
 
-  // 🌟 FLUID TYPOGRAPHY LOGIC
   const getTextSizeClass = (text) => {
     const len = text.length;
     if (len < 80) return "text-[1.5rem] sm:text-[2rem] md:text-[2.5rem] lg:text-[2.75rem] font-medium leading-[1.3] tracking-tight"; 
@@ -70,12 +72,16 @@ export default function PostCard({ post, showToast }) {
     finally { setIsSavingEdit(false); }
   };
 
-  const confirmDelete = async () => {
-    if(!window.confirm("Delete this thought?")) return;
+  // 🌟 NAYA LOGIC: Asli delete function jo modal se trigger hoga
+  const executeDelete = async () => {
     try {
       await deletePost(post.id);
       showToast("Post Deleted.");
-    } catch (e) { showToast("Failed to delete.", false); }
+      setShowDeleteModal(false); // Modal band kar do
+    } catch (e) { 
+      showToast("Failed to delete.", false); 
+      setShowDeleteModal(false);
+    }
   };
 
   const handlePin = async () => {
@@ -94,9 +100,8 @@ export default function PostCard({ post, showToast }) {
   };
 
   const handleShare = () => {
-    // 🌟 FIX: HashRouter ke hisaab se sahi link generate karna
-    const baseUrl = window.location.href.split('#')[0]; // Ye base URL nikal lega
-    const shareUrl = `${baseUrl}#/post/${post.id}`; // Hash (#) ke sath link banayega
+    const baseUrl = window.location.href.split('#')[0]; 
+    const shareUrl = `${baseUrl}#/post/${post.id}`; 
     
     navigator.clipboard.writeText(shareUrl);
     showToast("Link copied! 🔗");
@@ -125,7 +130,6 @@ export default function PostCard({ post, showToast }) {
         commentGates: { support: [], counter: [], doubt: [] }
       });
 
-      // 🌟 NAYA: Post Owner ko Notification bhejo
       await createNotification(post.userId, {
         triggerUserId: userId,
         title: "New Reflection",
@@ -144,10 +148,8 @@ export default function PostCard({ post, showToast }) {
   const borderClass = isAdminPost ? "border-amber-200" : "border-slate-100 sm:border-slate-200";
 
   return (
-    // 🌟 MOBILE EDGE-TO-EDGE: Removed horizontal borders and rounded corners on smallest screens
-    <div className={`w-full border-y sm:border sm:rounded-2xl md:rounded-[2.5rem] lg:rounded-[3rem] mb-0 sm:mb-6 md:mb-8 pt-5 pb-4 sm:pt-8 sm:pb-6 px-4 sm:px-8 lg:px-10 transition-all duration-500 ${bgClass} ${borderClass} ${post.isPinned ? 'ring-2 ring-teal-500/10' : ''}`}>
+    <div className={`w-full border-y sm:border sm:rounded-2xl md:rounded-[2.5rem] lg:rounded-[3rem] mb-0 sm:mb-6 md:mb-8 pt-5 pb-4 sm:pt-8 sm:pb-6 px-4 sm:px-8 lg:px-10 transition-all duration-500 relative ${bgClass} ${borderClass} ${post.isPinned ? 'ring-2 ring-teal-500/10' : ''}`}>
       
-      {/* 🌟 Header Section */}
       <div className="flex items-start justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className={`h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 rounded-full flex items-center justify-center font-black text-sm sm:text-base relative shrink-0 ${isAdminPost ? "bg-gradient-to-br from-amber-400 to-amber-600 text-white" : "bg-slate-900 text-white"}`}>
@@ -175,7 +177,6 @@ export default function PostCard({ post, showToast }) {
           </div>
         </div>
 
-        {/* 3 Dots Menu */}
         <div className="relative">
           <button onClick={() => setShowMenu(!showMenu)} className="text-slate-300 hover:text-slate-900 p-2 transition-colors">
             <i className="fa-solid fa-ellipsis-vertical sm:text-lg"></i>
@@ -194,7 +195,8 @@ export default function PostCard({ post, showToast }) {
                       Edit Thought
                     </button>
                   )}
-                  <button onClick={confirmDelete} className="w-full text-left px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 uppercase tracking-tighter">
+                  {/* 🌟 NAYA: Ab delete dabane par hamara khud ka modal khulega */}
+                  <button onClick={() => { setShowMenu(false); setShowDeleteModal(true); }} className="w-full text-left px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 uppercase tracking-tighter">
                     Delete
                   </button>
                 </>
@@ -209,7 +211,6 @@ export default function PostCard({ post, showToast }) {
         </div>
       </div>
 
-      {/* 🌟 Main Content Area */}
       <div className="mb-6 sm:mb-8">
         {isEditing ? (
           <div className="animate-fade-in space-y-3">
@@ -231,10 +232,8 @@ export default function PostCard({ post, showToast }) {
         )}
       </div>
 
-      {/* 🌟 Interaction & Action Bar */}
       <div className={`flex items-center justify-between pt-4 border-t ${isAdminPost ? 'border-amber-100' : 'border-slate-50'} transition-colors`}>
         
-        {/* Interaction Gates */}
         <div className={`flex items-center gap-5 sm:gap-8 lg:gap-10 ${hasInteracted ? 'pointer-events-none' : ''}`}>
           <button onClick={() => handleGateClick('support')} className={`flex items-center gap-1.5 sm:gap-2 transition-all ${
             hasInteracted 
@@ -264,7 +263,6 @@ export default function PostCard({ post, showToast }) {
           </button>
         </div>
 
-        {/* Action Icons (Share & Bookmark) */}
         <div className="flex items-center gap-4 sm:gap-6 text-slate-300">
           <button onClick={handleShare} className="hover:text-slate-900 transition-all active:scale-90">
             <i className="fa-solid fa-arrow-up-from-bracket sm:text-lg"></i>
@@ -275,7 +273,6 @@ export default function PostCard({ post, showToast }) {
         </div>
       </div>
 
-      {/* 🌟 Reply Reason Box - Fluid Design */}
       {activeGate && !hasInteracted && (
         <div className="mt-6 animate-fade-in-up">
           <div className="relative">
@@ -300,7 +297,6 @@ export default function PostCard({ post, showToast }) {
         </div>
       )}
 
-      {/* 🌟 Reflections Toggle */}
       {topLevelInteractions.length > 0 && (
         <div className={`mt-6 pt-4 border-t ${isAdminPost ? 'border-amber-100' : 'border-slate-50'}`}>
           <button 
@@ -313,13 +309,49 @@ export default function PostCard({ post, showToast }) {
         </div>
       )}
 
-      {/* 🌟 CommentBox - Conditional Rendering */}
       {showComments && (
         <div className="mt-4 animate-fade-in">
           <CommentBox post={post} showToast={showToast} />
         </div>
       )}
 
+      {/* ==============================================
+          🌟 CUSTOM DELETE CONFIRMATION MODAL 🌟 
+      ================================================ */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] animate-fade-in-up border border-slate-100 text-center">
+            
+            {/* Warning Icon */}
+            <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-5 mx-auto border-4 border-white shadow-sm">
+              <i className="fa-solid fa-trash-can text-2xl"></i>
+            </div>
+            
+            <h3 className="text-lg sm:text-xl font-black text-slate-800 mb-2 tracking-tight">Delete Thought?</h3>
+            <p className="text-xs sm:text-sm text-slate-500 mb-8 leading-relaxed font-medium">
+              This action cannot be undone. Are you sure you want to permanently remove this thought from the verse?
+            </p>
+            
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 px-4 py-3 rounded-xl text-xs sm:text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeDelete}
+                className="flex-1 px-4 py-3 rounded-xl text-xs sm:text-sm font-bold text-white bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-500/20 active:scale-95 transition-all"
+              >
+                Yes, Delete
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
-    }
+}
