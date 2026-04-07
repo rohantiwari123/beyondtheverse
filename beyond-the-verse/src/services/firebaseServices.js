@@ -445,7 +445,7 @@ export const requestPushNotificationPermission = async (userId) => {
     const permission = await Notification.requestPermission();
     if (permission === "granted") {
       // 🚨 YAHAN APNI VAPID KEY DAALEIN JO FIREBASE CONSOLE SE MILEGI
-      const token = await getToken(messaging, { vapidKey: "YOUR_VAPID_KEY_HERE" });
+      const token = await getToken(messaging, { vapidKey: "BNEhEaLGJ8poqSmS3NUmBJp4tc3o4bXND6h-nS4P1_d69EiYsoKlMezolS44y9qFiBziMFIIlW-ogkKLjHTp0G4" });
       
       if (token) {
         console.log("Push Token Generated:", token);
