@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom"; 
 import { useAuth } from "../../context/AuthContext";
-import { subscribeToUserNotifications, markNotificationAsRead } from '../../services/firebaseServices'; 
+// 🌟 1. Added requestPushNotificationPermission import
+import { subscribeToUserNotifications, markNotificationAsRead, requestPushNotificationPermission } from '../../services/firebaseServices'; 
 import { formatDateTime } from '../../utils/dateFormatter'; 
 
 export default function Header() {
@@ -10,7 +11,7 @@ export default function Header() {
   const navigate = useNavigate();
   const { isAuthenticated, isAdmin, userName, userId, logout } = useAuth(); 
 
-  // 🌟 Notification States
+  // Notification States
   const [notifications, setNotifications] = useState([]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -29,9 +30,12 @@ export default function Header() {
     navigate('/login');
   };
 
-  // 🌟 Fetch Notifications
+  // Fetch Notifications & Ask for Push Permission
   useEffect(() => {
     if (isAuthenticated && userId) {
+      // 🌟 2. Call the permission function when user logs in
+      requestPushNotificationPermission(userId);
+
       const unsubscribe = subscribeToUserNotifications(userId, (notifs) => {
         setNotifications(notifs);
       });
@@ -41,7 +45,7 @@ export default function Header() {
     }
   }, [isAuthenticated, userId]);
 
-  // 🌟 Handle Notification Click
+  // Handle Notification Click
   const handleNotificationClick = async (notif) => {
     setShowNotifDropdown(false);
     if (!notif.isRead) {
@@ -64,7 +68,6 @@ export default function Header() {
 
   return (
     <>
-      {/* 🌟 Changed to overflow-visible so dropdown is not cut off */}
       <header className="bg-white/95 backdrop-blur-xl sticky top-0 z-40 border-b border-slate-200 w-full overflow-visible">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center">
           
@@ -103,7 +106,7 @@ export default function Header() {
           {/* 3. RIGHT ZONE: ACTIONS */}
           <div className="flex items-center justify-end flex-1 lg:w-1/4 gap-2">
             
-            {/* 🌟 UNIVERSAL NOTIFICATION BELL (Visible on both Mobile & Desktop) */}
+            {/* UNIVERSAL NOTIFICATION BELL */}
             {isAuthenticated && (
               <div className="relative">
                 <button 
@@ -224,7 +227,7 @@ export default function Header() {
         </div>
       </header>
 
-      {/* 🌟 MOBILE DRAWER */}
+      {/* MOBILE DRAWER */}
       <div 
         className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity z-[100] xl:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} 
         onClick={() => setIsMobileMenuOpen(false)}
@@ -301,4 +304,4 @@ export default function Header() {
       </div>
     </>
   );
-            }
+      }
