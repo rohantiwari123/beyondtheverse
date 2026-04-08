@@ -22,20 +22,18 @@ import { getToken } from "firebase/messaging";
 import { messaging } from "../firebase";
 
 // ==========================================
-// 🤖 AUTO-GRAMMAR BOT API (Powered by Google Gemini - FREE)
+// 🤖 AUTO-GRAMMAR BOT API (Fixed for DICT_API_KEY)
 // ==========================================
 const checkSpellingWithAPI = async (text) => {
-  // 🌟 अपनी कॉपी की हुई API Key यहाँ डालें (Quotes "" के अंदर)
-  const GEMINI_API_KEY = process.env.DICT_API_KEY;
+  // 🌟 अब यहाँ REACT_APP_ लगा होना ज़रूरी है
+  const GEMINI_API_KEY = process.env.REACT_APP_DICT_API_KEY;
 
-  // अगर Key नहीं डाली है, तो बॉट काम नहीं करेगा (क्रैश से बचाने के लिए)
-  if (!DICT_API_KEY) {
-    console.warn("बॉट को जगाने के लिए Gemini API Key डालना ज़रूरी है!");
+  if (!GEMINI_API_KEY) {
+    console.warn("❌ ERROR: API Key अभी भी नहीं मिल रही है!");
     return [];
   }
 
   try {
-    // 🌟 AI के लिए सख्त निर्देश (Prompt)
     const prompt = `
       You are an expert Proofreader. Check the following text for spelling and grammar mistakes. The text can be in Hindi (Devanagari) or English.
       If there are mistakes, return a JSON array in this exact format:
@@ -50,29 +48,28 @@ const checkSpellingWithAPI = async (text) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        // 🌟 यह जादुई सेटिंग AI को सिर्फ JSON भेजने पर मजबूर करती है (कोई फालतू बात नहीं)
         generationConfig: { response_mime_type: "application/json" } 
       }),
     });
 
+    if (!response.ok) return [];
+
     const data = await response.json();
     
     if (data.candidates && data.candidates[0].content) {
-      // AI का भेजा हुआ JSON डेटा निकालें
-      const responseText = data.candidates[0].content.parts[0].text;
-      const mistakes = JSON.parse(responseText);
+      let responseText = data.candidates[0].content.parts[0].text;
+      const cleanJson = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+      const mistakes = JSON.parse(cleanJson);
       
-      console.log("🤖 Gemini Bot Found Mistakes:", mistakes);
       return mistakes;
     }
     
     return [];
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    return []; // क्रैश से बचाव
+    console.error("Gemini Code Error:", error.message);
+    return []; 
   }
 };
-
 // ==========================================
 // 📝 1. COMMUNITY & CATEGORIES
 // ==========================================
