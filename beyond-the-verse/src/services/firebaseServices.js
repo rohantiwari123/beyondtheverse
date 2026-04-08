@@ -22,25 +22,23 @@ import { getToken } from "firebase/messaging";
 import { messaging } from "../firebase";
 
 // ==========================================
-// 🤖 AUTO-GRAMMAR BOT API (Fixed for DICT_API_KEY)
+// 🤖 AUTO-GRAMMAR BOT API (2 APIs Together - Vite)
 // ==========================================
 const checkSpellingWithAPI = async (text) => {
-  // 🌟 अब यहाँ REACT_APP_ लगा होना ज़रूरी है
-  const GEMINI_API_KEY = process.env.REACT_APP_DICT_API_KEY;
+  // 🌟 JADOO: Vite में नई Key को बुलाने का तरीका
+  const GEMINI_API_KEY = import.meta.env.VITE_DICT_API_KEY;
 
   if (!GEMINI_API_KEY) {
-    console.warn("❌ ERROR: API Key अभी भी नहीं मिल रही है!");
+    alert("❌ ERROR: Vite को Gemini की नई Key नहीं मिली!");
     return [];
   }
 
   try {
     const prompt = `
-      You are an expert Proofreader. Check the following text for spelling and grammar mistakes. The text can be in Hindi (Devanagari) or English.
-      If there are mistakes, return a JSON array in this exact format:
-      [{"wrong": "गलत शब्द", "correct": "सही शब्द"}]
-      If there are no mistakes, return an empty array: []
-      
-      Text to check: "${text}"
+      Analyze the following text for spelling and grammar errors in Hindi or English.
+      Return ONLY a JSON array of objects with "wrong" and "correct" keys.
+      If no errors, return [].
+      Text: "${text}"
     `;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
@@ -52,7 +50,10 @@ const checkSpellingWithAPI = async (text) => {
       }),
     });
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      alert(`❌ API ERROR: Status ${response.status}`);
+      return [];
+    }
 
     const data = await response.json();
     
@@ -61,12 +62,16 @@ const checkSpellingWithAPI = async (text) => {
       const cleanJson = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
       const mistakes = JSON.parse(cleanJson);
       
+      // ✅ सफलता का मैसेज (बाद में इसे हटा देना)
+      if (mistakes.length > 0) {
+        alert("✅ बॉट काम कर गया! दोनों APIs सेट हैं।");
+      }
       return mistakes;
     }
     
     return [];
   } catch (error) {
-    console.error("Gemini Code Error:", error.message);
+    alert("❌ CODE CRASH: " + error.message);
     return []; 
   }
 };
