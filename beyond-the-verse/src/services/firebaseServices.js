@@ -26,10 +26,10 @@ import { messaging } from "../firebase";
 // ==========================================
 const checkSpellingWithAPI = async (text) => {
   // 🌟 अपनी कॉपी की हुई API Key यहाँ डालें (Quotes "" के अंदर)
-  const GEMINI_API_KEY = "AIzaSyCjS0Oa8vhD71n8nUyrCb3b_GVWWRVTDbg"; 
+  const GEMINI_API_KEY = process.env.DICT_API_KEY;
 
   // अगर Key नहीं डाली है, तो बॉट काम नहीं करेगा (क्रैश से बचाने के लिए)
-  if (!GEMINI_API_KEY || GEMINI_API_KEY === "AIzaSyCjS0Oa8vhD71n8nUyrCb3b_GVWWRVTDbg") {
+  if (!DICT_API_KEY) {
     console.warn("बॉट को जगाने के लिए Gemini API Key डालना ज़रूरी है!");
     return [];
   }
