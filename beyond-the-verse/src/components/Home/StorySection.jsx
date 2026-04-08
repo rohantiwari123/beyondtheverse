@@ -21,12 +21,14 @@ export default function StorySection() {
     return () => unsubscribe();
   }, []);
 
-  // 2. 🧠 THE GEMINI 2.5 FLASH CALL
+  // 2. 🧠 THE GROQ API CALL (Llama 3)
   const fetchGeminiData = async (subjectName) => {
     setIsLoadingGemini(true);
     setGeminiData("");
     
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    // 🌟 यहाँ आप अपनी Groq की Key VITE_GEMINI_API_KEY में ही डाल सकते हैं, 
+    // या नया VITE_GROQ_API_KEY बना सकते हैं। मैंने दोनों का सपोर्ट दे दिया है।
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
 
     if (!apiKey) {
       setGeminiData("🚨 Error: API Key is missing. GitHub Secrets check karein.");
@@ -35,27 +37,31 @@ export default function StorySection() {
     }
 
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-      const response = await fetch(url, {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
         body: JSON.stringify({
-          contents: [{ 
-            parts: [{ 
-              text: `Explain '${subjectName}' for a life-philosophy platform. 
-              Part 1: Scientific and factual definition. 
-              Part 2: How this helps in practical daily life and philosophy. 
-              Give me around 150 words. Plain text only, no stars, no markdown.` 
-            }] 
-          }]
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            {
+              role: "system",
+              content: "You are an expert philosopher and scientist. Do NOT use any markdown, bold text, or asterisks (*). Do NOT add introductory or concluding remarks like 'Here is the explanation'. Output EXACTLY two paragraphs separated by a double newline (\\n\\n)."
+            },
+            {
+              role: "user",
+              content: `Explain '${subjectName}' for a life-philosophy platform.\nPart 1: Scientific and factual definition.\nPart 2: How this helps in practical daily life and philosophy.\nLimit to around 150 words total.`
+            }
+          ]
         })
       });
 
       const data = await response.json();
 
-      if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        setGeminiData(data.candidates[0].content.parts[0].text);
+      if (response.ok && data.choices?.[0]?.message?.content) {
+        setGeminiData(data.choices[0].message.content.trim());
       } else {
         const errorMsg = data.error?.message || "Model mismatch or API restricted.";
         setGeminiData(`🚨 Error: ${errorMsg}`);
