@@ -22,46 +22,54 @@ import { getToken } from "firebase/messaging";
 import { messaging } from "../firebase";
 
 // ==========================================
-// 🤖 AUTO-GRAMMAR BOT API (Mobile Debugging Version)
+// 🤖 AUTO-GRAMMAR BOT API (Powered by Google Gemini - FREE)
 // ==========================================
 const checkSpellingWithAPI = async (text) => {
-  const isHindi = /[\u0900-\u097F]/.test(text);
-  const langCode = isHindi ? "hi" : "en-US";
+  // 🌟 अपनी कॉपी की हुई API Key यहाँ डालें (Quotes "" के अंदर)
+  const GEMINI_API_KEY = "AIzaSyCjS0Oa8vhD71n8nUyrCb3b_GVWWRVTDbg"; 
+
+  // अगर Key नहीं डाली है, तो बॉट काम नहीं करेगा (क्रैश से बचाने के लिए)
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === "AIzaSyCjS0Oa8vhD71n8nUyrCb3b_GVWWRVTDbg") {
+    console.warn("बॉट को जगाने के लिए Gemini API Key डालना ज़रूरी है!");
+    return [];
+  }
 
   try {
-    const response = await fetch("https://api.languagetool.org/v2/check", {
+    // 🌟 AI के लिए सख्त निर्देश (Prompt)
+    const prompt = `
+      You are an expert Proofreader. Check the following text for spelling and grammar mistakes. The text can be in Hindi (Devanagari) or English.
+      If there are mistakes, return a JSON array in this exact format:
+      [{"wrong": "गलत शब्द", "correct": "सही शब्द"}]
+      If there are no mistakes, return an empty array: []
+      
+      Text to check: "${text}"
+    `;
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-      body: new URLSearchParams({
-        text: text,
-        language: langCode,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        // 🌟 यह जादुई सेटिंग AI को सिर्फ JSON भेजने पर मजबूर करती है (कोई फालतू बात नहीं)
+        generationConfig: { response_mime_type: "application/json" } 
       }),
     });
-    
-    const data = await response.json();
-    const mistakes = [];
-    
-    if (data && data.matches) {
-      data.matches.forEach(match => {
-        if (match.replacements && match.replacements.length > 0) {
-          const wrongWord = match.context.text.substring(match.context.offset, match.context.offset + match.context.length);
-          mistakes.push({
-            wrong: wrongWord,
-            correct: match.replacements[0].value
-          });
-        }
-      });
-    }
-    
-    // 🌟 MOBILE DEBUG ALERT: जैसे ही आप पोस्ट करेंगे, स्क्रीन पर एक मैसेज आएगा
-    if (isHindi) {
-      alert(`बॉट ने चेक किया: ${langCode}\nगलतियां मिलीं: ${mistakes.length}`);
-    }
 
-    return mistakes;
+    const data = await response.json();
+    
+    if (data.candidates && data.candidates[0].content) {
+      // AI का भेजा हुआ JSON डेटा निकालें
+      const responseText = data.candidates[0].content.parts[0].text;
+      const mistakes = JSON.parse(responseText);
+      
+      console.log("🤖 Gemini Bot Found Mistakes:", mistakes);
+      return mistakes;
+    }
+    
+    return [];
   } catch (error) {
-    alert("API Error: " + error.message);
-    return []; 
+    console.error("Gemini API Error:", error);
+    return []; // क्रैश से बचाव
   }
 };
 
