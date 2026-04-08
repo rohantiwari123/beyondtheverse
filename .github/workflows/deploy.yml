@@ -31,7 +31,7 @@ jobs:
         working-directory: beyond-the-verse
         env:
           VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
-          REACT_APP_DICT_API_KEY: ${{ secrets.DICT_API_KEY }}
+          VITE_DICT_API_KEY: ${{ secrets.DICT_API_KEY }}
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
