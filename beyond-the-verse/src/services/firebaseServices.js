@@ -30,7 +30,7 @@ export const checkSpellingWithAPI = async (text) => {
   const API_KEY = import.meta.env.VITE_DICT_API_KEY;
 
   if (!API_KEY) {
-    alert("❌ ERROR: Vite को API Key नहीं मिली!");
+    
     return [];
   }
 
@@ -53,7 +53,7 @@ export const checkSpellingWithAPI = async (text) => {
     });
 
     if (!response.ok) {
-      alert(`❌ API ERROR: Status ${response.status}`);
+      
       return [];
     }
 
@@ -66,14 +66,14 @@ export const checkSpellingWithAPI = async (text) => {
       
       // ✅ सफलता का मैसेज (चेक करने के बाद इस alert को हटा देना)
       if (mistakes.length > 0) {
-        alert("✅ बॉट काम कर गया! DICT_API_KEY और 2.5 मॉडल एकदम सेट है।");
+        
       }
       return mistakes;
     }
     
     return [];
   } catch (error) {
-    alert("❌ CODE CRASH: " + error.message);
+    
     return []; 
   }
 };
