@@ -22,14 +22,14 @@ import { getToken } from "firebase/messaging";
 import { messaging } from "../firebase";
 
 // ==========================================
-// 🤖 AUTO-GRAMMAR BOT API (2 APIs Together - Vite)
+// 🤖 AUTO-GRAMMAR BOT API (Using DICT_API_KEY & Gemini 2.5)
 // ==========================================
 const checkSpellingWithAPI = async (text) => {
-  // 🌟 JADOO: Vite में नई Key को बुलाने का तरीका
-  const GEMINI_API_KEY = import.meta.env.VITE_DICT_API_KEY;
+  // 🌟 सीधा आपकी पुरानी VITE_DICT_API_KEY का इस्तेमाल
+  const API_KEY = import.meta.env.VITE_DICT_API_KEY;
 
-  if (!GEMINI_API_KEY) {
-    alert("❌ ERROR: Vite को Gemini की नई Key नहीं मिली!");
+  if (!API_KEY) {
+    alert("❌ ERROR: Vite को API Key नहीं मिली!");
     return [];
   }
 
@@ -41,7 +41,8 @@ const checkSpellingWithAPI = async (text) => {
       Text: "${text}"
     `;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    // 🌟 यहाँ आपका बताया हुआ 2.5 मॉडल सेट है
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -62,9 +63,9 @@ const checkSpellingWithAPI = async (text) => {
       const cleanJson = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
       const mistakes = JSON.parse(cleanJson);
       
-      // ✅ सफलता का मैसेज (बाद में इसे हटा देना)
+      // ✅ सफलता का मैसेज (चेक करने के बाद इस alert को हटा देना)
       if (mistakes.length > 0) {
-        alert("✅ बॉट काम कर गया! दोनों APIs सेट हैं।");
+        alert("✅ बॉट काम कर गया! DICT_API_KEY और 2.5 मॉडल एकदम सेट है।");
       }
       return mistakes;
     }
