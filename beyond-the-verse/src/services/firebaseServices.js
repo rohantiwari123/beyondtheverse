@@ -22,19 +22,15 @@ import { getToken } from "firebase/messaging";
 import { messaging } from "../firebase";
 
 // ==========================================
-// 🤖 AUTO-GRAMMAR BOT API (Using DICT_API_KEY & Gemini 2.5)
+// 🤖 AUTO-GRAMMAR BOT API (Now using Groq Llama 3)
 // ==========================================
-// 🌟 FIX: Yahan 'export' laga diya hai taaki dusri files isko use kar sakein
 export const checkSpellingWithAPI = async (text) => {
-  // 🌟 सीधा आपकी पुरानी VITE_DICT_API_KEY का इस्तेमाल
   const API_KEY = import.meta.env.VITE_DICT_API_KEY;
 
-  if (!API_KEY) {
-    
-    return [];
-  }
+  if (!API_KEY) return [];
 
   try {
+    // 🌟 Prompt remains EXACTLY the same as your request
     const prompt = `
       You are a Professional Linguistic & Grammar Expert. 
       Your task is to scan the text for EVERY single error, whether it is a long word or a very short word, in both Hindi and English.
@@ -53,38 +49,36 @@ export const checkSpellingWithAPI = async (text) => {
       Text: "${text}"
     `;
 
-    // 🌟 यहाँ आपका बताया हुआ 2.5 मॉडल सेट है
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+    // 🌟 Fetching from Groq Cloud instead of Gemini
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${API_KEY}`
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { response_mime_type: "application/json" } 
+        model: "llama-3.3-70b-versatile", // Using the best versatile model on Groq
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        response_format: { type: "json_object" } // Force JSON response
       }),
     });
 
-    if (!response.ok) {
-      
-      return [];
-    }
+    if (!response.ok) return [];
 
     const data = await response.json();
+    const responseText = data.choices[0].message.content;
+    const result = JSON.parse(responseText);
     
-    if (data.candidates && data.candidates[0].content) {
-      let responseText = data.candidates[0].content.parts[0].text;
-      const cleanJson = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
-      const mistakes = JSON.parse(cleanJson);
-      
-      // ✅ सफलता का मैसेज (चेक करने के बाद इस alert को हटा देना)
-      if (mistakes.length > 0) {
-        
-      }
-      return mistakes;
-    }
-    
-    return [];
+    // Extracting the array from JSON (handling various possible key names like 'mistakes', 'errors')
+    return result.mistakes || result.errors || result.corrections || Object.values(result)[0] || [];
+
   } catch (error) {
-    
+    console.error("Groq Bot Error:", error.message);
     return []; 
   }
 };
@@ -95,42 +89,36 @@ export const checkSpellingWithAPI = async (text) => {
 
 export const createPost = async (postData) => {
   try {
-    // 1. Pehle normal post create karo
     const docRef = await addDoc(collection(db, "posts"), {
       ...postData,
       createdAt: serverTimestamp(),
     });
 
-    // 🌟 2. AUTO-SPELL CHECKER BOT TRIGGER
     checkSpellingWithAPI(postData.text).then(async (mistakes) => {
-      if (mistakes.length > 0) {
-        
-        // Bot ki taraf se automatic Comment (Support gate) add karenge
+      if (mistakes && mistakes.length > 0) {
         await updateDoc(doc(db, "posts", docRef.id), {
           interactions: arrayUnion({
             id: "bot_" + Date.now().toString(36),
             userId: "system_bot_001",
             userName: "Grammar Bot 🤖",
             type: "support", 
-            text: "🤖 **Auto-Bot Alert:** I noticed a few typos in your thought. Here are some suggestions:", // Sirf Intro text
-            mistakes: mistakes.slice(0, 5), // 🌟 Yahan asli Data (Array) bhej diya Proper Table UI ke liye
+            text: "🤖 **Auto-Bot Alert:** I noticed a few typos in your thought. Here are some suggestions:",
+            mistakes: mistakes.slice(0, 5),
             timestamp: new Date().toISOString(),
-            isPinned: true, // Bot ka comment hamesha upar (Pinned) rahega
+            isPinned: true, 
             replies: [],
             commentGates: { support: [], counter: [], doubt: [] },
-            isAdminComment: true // Admin jaisa highlight karne ke liye
+            isAdminComment: true 
           })
         });
       }
     });
 
-    // 🌟 3. BROADCAST NOTIFICATION TO ALL USERS
     try {
       const usersSnap = await getDocs(collection(db, "users")); 
       const batch = writeBatch(db); 
       
       usersSnap.forEach((userDoc) => {
-        // 🔒 Wapas 'if' laga diya hai. Ab khud ko notification nahi aayegi.
         if (userDoc.id !== postData.userId) { 
           const notifRef = doc(collection(db, "notifications"));
           batch.set(notifRef, {
@@ -540,11 +528,7 @@ export const requestPushNotificationPermission = async (userId) => {
       if (token) {
         console.log("Push Token Generated:", token);
         await updateDoc(doc(db, "users", userId), { fcmToken: token });
-      } else {
-        console.log("No registration token available.");
       }
-    } else {
-      console.log("User denied notification permission.");
     }
   } catch (error) {
     console.error("Error asking for permission:", error);
