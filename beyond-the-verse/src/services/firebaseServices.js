@@ -36,9 +36,20 @@ export const checkSpellingWithAPI = async (text) => {
 
   try {
     const prompt = `
-      Analyze the following text for spelling and grammar errors in Hindi or English.
-      Return ONLY a JSON array of objects with "wrong" and "correct" keys.
-      If no errors, return [].
+      You are a Professional Linguistic & Grammar Expert. 
+      Your task is to scan the text for EVERY single error, whether it is a long word or a very short word, in both Hindi and English.
+
+      STRICT CORRECTION RULES:
+      1. HINDI (Short Words): Correct 'मै' to 'मैं', 'हु' to 'हूँ', 'क्यु' to 'क्यों', 'हो' to 'हो' (context based), 'मदद' to 'मदद'.
+      2. HINDI (Common Errors): Correct 'बहोत' to 'बहुत', 'सुरू' to 'शुरू', 'जरुरत' to 'ज़रूरत', 'महेनत' to 'मेहनत'.
+      3. ENGLISH: Correct all typos (e.g., 'writting' to 'writing') and basic grammar.
+      4. INPUT STYLE: The text might be mixed (Hinglish), ignore the slang but correct the spellings.
+      
+      OUTPUT FORMAT:
+      - Return ONLY a JSON array of objects with "wrong" and "correct" keys.
+      - Example: [{"wrong": "मै", "correct": "मैं"}, {"wrong": "बहोत", "correct": "बहुत"}]
+      - If the text is 100% correct, return [].
+
       Text: "${text}"
     `;
 
