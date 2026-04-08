@@ -66,16 +66,16 @@ export default function DonationPage({ showToast, onBack }) {
             <div className="absolute top-0 right-0 w-64 sm:w-80 h-64 sm:h-80 bg-teal-50/50 rounded-full blur-3xl -z-10 -translate-y-1/2 translate-x-1/2"></div>
             
             <div className="mb-3 sm:mb-4">
-              <span className="bg-rose-50 text-rose-600 border border-rose-100 text-[9px] sm:text-[10px] lg:text-xs font-black uppercase tracking-widest px-3 sm:px-4 py-1 sm:py-1.5 rounded-full shadow-sm">
+              <span className="bg-rose-50 text-rose-600 border border-rose-100 text-[9px] sm:text-[10px] lg:text-xs px-3 sm:px-4 py-1 sm:py-1.5 rounded-full shadow-sm">
                 Wall of Love
               </span>
             </div>
             
-            <h3 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 sm:mb-5 text-slate-900 flex items-center gap-3 sm:gap-4 tracking-tight">
-              Our Supporters <i className="fa-solid fa-heart text-rose-500 animate-pulse text-2xl sm:text-3xl md:text-4xl shadow-rose-500/20 drop-shadow-lg"></i>
+            <h3 className="text-3xl sm:text-4xl md:text-5xl mb-4 sm:mb-5 text-slate-900 flex items-center gap-3 sm:gap-4">
+              Our Supporters <i className="fa-solid fa-heart text-rose-500  text-2xl sm:text-3xl md:text-4xl "></i>
             </h3>
             
-            <p className="text-xs sm:text-sm lg:text-base text-slate-500 mb-8 sm:mb-10 font-medium max-w-lg leading-relaxed sm:leading-loose">
+            <p className="text-xs sm:text-sm lg:text-base text-slate-500 mb-8 sm:mb-10 max-w-lg">
               A huge thank you to everyone who believes in the vision of breaking boundaries between science and philosophy. You make this possible!
             </p>
             
@@ -113,7 +113,7 @@ export default function DonationPage({ showToast, onBack }) {
                 {/* 2. Beautiful Divider */}
                 <div className="relative flex items-center py-8 sm:py-10">
                   <div className="flex-grow border-t border-slate-100"></div>
-                  <span className="flex-shrink-0 mx-4 bg-slate-50 border border-slate-100 px-4 py-1.5 rounded-full text-slate-400 text-[9px] sm:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
+                  <span className="flex-shrink-0 mx-4 bg-slate-50 border border-slate-100 px-4 py-1.5 rounded-full text-slate-400 text-[9px] sm:text-[10px] flex items-center gap-1.5 shadow-sm">
                     <i className="fa-solid fa-bolt text-amber-400"></i> Support Mission
                   </span>
                   <div className="flex-grow border-t border-slate-100"></div>
@@ -126,10 +126,10 @@ export default function DonationPage({ showToast, onBack }) {
 
             {/* 🌟 TRUST BADGES (Responsive Centering) */}
             <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-8 opacity-60 grayscale hover:grayscale-0 transition-all duration-500 px-4">
-              <div className="flex items-center gap-2 text-[10px] sm:text-xs lg:text-sm font-black uppercase tracking-widest text-slate-500 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-100">
+              <div className="flex items-center gap-2 text-[10px] sm:text-xs lg:text-sm text-slate-500 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-100">
                 <i className="fa-solid fa-lock text-slate-400"></i> 100% Secure
               </div>
-              <div className="flex items-center gap-2 text-[10px] sm:text-xs lg:text-sm font-black uppercase tracking-widest text-slate-500 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-100">
+              <div className="flex items-center gap-2 text-[10px] sm:text-xs lg:text-sm text-slate-500 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-100">
                 <i className="fa-brands fa-upi text-slate-400 text-sm sm:text-base"></i> UPI Supported
               </div>
             </div>

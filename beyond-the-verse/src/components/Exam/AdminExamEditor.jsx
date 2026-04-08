@@ -50,7 +50,7 @@ function CustomRichInput({ value, onChange, placeholder, minHeight = "min-h-[100
       
       <div className="relative">
         {!value && (
-          <div className="absolute top-3 left-3 text-slate-400 pointer-events-none text-sm font-medium">
+          <div className="absolute top-3 left-3 text-slate-400 pointer-events-none text-sm">
             {placeholder}
           </div>
         )}
@@ -58,7 +58,7 @@ function CustomRichInput({ value, onChange, placeholder, minHeight = "min-h-[100
           ref={editorRef}
           contentEditable
           onInput={handleInput}
-          className={`p-3 outline-none ${minHeight} text-sm sm:text-[15px] text-slate-800 leading-relaxed cursor-text`}
+          className={`p-3 outline-none ${minHeight} text-sm sm:text-[15px] text-slate-800 cursor-text`}
         />
       </div>
     </div>
@@ -88,7 +88,7 @@ function CustomDropdown({ options, value, onChange, placeholder, widthClass = "w
               <div
                 key={i}
                 onClick={() => { onChange(opt); setIsOpen(false); }}
-                className={`px-4 py-2.5 text-sm cursor-pointer transition-colors ${opt === value ? 'bg-teal-50 text-teal-700 font-semibold' : 'text-slate-700 hover:bg-slate-50 hover:text-teal-600'}`}
+                className={`px-4 py-2.5 text-sm cursor-pointer transition-colors ${opt === value ? 'bg-teal-50 text-teal-700' : 'text-slate-700 hover:bg-slate-50 hover:text-teal-600'}`}
               >
                 {opt}
               </div>
@@ -111,16 +111,16 @@ function CustomModal({ config, onClose }) {
           <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${config.type === 'confirm' ? 'bg-rose-50 text-rose-500' : 'bg-teal-50 text-teal-500'}`}>
             <i className={`fa-solid ${config.type === 'confirm' ? 'fa-triangle-exclamation' : 'fa-circle-info'} text-lg`}></i>
           </div>
-          <h3 className="text-lg font-bold text-slate-800">{config.type === 'confirm' ? 'Confirm Action' : 'Notice'}</h3>
+          <h3 className="text-lg text-slate-800">{config.type === 'confirm' ? 'Confirm Action' : 'Notice'}</h3>
         </div>
-        <p className="text-sm text-slate-600 mb-8 leading-relaxed pl-14">{config.message}</p>
+        <p className="text-sm text-slate-600 mb-8 pl-14">{config.message}</p>
         <div className="flex justify-end gap-3">
           {config.type === 'confirm' && (
-            <button onClick={onClose} className="px-5 py-2.5 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors uppercase tracking-widest">Cancel</button>
+            <button onClick={onClose} className="px-5 py-2.5 rounded-lg text-xs text-slate-500 hover:bg-slate-100 transition-colors">Cancel</button>
           )}
           <button 
             onClick={() => { config.onConfirm && config.onConfirm(); onClose(); }} 
-            className={`px-6 py-2.5 rounded-lg text-xs font-bold text-white uppercase tracking-widest transition-colors ${config.type === 'confirm' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-teal-600 hover:bg-teal-700'}`}
+            className={`px-6 py-2.5 rounded-lg text-xs text-white transition-colors ${config.type === 'confirm' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-teal-600 hover:bg-teal-700'}`}
           >
             {config.type === 'confirm' ? 'Proceed' : 'Okay'}
           </button>
@@ -152,7 +152,7 @@ function CategoryManager({ isOpen, onClose, categories, setCategories, onSelect 
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose}></div>
       <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-md relative z-10 animate-fade-in-up shadow-xl flex flex-col max-h-[80vh]">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2"><i className="fa-solid fa-tags text-teal-500"></i> Manage Categories</h3>
+          <h3 className="text-lg text-slate-800 flex items-center gap-2"><i className="fa-solid fa-tags text-teal-500"></i> Manage Categories</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition-colors"><i className="fa-solid fa-xmark text-xl"></i></button>
         </div>
         
@@ -163,15 +163,15 @@ function CategoryManager({ isOpen, onClose, categories, setCategories, onSelect 
               placeholder="New category name..." 
               className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
             />
-            <button onClick={handleAdd} className="bg-teal-600 hover:bg-teal-700 text-white px-4 rounded-lg text-sm font-semibold transition-colors">Add</button>
+            <button onClick={handleAdd} className="bg-teal-600 hover:bg-teal-700 text-white px-4 rounded-lg text-sm transition-colors">Add</button>
           </div>
           
           <div className="space-y-2">
             {categories.map((cat, idx) => (
               <div key={idx} className="flex justify-between items-center p-3 bg-slate-50 border border-slate-100 rounded-lg group hover:border-slate-200 transition-colors">
-                <span className="text-sm font-semibold text-slate-700">{cat}</span>
+                <span className="text-sm text-slate-700">{cat}</span>
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => { onSelect(cat); onClose(); }} className="text-xs font-bold text-teal-600 hover:bg-teal-50 px-2 py-1 rounded">Select</button>
+                  <button onClick={() => { onSelect(cat); onClose(); }} className="text-xs text-teal-600 hover:bg-teal-50 px-2 py-1 rounded">Select</button>
                   <button onClick={() => handleDelete(cat)} className="text-rose-400 hover:text-rose-600 px-2 py-1"><i className="fa-solid fa-trash-can"></i></button>
                 </div>
               </div>
@@ -311,7 +311,7 @@ export default function AdminExamEditor({ showToast }) {
         
         {/* 1. HEADER SECTION */}
         <div className="bg-white border-b sm:border border-slate-200 sm:rounded-2xl p-6 sm:p-8 lg:p-10 shadow-sm">
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-6 sm:mb-8 flex items-center gap-3">
+          <h2 className="text-xl sm:text-2xl text-slate-800 mb-6 sm:mb-8 flex items-center gap-3">
             <div className="h-10 w-10 sm:h-12 sm:w-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center border border-teal-100 shrink-0">
               <i className="fa-solid fa-file-signature text-lg"></i>
             </div>
@@ -321,13 +321,13 @@ export default function AdminExamEditor({ showToast }) {
           <div className="space-y-5 sm:space-y-6">
             <div className="flex flex-col md:flex-row gap-5 sm:gap-6">
               <div className="flex-1">
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5">Assessment Title *</label>
+                <label className="block text-xs text-slate-500 mb-1.5">Assessment Title *</label>
                 <input type="text" value={examTitle} onChange={(e) => setExamTitle(e.target.value)} placeholder="e.g. Midterm Assessment" className="w-full bg-white border border-slate-300 rounded-lg py-2.5 px-4 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-slate-800 transition-all text-sm sm:text-base appearance-none" />
               </div>
               <div className="md:w-1/3">
                 <div className="flex justify-between items-end mb-1.5">
-                  <label className="block text-xs font-semibold text-slate-500">Category *</label>
-                  <button onClick={() => setIsCategoryModalOpen(true)} className="text-[10px] font-bold text-teal-600 hover:underline uppercase tracking-wider">Manage</button>
+                  <label className="block text-xs text-slate-500">Category *</label>
+                  <button onClick={() => setIsCategoryModalOpen(true)} className="text-[10px] text-teal-600 hover:underline">Manage</button>
                 </div>
                 <CustomDropdown options={categories} value={examCategory} onChange={setExamCategory} placeholder="Select Category" />
               </div>
@@ -335,7 +335,7 @@ export default function AdminExamEditor({ showToast }) {
 
             <div className="flex flex-col md:flex-row gap-5 sm:gap-6">
               <div className="md:w-1/3">
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5">Date *</label>
+                <label className="block text-xs text-slate-500 mb-1.5">Date *</label>
                 <div className="flex gap-2">
                   <CustomDropdown options={days} value={examDay} onChange={setExamDay} placeholder="DD" widthClass="w-1/3" />
                   <CustomDropdown options={months} value={examMonth} onChange={setExamMonth} placeholder="MM" widthClass="w-1/3" />
@@ -344,17 +344,17 @@ export default function AdminExamEditor({ showToast }) {
               </div>
 
               <div className="md:w-1/3">
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5">Time *</label>
+                <label className="block text-xs text-slate-500 mb-1.5">Time *</label>
                 <div className="flex gap-2">
                   <CustomDropdown options={hours} value={examHour} onChange={setExamHour} placeholder="HH" widthClass="w-1/3" />
-                  <span className="flex items-center text-slate-400 font-bold">:</span>
+                  <span className="flex items-center text-slate-400">:</span>
                   <CustomDropdown options={minutes} value={examMinute} onChange={setExamMinute} placeholder="MM" widthClass="w-1/3" />
                   <CustomDropdown options={ampm} value={examAmPm} onChange={setExamAmPm} placeholder="AM/PM" widthClass="w-1/3" />
                 </div>
               </div>
 
               <div className="flex-1">
-                <label className="block text-xs font-semibold text-slate-500 mb-1.5">Location / Platform *</label>
+                <label className="block text-xs text-slate-500 mb-1.5">Location / Platform *</label>
                 <input type="text" value={examLocation} onChange={(e) => setExamLocation(e.target.value)} placeholder="e.g. University Portal" className="w-full bg-white border border-slate-300 rounded-lg py-2.5 px-4 outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 text-slate-800 transition-all text-sm sm:text-base appearance-none" />
               </div>
             </div>
@@ -367,22 +367,22 @@ export default function AdminExamEditor({ showToast }) {
             <div key={q.id} className="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-5 sm:p-8 lg:p-10 shadow-sm transition-colors hover:border-slate-300">
               
               <div className="flex justify-between items-center mb-5 border-b border-slate-100 pb-4">
-                <h3 className="font-bold text-slate-800 text-lg flex items-center gap-3">
-                  <span className="bg-slate-100 text-slate-600 h-8 w-8 rounded-md flex items-center justify-center text-sm font-semibold">{index + 1}</span> 
+                <h3 className="text-slate-800 text-lg flex items-center gap-3">
+                  <span className="bg-slate-100 text-slate-600 h-8 w-8 rounded-md flex items-center justify-center text-sm">{index + 1}</span> 
                   Question
                 </h3>
-                <button onClick={() => handleRemoveQuestion(q.id)} className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                <button onClick={() => handleRemoveQuestion(q.id)} className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg text-sm transition-colors flex items-center gap-2">
                   <i className="fa-solid fa-trash-can"></i> <span className="hidden sm:inline">Delete</span>
                 </button>
               </div>
 
               <div className="mb-6">
-                <label className="block text-xs font-semibold text-slate-500 mb-2">Question Prompt</label>
+                <label className="block text-xs text-slate-500 mb-2">Question Prompt</label>
                 <CustomRichInput value={q.text} onChange={(val) => handleQuestionTextChange(q.id, val)} placeholder="Type the question here..." minHeight="min-h-[120px]" />
               </div>
 
               <div className="space-y-3">
-                <label className="block text-xs font-semibold text-slate-500 mb-2">Options (Select the correct answer)</label>
+                <label className="block text-xs text-slate-500 mb-2">Options (Select the correct answer)</label>
                 
                 <div className="grid grid-cols-1 gap-3">
                   {q.options.map((opt, optIndex) => {
@@ -390,9 +390,8 @@ export default function AdminExamEditor({ showToast }) {
                     return (
                       <div key={opt.id} className={`relative p-3 sm:p-3 rounded-xl border transition-all flex flex-col sm:flex-row gap-3 items-start sm:items-center ${isCorrect ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200 bg-slate-50 hover:border-slate-300'}`}>
                         
-                        {/* 🌟 FIX: Added 'relative' to parent and adjusted layout for mobile close button */}
                         <div className="w-full sm:w-auto shrink-0 pr-8 sm:pr-0">
-                          <button type="button" onClick={() => toggleCorrectOption(q.id, opt.id)} className={`w-full sm:w-10 h-10 rounded-lg flex items-center justify-center font-semibold text-xs transition-all active:scale-95 border ${isCorrect ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm' : 'bg-white border-slate-300 text-slate-400 hover:border-emerald-400 hover:text-emerald-500'}`} title="Mark as Correct">
+                          <button type="button" onClick={() => toggleCorrectOption(q.id, opt.id)} className={`w-full sm:w-10 h-10 rounded-lg flex items-center justify-center text-xs transition-all active:scale-95 border ${isCorrect ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm' : 'bg-white border-slate-300 text-slate-400 hover:border-emerald-400 hover:text-emerald-500'}`} title="Mark as Correct">
                             <i className="fa-solid fa-check"></i>
                             <span className="ml-2 sm:hidden">{isCorrect ? 'Correct Answer' : 'Mark Correct'}</span>
                           </button>
@@ -410,7 +409,7 @@ export default function AdminExamEditor({ showToast }) {
                   })}
                 </div>
 
-                <button onClick={() => handleAddOption(q.id)} className="mt-2 px-3 py-2 rounded-lg text-xs font-semibold text-teal-600 hover:bg-teal-50 transition-colors flex items-center gap-2">
+                <button onClick={() => handleAddOption(q.id)} className="mt-2 px-3 py-2 rounded-lg text-xs text-teal-600 hover:bg-teal-50 transition-colors flex items-center gap-2">
                   <i className="fa-solid fa-plus"></i> Add Option
                 </button>
               </div>
@@ -419,7 +418,7 @@ export default function AdminExamEditor({ showToast }) {
         </div>
 
         <div className="flex justify-center mt-6 sm:mt-8 px-4 sm:px-0">
-          <button onClick={handleAddQuestion} className="w-full sm:w-auto bg-white border border-slate-300 hover:border-teal-500 hover:text-teal-600 text-slate-600 px-6 sm:px-8 py-3.5 sm:py-3 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-sm">
+          <button onClick={handleAddQuestion} className="w-full sm:w-auto bg-white border border-slate-300 hover:border-teal-500 hover:text-teal-600 text-slate-600 px-6 sm:px-8 py-3.5 sm:py-3 rounded-lg text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-sm">
             <i className="fa-solid fa-plus"></i> Add New Question
           </button>
         </div>
@@ -428,10 +427,10 @@ export default function AdminExamEditor({ showToast }) {
       {/* 3. SOLID FIXED FOOTER */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 sm:p-5 z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
-          <div className="text-xs font-medium text-slate-500 text-center sm:text-left">
+          <div className="text-xs text-slate-500 text-center sm:text-left">
             Please review all questions and correct options before saving.
           </div>
-          <button onClick={handleSaveExam} disabled={isSaving} className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-8 py-3 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 active:scale-95 shadow-sm">
+          <button onClick={handleSaveExam} disabled={isSaving} className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-8 py-3 rounded-lg text-sm transition-all disabled:opacity-50 active:scale-95 shadow-sm">
             {isSaving ? "Saving..." : "Save Assessment"}
           </button>
         </div>

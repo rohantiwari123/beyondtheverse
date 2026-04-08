@@ -1,4 +1,3 @@
-import React from "react";
 
 export default function Toast({ toast }) {
   return (
@@ -7,7 +6,7 @@ export default function Toast({ toast }) {
       
       {/* 🌟 SIMPLE & FLAT UI: No Shadows, No Transform Animations */}
       <div
-        className={`pointer-events-auto flex items-center gap-2.5 px-5 py-2.5 rounded-full border text-sm font-bold tracking-wide transition-opacity duration-200 ${
+        className={`pointer-events-auto flex items-center gap-2.5 px-5 py-2.5 rounded-full border text-sm transition-opacity duration-200 ${
           toast.show ? "opacity-100" : "opacity-0"
         } ${
           toast.isSuccess

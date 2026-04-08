@@ -38,31 +38,31 @@ export default function SecuritySettings({ showToast }) {
   return (
     <div className="animate-fade-in">
       <div className="mb-4 sm:mb-6 px-4 sm:px-0">
-        <h2 className="text-xl sm:text-2xl font-bold text-slate-800">Security</h2>
-        <p className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Keep your account safe</p>
+        <h2 className="text-xl sm:text-2xl text-slate-800">Security</h2>
+        <p className="text-[11px] sm:text-xs text-slate-500 mt-1">Keep your account safe</p>
       </div>
 
       <div className="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-5 sm:p-8">
         <form onSubmit={handleSave} className="max-w-xl space-y-5">
           <div>
-            <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">New Password</label>
+            <label className="block text-[10px] sm:text-xs text-slate-500 mb-2">New Password</label>
             <input 
               type="password" 
               value={newPassword} 
               onChange={(e) => setNewPassword(e.target.value)} 
               placeholder="Enter new password"
-              className="w-full border border-slate-300 bg-white rounded-lg py-2.5 px-4 text-sm font-bold outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all text-slate-800"
+              className="w-full border border-slate-300 bg-white rounded-lg py-2.5 px-4 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all text-slate-800"
             />
           </div>
 
           <div>
-            <label className="block text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Confirm New Password</label>
+            <label className="block text-[10px] sm:text-xs text-slate-500 mb-2">Confirm New Password</label>
             <input 
               type="password" 
               value={confirmPassword} 
               onChange={(e) => setConfirmPassword(e.target.value)} 
               placeholder="Confirm new password"
-              className="w-full border border-slate-300 bg-white rounded-lg py-2.5 px-4 text-sm font-bold outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all text-slate-800"
+              className="w-full border border-slate-300 bg-white rounded-lg py-2.5 px-4 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all text-slate-800"
             />
           </div>
 
@@ -70,7 +70,7 @@ export default function SecuritySettings({ showToast }) {
             <button 
               type="submit" 
               disabled={isSaving || !newPassword || !confirmPassword}
-              className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-8 py-2.5 rounded-lg text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-8 py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSaving ? <><i className="fa-solid fa-spinner fa-spin"></i> Updating...</> : "Update Password"}
             </button>

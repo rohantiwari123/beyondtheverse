@@ -78,7 +78,7 @@ export default function DonationForm({ onInitiate }) {
     return (
       <div className="flex flex-col items-center justify-center py-12 space-y-3">
         <div className="h-8 w-8 border-4 border-slate-100 border-t-teal-500 rounded-full animate-spin"></div>
-        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest animate-pulse">Verifying Secure Link...</p>
+        <p className="text-[10px] text-slate-400 animate-pulse">Verifying Secure Link...</p>
       </div>
     );
   }
@@ -94,8 +94,8 @@ export default function DonationForm({ onInitiate }) {
             <i className="fa-solid fa-gift text-emerald-500 text-lg sm:text-xl"></i>
           </div>
           <div className="relative z-10">
-            <p className="font-black text-emerald-900 text-sm sm:text-base tracking-tight">Special Link Applied!</p>
-            <p className="text-[10px] sm:text-xs text-emerald-700 font-bold mt-0.5 uppercase tracking-widest">Min. contribution: ₹{minAmount}</p>
+            <p className="text-emerald-900 text-sm sm:text-base">Special Link Applied!</p>
+            <p className="text-[10px] sm:text-xs text-emerald-700 mt-0.5">Min. contribution: ₹{minAmount}</p>
           </div>
         </div>
       )}
@@ -114,14 +114,14 @@ export default function DonationForm({ onInitiate }) {
               setName(e.target.value);
               if(errors.name) setErrors({...errors, name: null});
             }}
-            className={`w-full pl-11 sm:pl-12 pr-4 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl outline-none transition-all font-bold text-sm sm:text-base text-slate-800 placeholder:text-slate-400 placeholder:font-medium border-2 ${
+            className={`w-full pl-11 sm:pl-12 pr-4 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl outline-none transition-all text-sm sm:text-base text-slate-800 placeholder:text-slate-400 border-2 ${
               errors.name 
                 ? 'bg-rose-50/50 border-rose-300 focus:border-rose-400 focus:ring-4 focus:ring-rose-500/10' 
                 : 'bg-slate-50 border-slate-100 hover:border-slate-200 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 shadow-inner'
             }`}
           />
           {errors.name && (
-            <p className="absolute -bottom-5 left-2 text-[9px] sm:text-[10px] font-black text-rose-500 flex items-center gap-1 animate-fade-in-up">
+            <p className="absolute -bottom-5 left-2 text-[9px] sm:text-[10px] text-rose-500 flex items-center gap-1 animate-fade-in-up">
               <i className="fa-solid fa-circle-exclamation"></i> {errors.name}
             </p>
           )}
@@ -138,14 +138,14 @@ export default function DonationForm({ onInitiate }) {
               setPhone(e.target.value.replace(/\D/g, '').slice(0, 10));
               if(errors.phone) setErrors({...errors, phone: null});
             }}
-            className={`w-full pl-11 sm:pl-12 pr-4 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl outline-none transition-all font-bold text-sm sm:text-base text-slate-800 placeholder:text-slate-400 placeholder:font-medium border-2 ${
+            className={`w-full pl-11 sm:pl-12 pr-4 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl outline-none transition-all text-sm sm:text-base text-slate-800 placeholder:text-slate-400 border-2 ${
               errors.phone 
                 ? 'bg-rose-50/50 border-rose-300 focus:border-rose-400 focus:ring-4 focus:ring-rose-500/10' 
                 : 'bg-slate-50 border-slate-100 hover:border-slate-200 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 shadow-inner'
             }`}
           />
           {errors.phone && (
-            <p className="absolute -bottom-5 left-2 text-[9px] sm:text-[10px] font-black text-rose-500 flex items-center gap-1 animate-fade-in-up">
+            <p className="absolute -bottom-5 left-2 text-[9px] sm:text-[10px] text-rose-500 flex items-center gap-1 animate-fade-in-up">
               <i className="fa-solid fa-circle-exclamation"></i> {errors.phone}
             </p>
           )}
@@ -160,14 +160,14 @@ export default function DonationForm({ onInitiate }) {
             maxLength="100"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full pl-11 sm:pl-12 pr-4 py-3.5 sm:py-4 bg-slate-50 border-2 border-slate-100 hover:border-slate-200 rounded-xl sm:rounded-2xl outline-none focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all font-medium text-sm sm:text-base text-slate-800 placeholder:text-slate-400 resize-none shadow-inner"
+            className="w-full pl-11 sm:pl-12 pr-4 py-3.5 sm:py-4 bg-slate-50 border-2 border-slate-100 hover:border-slate-200 rounded-xl sm:rounded-2xl outline-none focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all text-sm sm:text-base text-slate-800 placeholder:text-slate-400 resize-none shadow-inner"
           ></textarea>
         </div>
       </div>
 
       {/* 🌟 AMOUNT SELECTION AREA */}
       <div className="pt-4 sm:pt-6 border-t border-slate-100 mt-6 sm:mt-8">
-        <label className="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-widest mb-3 ml-2">
+        <label className="block text-[10px] sm:text-xs text-slate-500 mb-3 ml-2">
           Select Amount (₹) *
         </label>
         
@@ -181,7 +181,7 @@ export default function DonationForm({ onInitiate }) {
                 setAmount(preset);
                 if(errors.amount) setErrors({...errors, amount: null});
               }}
-              className={`flex-1 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-sm sm:text-base transition-all active:scale-95 ${
+              className={`flex-1 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base transition-all active:scale-95 ${
                 Number(amount) === preset
                   ? "bg-teal-600 text-white shadow-lg shadow-teal-500/30 scale-[1.02] border-2 border-teal-600"
                   : "bg-white text-slate-600 border-2 border-slate-100 hover:bg-slate-50 hover:border-teal-300"
@@ -194,7 +194,7 @@ export default function DonationForm({ onInitiate }) {
 
         {/* Custom Amount Input */}
         <div className="relative group">
-          <span className={`absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 font-black text-lg sm:text-xl transition-colors ${errors.amount ? 'text-rose-500' : 'text-slate-400 group-focus-within:text-teal-600'}`}>₹</span>
+          <span className={`absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-lg sm:text-xl transition-colors ${errors.amount ? 'text-rose-500' : 'text-slate-400 group-focus-within:text-teal-600'}`}>₹</span>
           <input
             type="number"
             value={amount}
@@ -202,7 +202,7 @@ export default function DonationForm({ onInitiate }) {
               setAmount(e.target.value);
               if(errors.amount) setErrors({...errors, amount: null});
             }}
-            className={`w-full pl-9 sm:pl-11 pr-4 py-4 sm:py-5 rounded-xl sm:rounded-2xl outline-none transition-all font-black text-xl sm:text-2xl lg:text-3xl text-slate-800 border-2 shadow-inner ${
+            className={`w-full pl-9 sm:pl-11 pr-4 py-4 sm:py-5 rounded-xl sm:rounded-2xl outline-none transition-all text-xl sm:text-2xl lg:text-3xl text-slate-800 border-2 shadow-inner ${
               errors.amount
                 ? 'bg-rose-50/50 border-rose-300 focus:border-rose-400 focus:ring-4 focus:ring-rose-500/10'
                 : isScholarship 
@@ -213,11 +213,11 @@ export default function DonationForm({ onInitiate }) {
           
           {/* Dynamic Error or Info Text */}
           {errors.amount ? (
-            <p className="absolute -bottom-6 left-2 text-[9px] sm:text-[10px] font-black text-rose-500 flex items-center gap-1.5 animate-fade-in-up">
+            <p className="absolute -bottom-6 left-2 text-[9px] sm:text-[10px] text-rose-500 flex items-center gap-1.5 animate-fade-in-up">
               <i className="fa-solid fa-circle-exclamation"></i> {errors.amount}
             </p>
           ) : (
-            <p className="absolute -bottom-6 left-2 text-[9px] sm:text-[10px] text-slate-400 font-bold tracking-wide flex items-center gap-1.5 opacity-80">
+            <p className="absolute -bottom-6 left-2 text-[9px] sm:text-[10px] text-slate-400 flex items-center gap-1.5 opacity-80">
               <i className="fa-solid fa-shield-halved text-teal-500"></i> Minimum limit: ₹{minAmount}
             </p>
           )}
@@ -228,7 +228,7 @@ export default function DonationForm({ onInitiate }) {
       <div className="pt-6 sm:pt-8">
         <button
           type="submit"
-          className="w-full bg-slate-900 text-white font-black text-sm sm:text-base py-4 sm:py-5 rounded-xl sm:rounded-2xl shadow-xl shadow-slate-900/20 hover:bg-black transition-all hover:-translate-y-1 hover:shadow-2xl active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-3"
+          className="w-full bg-slate-900 text-white text-sm sm:text-base py-4 sm:py-5 rounded-xl sm:rounded-2xl shadow-xl shadow-slate-900/20 hover:bg-black transition-all hover:-translate-y-1 hover:shadow-2xl active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-3"
         >
           Generate QR to Donate <i className="fa-solid fa-qrcode text-lg sm:text-xl"></i>
         </button>

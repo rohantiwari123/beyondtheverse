@@ -161,23 +161,23 @@ export default function LoginPage({ showToast }) {
           <div className="h-14 w-14 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl flex items-center justify-center mb-3 shadow-inner border border-teal-100/50">
             <i className="fa-solid fa-atom text-3xl text-teal-600"></i>
           </div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight text-center">
+          <h1 className="text-2xl text-slate-800 text-center">
             Beyond The <span className="text-teal-600">Verse</span>
           </h1>
         </div>
 
         <div className="flex bg-slate-100 p-1 rounded-xl mb-8 relative z-10">
-          <button onClick={() => handleTabChange('client')} className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'client' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+          <button onClick={() => handleTabChange('client')} className={`flex-1 py-2.5 text-sm rounded-lg transition-all ${activeTab === 'client' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
             <i className="fa-solid fa-users mr-1.5"></i> Client
           </button>
-          <button onClick={() => handleTabChange('admin')} className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'admin' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+          <button onClick={() => handleTabChange('admin')} className={`flex-1 py-2.5 text-sm rounded-lg transition-all ${activeTab === 'admin' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
             <i className="fa-solid fa-shield-halved mr-1.5"></i> Admin
           </button>
         </div>
 
         <form onSubmit={authMode === 'signup' ? (emailOtpSent ? handleVerifyEmailAndSignup : handleSendEmailOtp) : handleEmailAuth} className="space-y-4 animate-fade-in" noValidate>
           <div className="text-center mb-4">
-            <h2 className="text-lg font-extrabold text-slate-800">
+            <h2 className="text-lg text-slate-800">
               {authMode === 'login' && `Login to ${activeTab === 'admin' ? 'Admin' : 'Client'}`}
               {authMode === 'signup' && (emailOtpSent ? 'Verify Email OTP' : `Create Client Account`)}
               {authMode === 'forgot' && `Reset Password`}
@@ -189,56 +189,56 @@ export default function LoginPage({ showToast }) {
               {authMode === 'signup' && (
                 <div className="relative animate-fade-in">
                   <i className="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                  <input type="text" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-teal-500/20" />
+                  <input type="text" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-slate-50 border border-slate-200 pl-11 pr-4 py-3.5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-teal-500/20" />
                 </div>
               )}
               <div className="relative">
                 <i className="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 pl-11 pr-4 py-3.5 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-teal-500/20" />
+                <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 pl-11 pr-4 py-3.5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-teal-500/20" />
               </div>
               
               {authMode !== 'forgot' && (
                 <div className="relative">
                   <i className="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                  <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => {setPassword(e.target.value); setPasswordError('');}} className={`w-full bg-slate-50 border ${passwordError ? 'border-rose-300' : 'border-slate-200'} pl-11 pr-12 py-3.5 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:border-teal-500`} />
+                  <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => {setPassword(e.target.value); setPasswordError('');}} className={`w-full bg-slate-50 border ${passwordError ? 'border-rose-300' : 'border-slate-200'} pl-11 pr-12 py-3.5 rounded-xl text-sm outline-none focus:ring-2 focus:border-teal-500`} />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600">
                     <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                   </button>
                 </div>
               )}
-              {passwordError && authMode === 'signup' && <p className="text-xs font-bold text-rose-500"><i className="fa-solid fa-circle-exclamation"></i> {passwordError}</p>}
+              {passwordError && authMode === 'signup' && <p className="text-xs text-rose-500"><i className="fa-solid fa-circle-exclamation"></i> {passwordError}</p>}
             </>
           )}
 
           {emailOtpSent && authMode === 'signup' && (
             <div className="relative animate-fade-in">
               <i className="fa-solid fa-message absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input type="number" placeholder="Enter 6-digit Email OTP" value={enteredEmailOtp} onChange={(e) => setEnteredEmailOtp(e.target.value)} className="w-full bg-slate-50 border border-slate-200 pl-11 pr-4 py-3.5 rounded-xl text-lg tracking-widest font-bold outline-none focus:ring-2 focus:ring-teal-500/20 text-center" />
+              <input type="number" placeholder="Enter 6-digit Email OTP" value={enteredEmailOtp} onChange={(e) => setEnteredEmailOtp(e.target.value)} className="w-full bg-slate-50 border border-slate-200 pl-11 pr-4 py-3.5 rounded-xl text-lg tracking-widest outline-none focus:ring-2 focus:ring-teal-500/20 text-center" />
             </div>
           )}
 
           {authMode === 'login' && (
             <div className="text-right">
-              <button type="button" onClick={() => setAuthMode('forgot')} className="text-xs font-bold text-teal-600 hover:text-teal-700">Forgot Password?</button>
+              <button type="button" onClick={() => setAuthMode('forgot')} className="text-xs text-teal-600 hover:text-teal-700">Forgot Password?</button>
             </div>
           )}
           
-          <button type="submit" disabled={isLoading} className={`w-full text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 mt-2 ${activeTab === 'admin' ? 'bg-slate-800 hover:bg-slate-900' : 'bg-teal-600 hover:bg-teal-700'}`}>
+          <button type="submit" disabled={isLoading} className={`w-full text-white py-3.5 px-6 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 mt-2 ${activeTab === 'admin' ? 'bg-slate-800 hover:bg-slate-900' : 'bg-teal-600 hover:bg-teal-700'}`}>
             {isLoading ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Processing...</> 
             : <>{authMode === 'login' ? 'Secure Login' : authMode === 'signup' ? (emailOtpSent ? 'Verify OTP & Create Account' : 'Send OTP to Email') : 'Send Reset Link'}</>}
           </button>
         </form>
 
         {authMode !== 'forgot' && activeTab === 'client' ? (
-          <div className="text-center mt-6 text-sm font-medium text-slate-500">
+          <div className="text-center mt-6 text-sm text-slate-500">
             {authMode === 'login' ? "New here? " : "Already have an account? "}
-            <button onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')} className="text-teal-600 font-bold hover:underline">
+            <button onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')} className="text-teal-600 hover:underline">
               {authMode === 'login' ? 'Create an Account' : 'Login'}
             </button>
           </div>
         ) : authMode === 'forgot' ? (
-          <div className="text-center mt-6 text-sm font-medium text-slate-500">
-            Remember your password? <button onClick={() => setAuthMode('login')} className="text-teal-600 font-bold hover:underline">Back to Login</button>
+          <div className="text-center mt-6 text-sm text-slate-500">
+            Remember your password? <button onClick={() => setAuthMode('login')} className="text-teal-600 hover:underline">Back to Login</button>
           </div>
         ) : null}
 

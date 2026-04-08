@@ -25,7 +25,7 @@ export default function ProgressSection({
       
       {/* 🌟 TOP LABELS: Goal & Supporters Badge */}
       <div className="flex justify-between items-end sm:items-center mb-4 sm:mb-5">
-        <p className="text-[10px] sm:text-xs text-slate-400 font-black uppercase tracking-widest flex items-center gap-1.5 sm:gap-2">
+        <p className="text-[10px] sm:text-xs text-slate-400 flex items-center gap-1.5 sm:gap-2">
           <i className="fa-solid fa-bullseye text-teal-500 text-xs sm:text-sm"></i> 
           <span>Setup Goal</span>
         </p>
@@ -33,8 +33,8 @@ export default function ProgressSection({
         {/* Premium Supporters Badge */}
         <div className="flex items-center gap-1.5 sm:gap-2 bg-emerald-50 border border-emerald-100/80 px-2.5 sm:px-3 lg:px-4 py-1 sm:py-1.5 rounded-lg sm:rounded-xl shadow-sm">
           <i className="fa-solid fa-users text-emerald-500 text-[10px] sm:text-xs"></i>
-          <span className="text-[10px] sm:text-xs lg:text-sm text-emerald-700 font-black tracking-wide">
-            {donorCount} <span className="font-bold opacity-80">Supporters</span>
+          <span className="text-[10px] sm:text-xs lg:text-sm text-emerald-700">
+            {donorCount} <span className="opacity-80">Supporters</span>
           </span>
         </div>
       </div>
@@ -42,15 +42,15 @@ export default function ProgressSection({
       {/* 🌟 MAIN AMOUNTS (Responsive Text Sizes) */}
       <div className="flex justify-between items-end mb-4 sm:mb-5">
         <div className="flex flex-col">
-          <span className="text-4xl sm:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-400 tracking-tight leading-none drop-shadow-sm">
+          <span className="text-4xl sm:text-5xl lg:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-400 drop-shadow-sm">
             ₹{safeRaised.toLocaleString("en-IN")}
           </span>
         </div>
         <div className="text-right flex flex-col justify-end pb-1 sm:pb-2">
-          <span className="text-[9px] sm:text-[10px] lg:text-xs text-slate-400 font-black uppercase tracking-[0.2em] mb-0.5 sm:mb-1">
+          <span className="text-[9px] sm:text-[10px] lg:text-xs text-slate-400 mb-0.5 sm:mb-1">
             Target
           </span>
-          <span className="text-sm sm:text-base lg:text-lg font-black text-slate-700 leading-none">
+          <span className="text-sm sm:text-base lg:text-lg text-slate-700">
             ₹{targetAmount.toLocaleString("en-IN")}
           </span>
         </div>
@@ -73,7 +73,7 @@ export default function ProgressSection({
 
       {/* 🌟 PERCENTAGE TEXT */}
       <div className="flex justify-end">
-        <p className="text-[10px] sm:text-xs lg:text-sm font-black text-teal-700 bg-teal-50/80 px-2.5 sm:px-3 lg:px-4 py-1 sm:py-1.5 rounded-md sm:rounded-lg shadow-sm border border-teal-100/50 tracking-wide">
+        <p className="text-[10px] sm:text-xs lg:text-sm text-teal-700 bg-teal-50/80 px-2.5 sm:px-3 lg:px-4 py-1 sm:py-1.5 rounded-md sm:rounded-lg shadow-sm border border-teal-100/50">
           {percent.toFixed(0)}% Funded
         </p>
       </div>

@@ -15,7 +15,7 @@ import LoginPage from './pages/Auth/LoginPage';
 import HomePage from './pages/Home/HomePage';
 import DonationPage from './pages/Donation/DonationPage';
 import AboutPage from './pages/About/AboutPage';
-import ProfilePage from './pages/Profile/ProfilePage'; // 🌟 NAYA
+import ProfilePage from './pages/Profile/ProfilePage'; 
 import SinglePostPage from './pages/Community/SinglePostPage';
 // Phase 2 Pages
 import CommunityPage from './pages/Community/CommunityPage';
@@ -30,7 +30,7 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation(); 
 
-  const { isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
 
   const [toast, setToast] = useState({ show: false, message: '', isSuccess: true });
   const [donations, setDonations] = useState([]);
@@ -62,13 +62,12 @@ export default function App() {
     setTimeout(() => setToast({ show: false, message: '', isSuccess: true }), 3500);
   };
 
-  // 🌟 FIX: Removed strict paddings so child components can be Edge-to-Edge on mobile
-// Dhyan de: location.pathname.startsWith('/post/') add karna hai
-const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin', '/profile', '/settings', '/community'].includes(location.pathname) || location.pathname.startsWith('/post/');
+  // FIX: Removed strict paddings so child components can be Edge-to-Edge on mobile
+  const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin', '/profile', '/settings', '/community'].includes(location.pathname) || location.pathname.startsWith('/post/');
+
   return (
-    // 🌟 NAYA: Fluid Typography (text sizes scale automatically) & Premium Text Selection
-<div className="relative min-h-screen bg-[#f8fafc] text-slate-800 antialiased overflow-x-hidden selection:bg-teal-200 selection:text-teal-900">      
-      {/* Background Decorations (Fixed to background so they don't mess with scrolling) */}
+    <div className="relative min-h-screen bg-[#f8fafc] text-slate-800 overflow-x-hidden selection:bg-teal-200 selection:text-teal-900">      
+      {/* Background Decorations */}
       <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none z-0"></div>
       <div className="fixed -top-32 -left-32 w-96 h-96 bg-teal-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
@@ -88,15 +87,14 @@ const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin', '/profile
           <Route path="/donate" element={<DonationPage showToast={showToast} onBack={() => navigate('/')} />} />
           <Route path="/community" element={<CommunityPage showToast={showToast} />} />
         
-<Route path="/post/:postId" element={<SinglePostPage showToast={showToast} />} /> {/* 🌟 YAHAN ADD KIYA */}
+          <Route path="/post/:postId" element={<SinglePostPage showToast={showToast} />} /> 
           
           {/* Exam Routes */}
           <Route path="/exam" element={<ExamPage showToast={showToast} />} />
           <Route path="/exam/engine/:examId" element={<ExamEngine showToast={showToast} />} />
 
-          {/* 🌟 NAYA: Profile Route */}
+          {/* Profile Route */}
           <Route path="/profile" element={<ProfilePage showToast={showToast} />} />
-          
           
           <Route path="/admin" element={
             <AdminDashboard 

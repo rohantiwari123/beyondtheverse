@@ -32,7 +32,7 @@ export default function AboutPillars() {
     <div className="space-y-10 lg:space-y-12 pt-8 sm:pt-12 border-t border-slate-100">
       
       <div className="text-center max-w-2xl mx-auto px-4">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl text-slate-800">
           Our Guiding Pillars
         </h2>
       </div>
@@ -46,8 +46,8 @@ export default function AboutPillars() {
             <div className={`h-12 w-12 sm:h-14 sm:w-14 ${item.bg} ${item.color} ${item.border} border rounded-xl flex items-center justify-center text-xl sm:text-2xl mb-5 sm:mb-6`}>
               <i className={`fa-solid ${item.icon}`}></i>
             </div>
-            <h4 className="font-black text-slate-800 text-lg sm:text-xl mb-3">{item.title}</h4>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">{item.text}</p>
+            <h4 className="text-slate-800 text-lg sm:text-xl mb-3">{item.title}</h4>
+            <p className="text-xs sm:text-sm text-slate-500">{item.text}</p>
           </div>
         ))}
       </div>

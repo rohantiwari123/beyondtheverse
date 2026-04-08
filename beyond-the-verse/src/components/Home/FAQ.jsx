@@ -75,17 +75,17 @@ export default function FAQ() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto py-12 sm:py-16 md:py-20 lg:py-24 font-sans">
+    <div className="w-full max-w-4xl mx-auto py-12 sm:py-16 md:py-20 lg:py-24">
       
       {/* 🌟 ELEGANT HEADER SECTION */}
       <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12 px-4 sm:px-6 lg:px-8">
-        <span className="text-teal-600 font-bold tracking-widest uppercase text-[10px] sm:text-xs mb-3 block">
+        <span className="text-teal-600 text-[10px] sm:text-xs mb-3 block">
           Clarify Your Doubts
         </span>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-800 tracking-tight leading-tight mb-4">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl text-slate-800 mb-4">
           Frequently Asked <span className="text-teal-600">Questions</span>
         </h2>
-        <p className="text-slate-500 font-medium text-sm sm:text-base md:text-lg leading-relaxed px-2">
+        <p className="text-slate-500 text-sm sm:text-base md:text-lg px-2">
           Everything you need to know about our initiative, philosophy, and support process.
         </p>
       </div>
@@ -94,7 +94,7 @@ export default function FAQ() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <i className="fa-solid fa-circle-notch fa-spin text-3xl text-teal-500 mb-4"></i>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading FAQs...</span>
+          <span className="text-xs text-slate-400">Loading FAQs...</span>
         </div>
       ) : (
         <div className="border-t sm:border-t-0 border-slate-200 sm:space-y-4 px-0 sm:px-6 lg:px-8">
@@ -114,7 +114,7 @@ export default function FAQ() {
                   onClick={() => toggleFaq(idx)}
                   className="w-full text-left px-5 sm:px-6 lg:px-8 py-5 sm:py-6 flex justify-between items-center gap-4 sm:gap-6 outline-none sm:rounded-2xl hover:bg-slate-50/50 transition-colors"
                 >
-                  <span className={`font-bold text-[15px] sm:text-base lg:text-lg transition-colors duration-300 pr-2 ${
+                  <span className={`text-[15px] sm:text-base lg:text-lg transition-colors duration-300 pr-2 ${
                     isOpen ? "text-teal-800" : "text-slate-800 group-hover:text-teal-700"
                   }`}>
                     {faq.q}
@@ -141,7 +141,7 @@ export default function FAQ() {
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <p className="px-5 sm:px-6 lg:px-8 pb-6 sm:pb-8 text-sm sm:text-base text-slate-600 font-medium leading-relaxed sm:leading-loose whitespace-pre-wrap">
+                    <p className="px-5 sm:px-6 lg:px-8 pb-6 sm:pb-8 text-sm sm:text-base text-slate-600 whitespace-pre-wrap">
                       {faq.a}
                     </p>
                   </div>
@@ -156,8 +156,8 @@ export default function FAQ() {
       <div className="mt-12 sm:mt-16 px-0 sm:px-6 lg:px-8 animate-fade-in-up">
         <div className="bg-slate-50 border-y sm:border border-slate-200 sm:rounded-3xl p-6 sm:p-8 lg:p-10">
           <div className="text-center max-w-lg mx-auto mb-6">
-            <h3 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2">Still have a question?</h3>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium">Ask us directly. Our team will review and add relevant questions to the FAQ board.</p>
+            <h3 className="text-xl sm:text-2xl text-slate-800 mb-2">Still have a question?</h3>
+            <p className="text-xs sm:text-sm text-slate-500">Ask us directly. Our team will review and add relevant questions to the FAQ board.</p>
           </div>
 
           <form onSubmit={handleQuestionSubmit} className="max-w-2xl mx-auto flex flex-col gap-4">
@@ -167,7 +167,7 @@ export default function FAQ() {
                 onChange={(e) => setUserQuestion(e.target.value)}
                 placeholder="Type your question here..."
                 rows="3"
-                className="w-full border border-slate-300 bg-white rounded-xl py-3 px-4 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all text-sm sm:text-base font-medium resize-none"
+                className="w-full border border-slate-300 bg-white rounded-xl py-3 px-4 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all text-sm sm:text-base resize-none"
                 required
               ></textarea>
             </div>
@@ -175,7 +175,7 @@ export default function FAQ() {
             <button 
               type="submit"
               disabled={isSubmitting || !userQuestion.trim()}
-              className="w-full sm:w-auto sm:self-end bg-slate-900 hover:bg-slate-800 text-white px-8 py-3.5 rounded-xl font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]"
+              className="w-full sm:w-auto sm:self-end bg-slate-900 hover:bg-slate-800 text-white px-8 py-3.5 rounded-xl text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]"
             >
               {isSubmitting ? (
                 <><i className="fa-solid fa-spinner fa-spin"></i> Submitting...</>
@@ -188,14 +188,14 @@ export default function FAQ() {
             {submitStatus === "success" && (
               <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl flex items-center gap-3 text-teal-800 animate-fade-in">
                 <i className="fa-solid fa-circle-check text-teal-600"></i>
-                <p className="text-xs sm:text-sm font-bold">Your question has been submitted successfully! We'll review it shortly.</p>
+                <p className="text-xs sm:text-sm">Your question has been submitted successfully! We'll review it shortly.</p>
               </div>
             )}
 
             {submitStatus === "error" && (
               <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-3 text-rose-800 animate-fade-in">
                 <i className="fa-solid fa-triangle-exclamation text-rose-600"></i>
-                <p className="text-xs sm:text-sm font-bold">Failed to submit question. Please check your connection and try again.</p>
+                <p className="text-xs sm:text-sm">Failed to submit question. Please check your connection and try again.</p>
               </div>
             )}
           </form>

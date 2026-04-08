@@ -7,7 +7,7 @@ export default function BackButton({ to = "/", label = "Back to Home" }) {
     <button
       onClick={() => navigate(to)}
       // group: icon container को होवर पर कंट्रोल करने के लिए
-      // transition-all: स्मूथ इफ़ेक्ट के लिए
+      // transition-all: स्मूथ इफ़ेक्ट के लिए
       className="group inline-flex items-center gap-2 sm:gap-3 px-3 py-1.5 sm:px-5 sm:py-2.5 bg-white border border-slate-200 text-slate-500 rounded-full transition-all duration-200 hover:border-teal-300 hover:text-teal-600 hover:shadow-sm active:scale-95 w-max outline-none"
     >
       {/* आइकॉन वाला गोला - जो होवर करने पर टील (Teal) हो जाएगा */}
@@ -15,8 +15,8 @@ export default function BackButton({ to = "/", label = "Back to Home" }) {
         <i className="fa-solid fa-arrow-left text-[10px] sm:text-xs"></i>
       </div>
 
-      {/* Fluid Typography: मोबाइल पर 11px, मीडियम पर 13px और बड़े डेस्कटॉप पर 14px */}
-      <span className="text-[11px] sm:text-[13px] lg:text-sm font-bold tracking-tight">
+      {/* Fluid Typography: मोबाइल पर 11px, मीडियम पर 13px और बड़े डेस्कटॉप पर 14px */}
+      <span className="text-[11px] sm:text-[13px] lg:text-sm">
         {label}
       </span>
     </button>

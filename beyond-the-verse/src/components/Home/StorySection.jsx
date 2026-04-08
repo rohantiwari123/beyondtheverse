@@ -78,13 +78,13 @@ export default function StorySection() {
       
       {/* 🌟 1. ELEGANT HEADER */}
       <div className="text-center mb-8 sm:mb-12">
-        <span className="text-teal-600 font-extrabold tracking-widest uppercase text-[10px] sm:text-xs mb-3 block">
+        <span className="text-teal-600 text-[10px] sm:text-xs mb-3 block">
           The Verse Explorer
         </span>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-tight mb-4">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-slate-900 mb-4">
           Decode The <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-emerald-400">Universe</span>
         </h2>
-        <p className="max-w-2xl mx-auto text-slate-500 font-medium text-sm sm:text-base lg:text-lg leading-relaxed px-2">
+        <p className="max-w-2xl mx-auto text-slate-500 text-sm sm:text-base lg:text-lg px-2">
           Select a concept below to uncover its scientific reality and philosophical depth.
         </p>
       </div>
@@ -97,9 +97,9 @@ export default function StorySection() {
             <button
               key={sub.id}
               onClick={() => handleSubjectClick(sub)}
-              className={`shrink-0 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full font-bold text-xs sm:text-sm lg:text-base transition-all duration-300 ${
+              className={`shrink-0 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm lg:text-base transition-all duration-300 ${
                 isActive 
-                ? 'bg-slate-900 text-white  scale-105' 
+                ? 'bg-slate-900 text-white scale-105' 
                 : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300'
               }`}
             >
@@ -124,7 +124,7 @@ export default function StorySection() {
                 <div className="h-10 w-10 sm:h-12 sm:w-12 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg sm:text-xl shadow-md">
                   <i className="fa-solid fa-atom"></i>
                 </div>
-                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tight capitalize">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl text-slate-800">
                   {activeSubject.name}
                 </h3>
               </div>
@@ -141,7 +141,7 @@ export default function StorySection() {
               ) : (
                 <div className="space-y-8 sm:space-y-12">
                   {geminiData.startsWith("🚨") ? (
-                    <div className="p-5 sm:p-6 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 text-xs sm:text-sm font-mono leading-relaxed">
+                    <div className="p-5 sm:p-6 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 text-xs sm:text-sm">
                       {geminiData}
                     </div>
                   ) : (
@@ -157,7 +157,7 @@ export default function StorySection() {
                               <div className="absolute -right-6 -bottom-6 text-teal-500/10 text-8xl z-0 pointer-events-none">
                                 <i className="fa-solid fa-quote-right"></i>
                               </div>
-                              <h4 className="text-[10px] sm:text-xs font-black text-teal-600 uppercase tracking-widest mb-3 sm:mb-4 flex items-center gap-2 relative z-10">
+                              <h4 className="text-[10px] sm:text-xs text-teal-600 mb-3 sm:mb-4 flex items-center gap-2 relative z-10">
                                 <i className="fa-solid fa-bolt text-teal-500"></i> The Philosophical Purpose
                               </h4>
                             </>
@@ -165,12 +165,12 @@ export default function StorySection() {
                           
                           {/* Part 1: Scientific Text */}
                           {idx === 0 && (
-                            <h4 className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mb-3 sm:mb-4 flex items-center gap-2">
+                            <h4 className="text-[10px] sm:text-xs text-slate-400 mb-3 sm:mb-4 flex items-center gap-2">
                               <i className="fa-solid fa-microscope"></i> The Scientific Lens
                             </h4>
                           )}
 
-                          <p className={`relative z-10 font-medium leading-relaxed sm:leading-[1.8] ${idx === 1 ? 'text-teal-900 text-base sm:text-lg md:text-xl' : 'text-slate-700 text-lg sm:text-xl md:text-2xl'}`}>
+                          <p className={`relative z-10 ${idx === 1 ? 'text-teal-900 text-base sm:text-lg md:text-xl' : 'text-slate-700 text-lg sm:text-xl md:text-2xl'}`}>
                             {paragraph}
                           </p>
                         </div>
@@ -185,7 +185,7 @@ export default function StorySection() {
               <div className="h-16 w-16 sm:h-20 sm:w-20 bg-slate-50 rounded-full flex items-center justify-center mb-4 sm:mb-6 shadow-inner">
                 <i className="fa-solid fa-wand-magic-sparkles text-2xl sm:text-3xl text-slate-300"></i>
               </div>
-              <p className="font-bold uppercase tracking-widest text-[10px] sm:text-xs text-center">
+              <p className="text-[10px] sm:text-xs text-center">
                  Select a concept from above to begin your journey
               </p>
             </div>

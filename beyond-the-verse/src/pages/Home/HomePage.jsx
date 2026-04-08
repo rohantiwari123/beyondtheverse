@@ -12,7 +12,7 @@ export default function HomePage({ onNavigateToDonate }) {
 
   return (
     // 🌟 MAIN CONTAINER: Edge-to-edge on mobile, padded on desktop
-    <div className="w-full max-w-7xl mx-auto sm:px-6 md:px-8 lg:px-12 py-8 sm:py-12 md:py-16 lg:py-20 space-y-12 sm:space-y-16 md:space-y-20 lg:space-y-28 animate-fade-in-up font-sans">
+    <div className="w-full max-w-7xl mx-auto sm:px-6 md:px-8 lg:px-12 py-8 sm:py-12 md:py-16 lg:py-20 space-y-12 sm:space-y-16 md:space-y-20 lg:space-y-28 animate-fade-in-up">
       
       {/* 👑 1. VIP ADMIN DASHBOARD (Flat SaaS Style) */}
       {isAdmin && (
@@ -25,10 +25,10 @@ export default function HomePage({ onNavigateToDonate }) {
               </div>
               <div>
                 <div className="flex items-center gap-2.5 sm:gap-3 mb-1 lg:mb-1.5">
-                  <h3 className="text-white font-bold text-lg sm:text-xl md:text-2xl lg:text-3xl tracking-tight leading-none">System Command</h3>
-                  <span className="bg-teal-500/20 text-teal-300 border border-teal-500/30 text-[9px] sm:text-[10px] md:text-xs font-bold px-2.5 py-0.5 rounded uppercase tracking-widest">Live</span>
+                  <h3 className="text-white text-lg sm:text-xl md:text-2xl lg:text-3xl">System Command</h3>
+                  <span className="bg-teal-500/20 text-teal-300 border border-teal-500/30 text-[9px] sm:text-[10px] md:text-xs px-2.5 py-0.5 rounded">Live</span>
                 </div>
-                <p className="text-slate-400 text-xs sm:text-sm md:text-base font-medium max-w-sm lg:max-w-md leading-relaxed mt-1.5">
+                <p className="text-slate-400 text-xs sm:text-sm md:text-base max-w-sm lg:max-w-md mt-1.5">
                   Master control activated. Monitor network activity and platform analytics seamlessly.
                 </p>
               </div>
@@ -36,7 +36,7 @@ export default function HomePage({ onNavigateToDonate }) {
 
             <button 
               onClick={() => navigate('/admin')}
-              className="w-full md:w-auto bg-white hover:bg-slate-100 text-slate-900 px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl text-sm sm:text-base font-bold transition-colors flex items-center justify-center gap-2.5 shrink-0"
+              className="w-full md:w-auto bg-white hover:bg-slate-100 text-slate-900 px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl text-sm sm:text-base transition-colors flex items-center justify-center gap-2.5 shrink-0"
             >
               <i className="fa-solid fa-chart-pie text-slate-500"></i> Open Workspace
             </button>
@@ -51,14 +51,14 @@ export default function HomePage({ onNavigateToDonate }) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-10 lg:mb-12">
             <div className="flex items-center gap-4 sm:gap-5 lg:gap-6">
               {/* Member Icon */}
-              <div className="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-xl sm:text-2xl lg:text-3xl font-bold border border-teal-100 shrink-0">
+              <div className="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-xl sm:text-2xl lg:text-3xl border border-teal-100 shrink-0">
                 <i className="fa-solid fa-user-astronaut"></i>
               </div>
               <div>
-                <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-800 tracking-tight leading-tight">
+                <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-slate-800">
                   Welcome, <span className="text-teal-600">{userName || 'Explorer'}</span>!
                 </h3>
-                <p className="text-xs sm:text-sm md:text-base font-medium text-slate-500 mt-1">Your personal verse dashboard.</p>
+                <p className="text-xs sm:text-sm md:text-base text-slate-500 mt-1">Your personal verse dashboard.</p>
               </div>
             </div>
           </div>
@@ -73,8 +73,8 @@ export default function HomePage({ onNavigateToDonate }) {
                 <i className="fa-solid fa-file-signature text-lg sm:text-xl lg:text-2xl"></i>
               </div>
               <div>
-                <h4 className="font-bold text-slate-800 text-[15px] sm:text-base lg:text-lg">Assessments</h4>
-                <p className="text-[11px] sm:text-xs md:text-sm text-slate-500 mt-1 leading-relaxed line-clamp-2">Test your understanding of logic and track your progress.</p>
+                <h4 className="text-slate-800 text-[15px] sm:text-base lg:text-lg">Assessments</h4>
+                <p className="text-[11px] sm:text-xs md:text-sm text-slate-500 mt-1 line-clamp-2">Test your understanding of logic and track your progress.</p>
               </div>
             </button>
 
@@ -86,8 +86,8 @@ export default function HomePage({ onNavigateToDonate }) {
                 <i className="fa-solid fa-users text-lg sm:text-xl lg:text-2xl"></i>
               </div>
               <div>
-                <h4 className="font-bold text-slate-800 text-[15px] sm:text-base lg:text-lg">Verse Community</h4>
-                <p className="text-[11px] sm:text-xs md:text-sm text-slate-500 mt-1 leading-relaxed line-clamp-2">Engage in high-level discussions with other curious minds.</p>
+                <h4 className="text-slate-800 text-[15px] sm:text-base lg:text-lg">Verse Community</h4>
+                <p className="text-[11px] sm:text-xs md:text-sm text-slate-500 mt-1 line-clamp-2">Engage in high-level discussions with other curious minds.</p>
               </div>
             </button>
           </div>
@@ -106,23 +106,23 @@ export default function HomePage({ onNavigateToDonate }) {
         
         <div className="relative z-10 max-w-[90%] md:max-w-3xl lg:max-w-4xl mx-auto space-y-6 sm:space-y-8 lg:space-y-10">
           <div className="inline-block">
-            <span className="bg-white text-teal-600 border border-teal-200 text-[10px] sm:text-xs md:text-sm font-bold px-4 py-1.5 sm:px-5 sm:py-2 rounded-lg uppercase tracking-widest">
+            <span className="bg-white text-teal-600 border border-teal-200 text-[10px] sm:text-xs md:text-sm px-4 py-1.5 sm:px-5 sm:py-2 rounded-lg">
               Fuel The Mission
             </span>
           </div>
           
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-800 tracking-tight leading-tight px-2">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-slate-800 px-2">
             Support Our <span className="text-teal-600">Vision</span>
           </h2>
           
-          <p className="text-slate-600 text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed sm:leading-loose font-medium mx-auto max-w-2xl">
+          <p className="text-slate-600 text-sm sm:text-base md:text-lg lg:text-xl mx-auto max-w-2xl">
             Beyond The Verse is a non-profit, independent initiative. If you believe in breaking the boundaries between science and philosophy, your contribution helps us sustain and expand this platform.
           </p>
           
           <div className="pt-4 sm:pt-6">
             <button 
               onClick={onNavigateToDonate}
-              className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 sm:py-4 lg:py-5 px-8 sm:px-10 lg:px-12 rounded-xl transition-colors flex items-center justify-center gap-3 lg:gap-4 mx-auto text-sm sm:text-base lg:text-lg tracking-wide"
+              className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white py-3.5 sm:py-4 lg:py-5 px-8 sm:px-10 lg:px-12 rounded-xl transition-colors flex items-center justify-center gap-3 lg:gap-4 mx-auto text-sm sm:text-base lg:text-lg"
             >
               Donate & Support <i className="fa-solid fa-arrow-right"></i>
             </button>

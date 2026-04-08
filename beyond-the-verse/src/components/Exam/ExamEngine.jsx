@@ -18,16 +18,16 @@ function CustomModal({ config, onClose }) {
           <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${config.type === 'confirm' ? 'bg-rose-50 text-rose-500' : 'bg-teal-50 text-teal-500'}`}>
             <i className={`fa-solid ${config.type === 'confirm' ? 'fa-triangle-exclamation' : 'fa-circle-info'} text-lg`}></i>
           </div>
-          <h3 className="text-lg font-bold text-slate-800">{config.type === 'confirm' ? 'Confirm Submission' : 'Notice'}</h3>
+          <h3 className="text-lg text-slate-800">{config.type === 'confirm' ? 'Confirm Submission' : 'Notice'}</h3>
         </div>
-        <p className="text-sm text-slate-600 mb-8 leading-relaxed pl-14">{config.message}</p>
+        <p className="text-sm text-slate-600 mb-8 pl-14">{config.message}</p>
         <div className="flex justify-end gap-3">
           {config.type === 'confirm' && (
-            <button onClick={onClose} className="px-5 py-2.5 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors uppercase tracking-widest">Cancel</button>
+            <button onClick={onClose} className="px-5 py-2.5 rounded-lg text-xs text-slate-500 hover:bg-slate-100 transition-colors">Cancel</button>
           )}
           <button 
             onClick={() => { config.onConfirm && config.onConfirm(); onClose(); }} 
-            className={`px-6 py-2.5 rounded-lg text-xs font-bold text-white uppercase tracking-widest transition-colors ${config.type === 'confirm' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-teal-600 hover:bg-teal-700'}`}
+            className={`px-6 py-2.5 rounded-lg text-xs text-white transition-colors ${config.type === 'confirm' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-teal-600 hover:bg-teal-700'}`}
           >
             {config.type === 'confirm' ? 'Submit' : 'Okay'}
           </button>
@@ -171,18 +171,18 @@ export default function ExamEngine({ showToast }) {
   if (!exam) return (
     <div className="min-h-screen py-20 flex flex-col items-center justify-center text-slate-400 bg-slate-50">
       <div className="h-8 w-8 border-4 border-slate-200 border-t-teal-500 rounded-full animate-spin mb-4"></div>
-      <span className="text-[10px] font-bold uppercase tracking-widest">Loading Assessment...</span>
+      <span className="text-[10px] text-slate-400">Loading Assessment...</span>
     </div>
   );
 
   return (
-    <div className="w-full min-h-screen bg-slate-50 pb-28 md:py-10 sm:px-6 lg:px-8 font-sans relative">
+    <div className="w-full min-h-screen bg-slate-50 pb-28 md:py-10 sm:px-6 lg:px-8 relative">
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
 
       {/* 🌟 STICKY TIMER FOR MOBILE */}
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-slate-200 px-4 py-3 flex justify-between items-center sm:hidden shadow-sm">
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Time Remaining</span>
-        <div className={`font-black text-xl tracking-wider transition-colors ${timeLeft <= 300 ? 'text-rose-600 animate-pulse' : 'text-slate-800'}`}>
+        <span className="text-[10px] text-slate-500">Time Remaining</span>
+        <div className={`text-xl transition-colors ${timeLeft <= 300 ? 'text-rose-600 animate-pulse' : 'text-slate-800'}`}>
           {formatTime(timeLeft)}
         </div>
       </div>
@@ -197,14 +197,14 @@ export default function ExamEngine({ showToast }) {
         {/* 1. HEADER SECTION (Edge-to-edge on mobile) */}
         <div className="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-6 sm:p-8 lg:p-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">{exam.title}</h1>
-            <p className="text-xs font-bold text-teal-600 uppercase tracking-widest mt-2">{exam.category}</p>
+            <h1 className="text-2xl md:text-3xl text-slate-800">{exam.title}</h1>
+            <p className="text-xs text-teal-600 mt-2">{exam.category}</p>
           </div>
           
           {/* 🌟 DESKTOP TIMER */}
           <div className="hidden sm:flex flex-col items-end bg-slate-50 border border-slate-200 px-5 py-3 rounded-xl min-w-[140px]">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Time Remaining</span>
-            <div className={`font-black text-2xl tracking-wider transition-colors ${timeLeft <= 300 ? 'text-rose-600 animate-pulse' : 'text-slate-800'}`}>
+            <span className="text-[10px] text-slate-400 mb-1">Time Remaining</span>
+            <div className={`text-2xl transition-colors ${timeLeft <= 300 ? 'text-rose-600 animate-pulse' : 'text-slate-800'}`}>
               {formatTime(timeLeft)}
             </div>
           </div>
@@ -216,14 +216,14 @@ export default function ExamEngine({ showToast }) {
             <div key={q.id} className="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-6 sm:p-8 lg:p-10">
               
               <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
-                <span className="bg-slate-100 text-slate-600 h-8 w-8 rounded-md flex items-center justify-center text-sm font-semibold">
+                <span className="bg-slate-100 text-slate-600 h-8 w-8 rounded-md flex items-center justify-center text-sm">
                   {index + 1}
                 </span> 
-                <span className="font-bold text-slate-500 text-sm uppercase tracking-widest">Question</span>
+                <span className="text-slate-500 text-sm">Question</span>
               </div>
               
               <div 
-                className="prose prose-slate max-w-none mb-8 text-[15px] md:text-[16px] text-slate-800 font-medium leading-relaxed verse-thought-serif"
+                className="prose prose-slate max-w-none mb-8 text-[15px] md:text-[16px] text-slate-800 verse-thought-serif"
                 dangerouslySetInnerHTML={{ __html: q.text }}
               />
               
@@ -241,7 +241,7 @@ export default function ExamEngine({ showToast }) {
                       </div>
                       
                       <div 
-                        className={`prose prose-sm w-full font-medium transition-colors ${isSelected ? 'text-teal-900' : 'text-slate-700'}`} 
+                        className={`prose prose-sm w-full transition-colors ${isSelected ? 'text-teal-900' : 'text-slate-700'}`} 
                         dangerouslySetInnerHTML={{ __html: opt.text }} 
                       />
                     </div>
@@ -257,14 +257,14 @@ export default function ExamEngine({ showToast }) {
       {/* 3. SOLID FIXED FOOTER */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 sm:p-5 z-50">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
-          <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest text-center sm:text-left">
+          <div className="text-[10px] sm:text-xs text-slate-500 text-center sm:text-left">
             <span className="text-rose-500 mr-1"><i className="fa-solid fa-triangle-exclamation"></i> Notice:</span> 
             Auto-submits when time expires.
           </div>
           <button 
             onClick={handlePreSubmit} 
             disabled={isSubmitting}
-            className="w-full sm:w-auto bg-slate-900 hover:bg-black text-white px-10 py-3.5 rounded-lg font-black uppercase tracking-[0.2em] text-[11px] sm:text-xs transition-all disabled:opacity-50 active:scale-95"
+            className="w-full sm:w-auto bg-slate-900 hover:bg-black text-white px-10 py-3.5 rounded-lg text-[11px] sm:text-xs transition-all disabled:opacity-50 active:scale-95"
           >
             {isSubmitting ? "Processing..." : "Submit Assessment"}
           </button>

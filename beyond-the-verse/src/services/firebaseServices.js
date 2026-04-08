@@ -22,17 +22,77 @@ import { getToken } from "firebase/messaging";
 import { messaging } from "../firebase";
 
 // ==========================================
+// 🤖 AUTO-GRAMMAR BOT API (Free LanguageTool)
+// ==========================================
+const checkSpellingWithAPI = async (text) => {
+  try {
+    const response = await fetch("https://api.languagetool.org/v2/check", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        text: text,
+        language: "auto", // Ye apne aap language detect karega
+      }),
+    });
+    
+    const data = await response.json();
+    const mistakes = [];
+    
+    if (data && data.matches) {
+      data.matches.forEach(match => {
+        if (match.replacements && match.replacements.length > 0) {
+          // Galti wale word ko extract karna
+          const wrongWord = match.context.text.substring(match.context.offset, match.context.offset + match.context.length);
+          mistakes.push({
+            wrong: wrongWord,
+            correct: match.replacements[0].value
+          });
+        }
+      });
+    }
+    return mistakes;
+  } catch (error) {
+    console.error("Spell check api failed:", error);
+    return []; // Agar API fail ho jaye, toh app crash nahi hoga
+  }
+};
+
+// ==========================================
 // 📝 1. COMMUNITY & CATEGORIES
 // ==========================================
 
 export const createPost = async (postData) => {
   try {
+    // 1. Pehle normal post create karo
     const docRef = await addDoc(collection(db, "posts"), {
       ...postData,
       createdAt: serverTimestamp(),
     });
 
-    // 🌟 BROADCAST NOTIFICATION TO ALL USERS (CLEANED UP)
+    // 🌟 2. AUTO-SPELL CHECKER BOT TRIGGER
+    checkSpellingWithAPI(postData.text).then(async (mistakes) => {
+      if (mistakes.length > 0) {
+        
+        // Bot ki taraf se automatic Comment (Support gate) add karenge
+        await updateDoc(doc(db, "posts", docRef.id), {
+          interactions: arrayUnion({
+            id: "bot_" + Date.now().toString(36),
+            userId: "system_bot_001",
+            userName: "Grammar Bot 🤖",
+            type: "support", 
+            text: "🤖 **Auto-Bot Alert:** I noticed a few typos in your thought. Here are some suggestions:", // Sirf Intro text
+            mistakes: mistakes.slice(0, 5), // 🌟 Yahan asli Data (Array) bhej diya Proper Table UI ke liye
+            timestamp: new Date().toISOString(),
+            isPinned: true, // Bot ka comment hamesha upar (Pinned) rahega
+            replies: [],
+            commentGates: { support: [], counter: [], doubt: [] },
+            isAdminComment: true // Admin jaisa highlight karne ke liye
+          })
+        });
+      }
+    });
+
+    // 🌟 3. BROADCAST NOTIFICATION TO ALL USERS
     try {
       const usersSnap = await getDocs(collection(db, "users")); 
       const batch = writeBatch(db); 
@@ -423,7 +483,6 @@ export const subscribeToUserNotifications = (userId, callback) => {
     const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(notifs);
   }, (error) => {
-    // 🧹 Alert hata diya gaya hai, sirf console me error dikhega
     console.error("Snapshot error on notifications:", error);
   });
 };
@@ -444,12 +503,10 @@ export const requestPushNotificationPermission = async (userId) => {
   try {
     const permission = await Notification.requestPermission();
     if (permission === "granted") {
-      // 🚨 YAHAN APNI VAPID KEY DAALEIN JO FIREBASE CONSOLE SE MILEGI
       const token = await getToken(messaging, { vapidKey: "BNEhEaLGJ8poqSmS3NUmBJp4tc3o4bXND6h-nS4P1_d69EiYsoKlMezolS44y9qFiBziMFIIlW-ogkKLjHTp0G4" });
       
       if (token) {
         console.log("Push Token Generated:", token);
-        // Is token ko user ke document me save kar do, taaki baad me server is par message bhej sake
         await updateDoc(doc(db, "users", userId), { fcmToken: token });
       } else {
         console.log("No registration token available.");

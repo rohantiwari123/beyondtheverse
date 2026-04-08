@@ -19,17 +19,17 @@ function CustomModal({ config, onClose }) {
             <i className={`fa-solid ${config.type === 'confirm' ? 'fa-triangle-exclamation' : 'fa-circle-info'} text-xl`}></i>
           </div>
           <div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">{config.type === 'confirm' ? 'Confirm Deletion' : 'Notice'}</h3>
-            <p className="text-[13px] sm:text-sm text-slate-500 leading-relaxed">{config.message}</p>
+            <h3 className="text-xl text-slate-800 mb-2">{config.type === 'confirm' ? 'Confirm Deletion' : 'Notice'}</h3>
+            <p className="text-[13px] sm:text-sm text-slate-500">{config.message}</p>
           </div>
         </div>
         <div className="flex justify-end gap-3">
           {config.type === 'confirm' && (
-            <button onClick={onClose} className="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors uppercase tracking-widest">Cancel</button>
+            <button onClick={onClose} className="px-6 py-2.5 rounded-xl text-xs text-slate-500 hover:bg-slate-100 transition-colors">Cancel</button>
           )}
           <button 
             onClick={() => { config.onConfirm && config.onConfirm(); onClose(); }} 
-            className={`px-8 py-2.5 rounded-xl text-xs font-bold text-white uppercase tracking-widest transition-colors ${config.type === 'confirm' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-teal-600 hover:bg-teal-700'}`}
+            className={`px-8 py-2.5 rounded-xl text-xs text-white transition-colors ${config.type === 'confirm' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-teal-600 hover:bg-teal-700'}`}
           >
             {config.type === 'confirm' ? 'Delete' : 'Okay'}
           </button>
@@ -96,7 +96,7 @@ export default function ExamPage({ showToast }) {
   };
 
   return (
-    <div className="w-full min-h-screen bg-slate-50 pb-24 pt-6 sm:pt-12 font-sans relative overflow-x-hidden">
+    <div className="w-full min-h-screen bg-slate-50 pb-24 pt-6 sm:pt-12 relative overflow-x-hidden">
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
 
       <div className="max-w-7xl mx-auto space-y-10 sm:space-y-16 animate-fade-in">
@@ -110,15 +110,15 @@ export default function ExamPage({ showToast }) {
         <div className="px-0 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-4 border-b border-slate-200 pb-10 px-4 sm:px-0">
             <div className="space-y-3">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-800 tracking-tight">Assessments</h1>
-              <p className="text-[15px] sm:text-lg text-slate-500 font-medium max-w-2xl leading-relaxed">Evaluate your understanding of logic and track your progress in the Verse.</p>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl text-slate-800">Assessments</h1>
+              <p className="text-[15px] sm:text-lg text-slate-500 max-w-2xl">Evaluate your understanding of logic and track your progress in the Verse.</p>
             </div>
 
             {/* Flat Tabs (Shadow removed) */}
             <div className="flex bg-slate-200/60 p-1.5 rounded-2xl border border-slate-200 w-full md:w-max">
               <button
                 onClick={() => setActiveTab('active')}
-                className={`flex-1 md:w-48 text-xs sm:text-sm font-bold py-3 rounded-xl flex items-center justify-center gap-2.5 transition-all ${
+                className={`flex-1 md:w-48 text-xs sm:text-sm py-3 rounded-xl flex items-center justify-center gap-2.5 transition-all ${
                   activeTab === 'active' ? "bg-white text-teal-700 border border-slate-200" : "text-slate-500 hover:text-slate-700"
                 }`}
               >
@@ -126,7 +126,7 @@ export default function ExamPage({ showToast }) {
               </button>
               <button
                 onClick={() => setActiveTab('vault')}
-                className={`flex-1 md:w-48 text-xs sm:text-sm font-bold py-3 rounded-xl flex items-center justify-center gap-2.5 transition-all ${
+                className={`flex-1 md:w-48 text-xs sm:text-sm py-3 rounded-xl flex items-center justify-center gap-2.5 transition-all ${
                   activeTab === 'vault' ? "bg-white text-teal-700 border border-slate-200" : "text-slate-500 hover:text-slate-700"
                 }`}
               >
@@ -140,7 +140,7 @@ export default function ExamPage({ showToast }) {
         {loading ? (
           <div className="py-24 flex flex-col items-center justify-center text-slate-400">
             <div className="h-10 w-10 border-[3px] border-slate-200 border-t-teal-500 rounded-full animate-spin mb-5"></div>
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Synchronizing Records...</span>
+            <span className="text-[11px]">Synchronizing Records...</span>
           </div>
         ) : (
           <div className="px-0 sm:px-6 lg:px-8">
@@ -151,7 +151,7 @@ export default function ExamPage({ showToast }) {
                 {exams.length === 0 ? (
                   <div className="text-center py-24 mx-4 sm:mx-0 text-slate-400 bg-white sm:rounded-3xl border border-slate-200">
                     <i className="fa-solid fa-folder-open text-5xl mb-5 opacity-20"></i>
-                    <p className="font-bold text-base">No assessments available at this moment.</p>
+                    <p className="text-base">No assessments available at this moment.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 sm:gap-6 lg:gap-8">
@@ -163,7 +163,7 @@ export default function ExamPage({ showToast }) {
                         <div key={exam.id} className={`p-6 sm:p-10 border-y sm:border border-slate-200 sm:rounded-3xl flex flex-col justify-between transition-all group mb-4 sm:mb-0 ${isAvailable ? 'bg-white hover:border-teal-400' : 'bg-slate-50/50'}`}>
                           <div>
                             <div className="flex justify-between items-start mb-6">
-                              <span className="bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-slate-200">
+                              <span className="bg-slate-100 text-slate-600 text-[10px] px-3 py-1.5 rounded-lg border border-slate-200">
                                 {exam.category}
                               </span>
                               {isAdmin && (
@@ -172,25 +172,25 @@ export default function ExamPage({ showToast }) {
                                 </button>
                               )}
                             </div>
-                            <h3 className={`text-[19px] sm:text-2xl font-bold mb-6 leading-tight transition-colors ${isAvailable ? 'text-slate-800' : 'text-slate-400'}`}>
+                            <h3 className={`text-[19px] sm:text-2xl mb-6 transition-colors ${isAvailable ? 'text-slate-800' : 'text-slate-400'}`}>
                               {exam.title}
                             </h3>
                             <div className="space-y-3 mb-8">
-                              <div className="flex items-center gap-3 text-[13px] font-bold text-slate-500">
+                              <div className="flex items-center gap-3 text-[13px] text-slate-500">
                                 <i className="fa-solid fa-circle-nodes text-slate-300 w-4 text-center"></i> {exam.questions?.length || 0} Modules
                               </div>
-                              <div className="flex items-center gap-3 text-[13px] font-bold text-slate-500">
+                              <div className="flex items-center gap-3 text-[13px] text-slate-500">
                                 <i className="fa-regular fa-clock text-slate-300 w-4 text-center"></i> {exam.date || 'Open Access'}
                               </div>
                             </div>
                           </div>
 
                           {isAvailable ? (
-                            <button onClick={() => navigate(`/exam/engine/${exam.id}`)} className="w-full bg-slate-900 hover:bg-teal-600 text-white font-black py-4 rounded-xl transition-all flex justify-center items-center gap-3 text-[11px] uppercase tracking-widest active:scale-95">
+                            <button onClick={() => navigate(`/exam/engine/${exam.id}`)} className="w-full bg-slate-900 hover:bg-teal-600 text-white py-4 rounded-xl transition-all flex justify-center items-center gap-3 text-[11px] active:scale-95">
                               Start Assessment <i className="fa-solid fa-arrow-right"></i>
                             </button>
                           ) : (
-                            <div className="w-full bg-slate-100 text-slate-400 font-bold py-4 rounded-xl flex justify-center items-center gap-3 text-[11px] uppercase tracking-widest border border-slate-200 cursor-not-allowed">
+                            <div className="w-full bg-slate-100 text-slate-400 py-4 rounded-xl flex justify-center items-center gap-3 text-[11px] border border-slate-200 cursor-not-allowed">
                               <i className="fa-solid fa-lock text-[10px]"></i> {timeStatus}
                             </div>
                           )}
@@ -207,25 +207,25 @@ export default function ExamPage({ showToast }) {
               <div className="animate-fade-in max-w-5xl mx-auto space-y-4">
                 {!userId ? (
                   <div className="text-center py-24 mx-4 sm:mx-0 bg-white sm:rounded-3xl border border-slate-200">
-                    <p className="font-bold text-slate-400">Please log in to access your vault.</p>
+                    <p className="text-slate-400">Please log in to access your vault.</p>
                   </div>
                 ) : results.length === 0 ? (
                   <div className="text-center py-24 mx-4 sm:mx-0 bg-white sm:rounded-3xl border border-slate-200">
-                    <p className="font-bold text-slate-400 text-sm tracking-wide">No completed records found in your archive.</p>
+                    <p className="text-slate-400 text-sm">No completed records found in your archive.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-4 sm:gap-6">
                     {results.map((res) => (
                       <div key={res.id} className={`bg-white p-6 sm:p-10 border-y sm:border border-slate-200 sm:rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-8 transition-colors border-l-[6px] ${res.totalScore >= 0 ? 'border-l-teal-500' : 'border-l-rose-500'}`}>
                         <div className="space-y-2">
-                          <h3 className="text-xl sm:text-2xl font-bold text-slate-800 leading-tight">{res.examTitle}</h3>
-                          <p className="text-[13px] text-slate-400 font-bold flex items-center gap-2">
+                          <h3 className="text-xl sm:text-2xl text-slate-800">{res.examTitle}</h3>
+                          <p className="text-[13px] text-slate-400 flex items-center gap-2">
                             <i className="fa-regular fa-calendar-check"></i> {formatDateTime(res.submittedAt)}
                           </p>
                         </div>
                         <div className="bg-slate-50 px-8 py-5 rounded-2xl border border-slate-200 flex flex-col items-center justify-center min-w-[140px] shrink-0">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Score Gained</span>
-                          <span className={`text-3xl font-black ${res.totalScore >= 0 ? 'text-slate-800' : 'text-rose-600'}`}>
+                          <span className="text-[10px] text-slate-400 mb-1">Score Gained</span>
+                          <span className={`text-3xl ${res.totalScore >= 0 ? 'text-slate-800' : 'text-rose-600'}`}>
                             {res.totalScore > 0 ? '+' : ''}{res.totalScore}
                           </span>
                         </div>
@@ -241,4 +241,4 @@ export default function ExamPage({ showToast }) {
       </div>
     </div>
   );
-                             }
+}

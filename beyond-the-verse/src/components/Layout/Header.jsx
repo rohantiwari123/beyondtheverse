@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom"; 
 import { useAuth } from "../../context/AuthContext";
-// 🌟 1. Added requestPushNotificationPermission import
 import { subscribeToUserNotifications, markNotificationAsRead, requestPushNotificationPermission } from '../../services/firebaseServices'; 
 import { formatDateTime } from '../../utils/dateFormatter'; 
 
@@ -33,7 +32,6 @@ export default function Header() {
   // Fetch Notifications & Ask for Push Permission
   useEffect(() => {
     if (isAuthenticated && userId) {
-      // 🌟 2. Call the permission function when user logs in
       requestPushNotificationPermission(userId);
 
       const unsubscribe = subscribeToUserNotifications(userId, (notifs) => {
@@ -78,10 +76,10 @@ export default function Header() {
                 <i className="fa-solid fa-atom text-teal-600 text-lg lg:text-xl"></i>
               </div>
               <div className="flex flex-col justify-center overflow-hidden">
-                <h1 className="text-[13px] sm:text-base lg:text-lg font-black text-slate-800 leading-none tracking-tight truncate">
+                <h1 className="text-[13px] sm:text-base lg:text-lg text-slate-800 truncate">
                   Beyond The <span className="text-teal-600">Verse</span>
                 </h1>
-                <span className="hidden xs:block text-[7px] lg:text-[8px] font-bold text-slate-400 tracking-widest uppercase mt-0.5 truncate">Empowering Education</span>
+                <span className="hidden xs:block text-[7px] lg:text-[8px] text-slate-400 uppercase mt-0.5 truncate">Empowering Education</span>
               </div>
             </Link>
           </div>
@@ -93,7 +91,7 @@ export default function Header() {
                 <Link 
                   key={link.name} 
                   to={link.path}
-                  className={`px-3 py-2 rounded-lg text-[12px] xl:text-[13px] font-extrabold transition-all whitespace-nowrap ${
+                  className={`px-3 py-2 rounded-lg text-[12px] xl:text-[13px] transition-all whitespace-nowrap ${
                     isPathActive(link.path) ? "bg-teal-50 text-teal-700" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                   }`}
                 >
@@ -127,15 +125,15 @@ export default function Header() {
                     <div className="fixed inset-0 z-40" onClick={() => setShowNotifDropdown(false)}></div>
                     <div className="absolute right-0 mt-2 w-[280px] sm:w-[320px] bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-fade-in origin-top-right">
                       <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 bg-slate-50/80">
-                        <span className="font-black text-slate-800 text-[13px] uppercase tracking-wide">Notifications</span>
-                        {unreadCount > 0 && <span className="bg-teal-100 text-teal-700 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border border-teal-200">{unreadCount} New</span>}
+                        <span className="text-slate-800 text-[13px] uppercase">Notifications</span>
+                        {unreadCount > 0 && <span className="bg-teal-100 text-teal-700 text-[9px] uppercase px-2 py-1 rounded-md border border-teal-200">{unreadCount} New</span>}
                       </div>
                       
                       <div className="max-h-[350px] overflow-y-auto hide-scrollbar">
                         {notifications.length === 0 ? (
                           <div className="p-8 text-center text-slate-400">
                             <i className="fa-regular fa-bell-slash text-2xl mb-2 opacity-50"></i>
-                            <p className="text-[11px] font-bold uppercase tracking-widest">Quiet in the verse</p>
+                            <p className="text-[11px] uppercase">Quiet in the verse</p>
                           </div>
                         ) : (
                           notifications.map(notif => (
@@ -148,9 +146,9 @@ export default function Header() {
                                 <i className="fa-solid fa-bolt text-[10px]"></i>
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className={`text-[13px] truncate leading-tight ${!notif.isRead ? 'font-black text-slate-800' : 'font-bold text-slate-600'}`}>{notif.title}</p>
-                                <p className="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-relaxed font-medium">{notif.message}</p>
-                                <p className="text-[9px] text-slate-400 font-bold mt-2 uppercase tracking-wider">{formatDateTime(notif.timestamp)}</p>
+                                <p className={`text-[13px] truncate ${!notif.isRead ? 'text-slate-800' : 'text-slate-600'}`}>{notif.title}</p>
+                                <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">{notif.message}</p>
+                                <p className="text-[9px] text-slate-400 mt-2 uppercase">{formatDateTime(notif.timestamp)}</p>
                               </div>
                               {!notif.isRead && <div className="h-1.5 w-1.5 rounded-full bg-teal-500 mt-2 shrink-0"></div>}
                             </div>
@@ -196,7 +194,7 @@ export default function Header() {
                     }`}
                   >
                     <i className={`fa-solid fa-circle-user text-sm ${isPathActive('/profile') ? 'text-teal-500' : 'text-slate-400'}`}></i>
-                    <span className="text-[11px] xl:text-xs font-black truncate max-w-[50px] xl:max-w-[100px]">
+                    <span className="text-[11px] xl:text-xs truncate max-w-[50px] xl:max-w-[100px]">
                       {userName.split(' ')[0]}
                     </span>
                   </Link>
@@ -204,11 +202,11 @@ export default function Header() {
               )}
 
               {isAuthenticated ? (
-                <button onClick={handleLogout} className="bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 rounded-lg text-[11px] xl:text-xs font-black hover:bg-rose-100 transition-all">
+                <button onClick={handleLogout} className="bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 rounded-lg text-[11px] xl:text-xs hover:bg-rose-100 transition-all">
                   Logout
                 </button>
               ) : (
-                <Link to="/login" className="bg-teal-600 text-white px-4 py-1.5 rounded-lg text-[11px] xl:text-xs font-black hover:bg-teal-700 transition-all">
+                <Link to="/login" className="bg-teal-600 text-white px-4 py-1.5 rounded-lg text-[11px] xl:text-xs hover:bg-teal-700 transition-all">
                   Join
                 </Link>
               )}
@@ -239,7 +237,7 @@ export default function Header() {
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <i className="fa-solid fa-atom text-teal-600 text-lg"></i>
-            <span className="font-black text-slate-800 uppercase tracking-tight">Menu</span>
+            <span className="text-slate-800 uppercase">Menu</span>
           </div>
           <button onClick={() => setIsMobileMenuOpen(false)} className="h-8 w-8 flex items-center justify-center bg-slate-50 text-slate-400 rounded-full">
             <i className="fa-solid fa-xmark"></i>
@@ -252,7 +250,7 @@ export default function Header() {
               key={link.name} 
               to={link.path} 
               onClick={() => setIsMobileMenuOpen(false)} 
-              className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold transition-all ${
+              className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${
                 isPathActive(link.path) ? "bg-teal-50 text-teal-700" : "text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -267,12 +265,12 @@ export default function Header() {
           {isAuthenticated && (
             <div className={`p-2 rounded-xl border flex items-center justify-between transition-colors ${isPathActive('/profile') || isPathActive('/settings') || isPathActive('/admin') ? 'bg-white border-teal-200 shadow-sm' : 'bg-white border-slate-200'}`}>
               <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 flex-1 overflow-hidden px-1">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-base shrink-0 border ${isPathActive('/profile') ? 'bg-teal-500 text-white border-teal-600' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 border ${isPathActive('/profile') ? 'bg-teal-500 text-white border-teal-600' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
                   {userName?.charAt(0).toUpperCase()}
                 </div>
                 <div className="overflow-hidden flex-1">
-                  <p className={`text-[9px] font-bold uppercase tracking-wider ${isPathActive('/profile') ? 'text-teal-600' : 'text-slate-400'}`}>Profile</p>
-                  <p className="text-[13px] font-bold text-slate-800 truncate leading-tight">{userName}</p>
+                  <p className={`text-[9px] uppercase ${isPathActive('/profile') ? 'text-teal-600' : 'text-slate-400'}`}>Profile</p>
+                  <p className="text-[13px] text-slate-800 truncate">{userName}</p>
                 </div>
               </Link>
               
@@ -291,11 +289,11 @@ export default function Header() {
 
           <div className="flex flex-col gap-2">
             {isAuthenticated ? (
-              <button onClick={handleLogout} className="w-full bg-white text-rose-600 py-2.5 rounded-xl text-xs font-bold border border-rose-100 active:bg-rose-50 transition-colors shadow-sm">
+              <button onClick={handleLogout} className="w-full bg-white text-rose-600 py-2.5 rounded-xl text-xs border border-rose-100 active:bg-rose-50 transition-colors shadow-sm">
                 Sign Out
               </button>
             ) : (
-              <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-teal-600 text-white py-2.5 rounded-xl text-center text-xs font-bold">
+              <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-teal-600 text-white py-2.5 rounded-xl text-center text-xs">
                 Join Workspace
               </Link>
             )}
@@ -304,4 +302,4 @@ export default function Header() {
       </div>
     </>
   );
-      }
+}

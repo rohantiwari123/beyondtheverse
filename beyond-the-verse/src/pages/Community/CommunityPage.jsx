@@ -101,7 +101,7 @@ export default function CommunityPage({ showToast }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-2 md:pt-8 pb-20">
+    <div className="min-h-screen bg-slate-50 verse-hi pt-2 md:pt-8 pb-20">
       <div className="max-w-3xl mx-auto w-full flex flex-col gap-3 sm:gap-4 md:gap-6 px-0 sm:px-4 md:px-6 lg:px-0">
         
         {/* POST COMPOSER */}
@@ -109,10 +109,10 @@ export default function CommunityPage({ showToast }) {
           <div className="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-4 md:p-6 relative z-10 w-full">
             <form onSubmit={handlePostSubmit}>
               <div className="flex gap-3 md:gap-4 mb-4">
-                <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 shrink-0 mt-1">
+                <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 shrink-0 mt-1">
                   {userName?.charAt(0).toUpperCase() || "U"}
                 </div>
-                <div className="flex-1 verse-thought-serif">
+                <div className="flex-1">
                   <textarea 
                     value={newPost}
                     onChange={(e) => setNewPost(e.target.value)}
@@ -127,7 +127,7 @@ export default function CommunityPage({ showToast }) {
                   <div className="flex-1 overflow-x-auto no-scrollbar pb-2 -mb-2">
                     <div className="flex gap-2 w-max">
                       {categories.map(cat => (
-                        <div key={cat} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-[11px] font-bold tracking-wide transition-all shrink-0 ${category === cat ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>
+                        <div key={cat} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-[11px] transition-all shrink-0 ${category === cat ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>
                           <button type="button" onClick={() => !isEditingCategories && setCategory(cat)} className="focus:outline-none">{cat}</button>
                           {isAdmin && isEditingCategories && (
                             <button type="button" onClick={() => handleDeleteCategory(cat)} className="ml-1 text-rose-400 hover:text-rose-600 transition-colors">
@@ -147,14 +147,14 @@ export default function CommunityPage({ showToast }) {
 
                 {isAdmin && isEditingCategories && (
                   <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 animate-fade-in">
-                    <input type="text" value={newCatText} onChange={(e) => setNewCatText(e.target.value)} placeholder="Add new category..." className="bg-transparent flex-1 text-xs font-bold outline-none px-2 text-slate-700 placeholder:text-slate-400" onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCategory())} />
-                    <button type="button" onClick={handleAddCategory} disabled={!newCatText.trim()} className="bg-teal-600 text-white px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-teal-700 disabled:opacity-50 transition-colors">ADD</button>
+                    <input type="text" value={newCatText} onChange={(e) => setNewCatText(e.target.value)} placeholder="Add new category..." className="bg-transparent flex-1 text-xs outline-none px-2 text-slate-700 placeholder:text-slate-400" onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCategory())} />
+                    <button type="button" onClick={handleAddCategory} disabled={!newCatText.trim()} className="bg-teal-600 text-white px-4 py-1.5 rounded-lg text-[10px] hover:bg-teal-700 disabled:opacity-50 transition-colors">Add</button>
                   </div>
                 )}
 
                 <div className="flex justify-end pt-2">
-                  <button type="submit" disabled={!newPost.trim() || isSubmitting || isEditingCategories} className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-10 py-3 rounded-full text-sm font-bold tracking-widest uppercase disabled:bg-slate-200 disabled:text-slate-400 transition-colors">
-                    {isSubmitting ? "POSTING..." : "POST"}
+                  <button type="submit" disabled={!newPost.trim() || isSubmitting || isEditingCategories} className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-10 py-3 rounded-full text-sm disabled:bg-slate-200 disabled:text-slate-400 transition-colors">
+                    {isSubmitting ? "Posting..." : "Post"}
                   </button>
                 </div>
               </div>
@@ -165,9 +165,9 @@ export default function CommunityPage({ showToast }) {
             <div className="h-12 w-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mb-4">
               <i className="fa-solid fa-feather-pointed text-xl"></i>
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Join the Verse</h3>
+            <h3 className="text-lg text-slate-900 mb-2">Join the Verse</h3>
             <p className="text-sm text-slate-500 mb-5 max-w-sm">Log in to share your reflections, debate with logic, and become a part of the community.</p>
-            <button onClick={() => navigate('/login')} className="bg-slate-900 text-white rounded-full px-8 py-2.5 text-sm font-bold transition-colors hover:bg-slate-800">Log in to post</button>
+            <button onClick={() => navigate('/login')} className="bg-slate-900 text-white rounded-full px-8 py-2.5 text-sm transition-colors hover:bg-slate-800">Log in to post</button>
           </div>
         )}
 
@@ -176,7 +176,7 @@ export default function CommunityPage({ showToast }) {
           {posts.length === 0 ? (
             <div className="py-20 flex flex-col items-center justify-center text-slate-400">
               <div className="h-8 w-8 border-4 border-slate-200 border-t-slate-500 rounded-full animate-spin mb-4"></div>
-              <span className="text-[10px] font-bold uppercase tracking-widest">Loading Feed</span>
+              <span className="text-[10px] text-slate-400">Loading Feed</span>
             </div>
           ) : (
             posts.map((post) => (

@@ -114,11 +114,11 @@ export default function PaymentModal({ pendingDonation, onClose, showToast }) {
         {step === 1 && (
           <>
             <div className="mb-6 sm:mb-8 mt-2 sm:mt-0">
-              <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest block mb-2">
+              <span className="text-[10px] sm:text-xs text-slate-400 block mb-2">
                 Total Payable Amount
               </span>
-              <h3 className="text-4xl sm:text-5xl font-black text-teal-600 tracking-tight flex items-center justify-center gap-1">
-                <span className="text-2xl sm:text-3xl opacity-70 font-medium">₹</span>{pendingDonation?.amount}
+              <h3 className="text-4xl sm:text-5xl text-teal-600 flex items-center justify-center gap-1">
+                <span className="text-2xl sm:text-3xl opacity-70">₹</span>{pendingDonation?.amount}
               </h3>
             </div>
 
@@ -146,17 +146,17 @@ export default function PaymentModal({ pendingDonation, onClose, showToast }) {
               )}
             </div>
 
-            <p className="text-slate-500 mb-4 text-xs sm:text-sm font-medium">
+            <p className="text-slate-500 mb-4 text-xs sm:text-sm">
               Scan the QR using any UPI app
             </p>
 
             {/* UPI ID Copy Section */}
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 sm:p-4 mb-6 flex justify-between items-center text-left hover:border-teal-300 transition-colors shadow-inner">
               <div className="overflow-hidden pr-2">
-                <p className="text-[9px] sm:text-[10px] text-slate-400 uppercase font-black tracking-widest mb-1">
+                <p className="text-[9px] sm:text-[10px] text-slate-400 mb-1">
                   Or Pay via UPI ID
                 </p>
-                <p className="text-xs sm:text-sm text-slate-800 font-mono font-black truncate select-all">
+                <p className="text-xs sm:text-sm text-slate-800 font-mono truncate select-all">
                   {UPI_ID}
                 </p>
               </div>
@@ -171,7 +171,7 @@ export default function PaymentModal({ pendingDonation, onClose, showToast }) {
 
             {/* 🌟 PREMIUM UTR INPUT 🌟 */}
             <div className="mb-6 sm:mb-8 text-left border-t border-slate-100 pt-6">
-              <label className="flex items-center gap-2 text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-widest mb-3 ml-1">
+              <label className="flex items-center gap-2 text-[10px] sm:text-xs text-slate-500 mb-3 ml-1">
                 <i className="fa-solid fa-receipt text-slate-400"></i> Enter 12-Digit UTR / Ref No.
               </label>
               
@@ -185,7 +185,7 @@ export default function PaymentModal({ pendingDonation, onClose, showToast }) {
                     if(error) setError(""); 
                   }}
                   placeholder="e.g. 312345678901"
-                  className={`w-full px-4 sm:px-5 py-3.5 sm:py-4 border-2 rounded-2xl outline-none font-mono text-center tracking-[0.2em] sm:tracking-[0.3em] text-base sm:text-lg transition-all shadow-inner placeholder:text-slate-300 placeholder:tracking-normal ${
+                  className={`w-full px-4 sm:px-5 py-3.5 sm:py-4 border-2 rounded-2xl outline-none font-mono text-center text-base sm:text-lg transition-all shadow-inner placeholder:text-slate-300 ${
                     error 
                       ? 'bg-rose-50/50 border-rose-300 focus:ring-2 focus:ring-rose-500/30 text-rose-700' 
                       : 'bg-slate-50 border-slate-200 focus:ring-4 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white text-slate-800'
@@ -195,7 +195,7 @@ export default function PaymentModal({ pendingDonation, onClose, showToast }) {
               
               {/* Animated Error Text */}
               {error && (
-                <p className="text-[10px] sm:text-xs font-bold text-rose-500 mt-2.5 flex items-center justify-center gap-1.5 animate-fade-in-up bg-rose-50 py-1.5 rounded-lg">
+                <p className="text-[10px] sm:text-xs text-rose-500 mt-2.5 flex items-center justify-center gap-1.5 animate-fade-in-up bg-rose-50 py-1.5 rounded-lg">
                   <i className="fa-solid fa-circle-exclamation"></i> {error}
                 </p>
               )}
@@ -205,14 +205,14 @@ export default function PaymentModal({ pendingDonation, onClose, showToast }) {
             <div className="flex gap-3 sm:gap-4 mt-auto">
               <button
                 onClick={onClose}
-                className="flex-1 bg-white border-2 border-slate-100 text-slate-600 font-black text-xs sm:text-sm py-3.5 sm:py-4 rounded-xl sm:rounded-2xl hover:bg-slate-50 hover:border-slate-200 transition-colors active:scale-95"
+                className="flex-1 bg-white border-2 border-slate-100 text-slate-600 text-xs sm:text-sm py-3.5 sm:py-4 rounded-xl sm:rounded-2xl hover:bg-slate-50 hover:border-slate-200 transition-colors active:scale-95"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || utr.length !== 12}
-                className="flex-1 bg-slate-900 text-white font-black text-xs sm:text-sm py-3.5 sm:py-4 rounded-xl sm:rounded-2xl shadow-lg shadow-slate-900/20 hover:bg-black disabled:opacity-50 disabled:shadow-none transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="flex-1 bg-slate-900 text-white text-xs sm:text-sm py-3.5 sm:py-4 rounded-xl sm:rounded-2xl shadow-lg shadow-slate-900/20 hover:bg-black disabled:opacity-50 disabled:shadow-none transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>Verifying <i className="fa-solid fa-circle-notch fa-spin"></i></>
@@ -235,25 +235,25 @@ export default function PaymentModal({ pendingDonation, onClose, showToast }) {
               </div>
             </div>
 
-            <h3 className="text-2xl sm:text-3xl font-black mb-3 text-slate-800 tracking-tight">
+            <h3 className="text-2xl sm:text-3xl mb-3 text-slate-800">
               Payment Verified!
             </h3>
             
-            <p className="text-slate-500 mb-8 sm:mb-10 text-sm sm:text-base font-medium px-2 leading-relaxed">
-              Thank you for your generous contribution of <strong className="text-emerald-600">₹{pendingDonation?.amount}</strong>. You are now officially on the Supporters Wall!
+            <p className="text-slate-500 mb-8 sm:mb-10 text-sm sm:text-base px-2">
+              Thank you for your generous contribution of <strong className="text-emerald-600 font-normal">₹{pendingDonation?.amount}</strong>. You are now officially on the Supporters Wall!
             </p>
             
             <div className="w-full space-y-3 sm:space-y-4 mt-auto">
               <button
                 onClick={handleShareWhatsApp}
-                className="w-full bg-[#25D366] hover:bg-[#1ebe57] text-white font-black text-sm sm:text-base py-4 sm:py-4.5 px-4 rounded-xl sm:rounded-2xl shadow-lg shadow-[#25D366]/30 flex justify-center items-center gap-2.5 transition-all hover:-translate-y-1 active:translate-y-0 active:scale-95"
+                className="w-full bg-[#25D366] hover:bg-[#1ebe57] text-white text-sm sm:text-base py-4 sm:py-4.5 px-4 rounded-xl sm:rounded-2xl shadow-lg shadow-[#25D366]/30 flex justify-center items-center gap-2.5 transition-all hover:-translate-y-1 active:translate-y-0 active:scale-95"
               >
                 <i className="fa-brands fa-whatsapp text-xl sm:text-2xl"></i> Share the Mission
               </button>
               
               <button
                 onClick={onClose}
-                className="w-full bg-white border-2 border-slate-100 hover:bg-slate-50 hover:border-slate-200 text-slate-600 font-black text-sm sm:text-base py-3.5 sm:py-4 px-4 rounded-xl sm:rounded-2xl transition-colors active:scale-95"
+                className="w-full bg-white border-2 border-slate-100 hover:bg-slate-50 hover:border-slate-200 text-slate-600 text-sm sm:text-base py-3.5 sm:py-4 px-4 rounded-xl sm:rounded-2xl transition-colors active:scale-95"
               >
                 Return to Wall
               </button>

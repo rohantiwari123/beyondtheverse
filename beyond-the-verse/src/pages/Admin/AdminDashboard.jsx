@@ -21,16 +21,16 @@ function CustomModal({ config, onClose }) {
           <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${config.type === 'confirm' ? 'bg-rose-50 text-rose-500' : 'bg-teal-50 text-teal-500'}`}>
             <i className={`fa-solid ${config.type === 'confirm' ? 'fa-triangle-exclamation' : 'fa-circle-info'} text-lg`}></i>
           </div>
-          <h3 className="text-lg font-bold text-slate-800">{config.type === 'confirm' ? 'Confirm Action' : 'Notice'}</h3>
+          <h3 className="text-lg text-slate-800">{config.type === 'confirm' ? 'Confirm Action' : 'Notice'}</h3>
         </div>
-        <p className="text-sm text-slate-600 mb-8 leading-relaxed pl-14">{config.message}</p>
+        <p className="text-sm text-slate-600 mb-8 pl-14">{config.message}</p>
         <div className="flex justify-end gap-3">
           {config.type === 'confirm' && (
-            <button onClick={onClose} className="px-5 py-2.5 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors uppercase tracking-widest">Cancel</button>
+            <button onClick={onClose} className="px-5 py-2.5 rounded-lg text-xs text-slate-500 hover:bg-slate-100 transition-colors">Cancel</button>
           )}
           <button
             onClick={() => { config.onConfirm && config.onConfirm(); onClose(); }}
-            className={`px-6 py-2.5 rounded-lg text-xs font-bold text-white uppercase tracking-widest transition-colors ${config.type === 'confirm' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-teal-600 hover:bg-teal-700'}`}
+            className={`px-6 py-2.5 rounded-lg text-xs text-white transition-colors ${config.type === 'confirm' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-teal-600 hover:bg-teal-700'}`}
           >
             {config.type === 'confirm' ? 'Confirm' : 'Okay'}
           </button>
@@ -282,7 +282,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
   );
 
   return (
-    <div className="w-full min-h-screen bg-slate-50 pb-20 pt-4 sm:pt-10 font-sans">
+    <div className="w-full min-h-screen bg-slate-50 pb-20 pt-4 sm:pt-10">
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
 
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 lg:gap-8 px-0 sm:px-6 lg:px-8 animate-fade-in-up">
@@ -290,7 +290,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
         {/* 🌟 1. SIDEBAR / MOBILE TABS */}
         <div className="w-full md:w-64 shrink-0 px-4 sm:px-0">
           <div className="bg-white p-3 sm:p-5 sm:rounded-2xl border-b sm:border border-slate-200 md:sticky md:top-24 overflow-x-auto hide-scrollbar">
-            <h2 className="hidden md:flex text-lg font-bold text-slate-800 mb-6 px-2 items-center gap-2">
+            <h2 className="hidden md:flex text-lg text-slate-800 mb-6 px-2 items-center gap-2">
               <i className="fa-solid fa-shield-halved text-teal-600"></i> Workspace
             </h2>
             <nav className="flex md:flex-col gap-2 min-w-max md:min-w-0">
@@ -305,7 +305,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 sm:gap-3 px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-colors text-xs sm:text-sm text-left whitespace-nowrap ${activeTab === tab.id ? 'bg-teal-50 text-teal-700 border border-teal-100/50' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'}`}
+                  className={`flex items-center gap-2 sm:gap-3 px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition-colors text-xs sm:text-sm text-left whitespace-nowrap ${activeTab === tab.id ? 'bg-teal-50 text-teal-700 border border-teal-100/50' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'}`}
                 >
                   <i className={`fa-solid ${tab.icon} w-4 sm:w-5 text-center`}></i> {tab.label}
                 </button>
@@ -321,8 +321,8 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
           {activeTab === 'academy' && (
             <div className="animate-fade-in">
               <div className="mb-4 sm:mb-6 px-4 sm:px-0">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">Assessment Editor</h1>
-                <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-widest">Create & Manage</p>
+                <h1 className="text-2xl sm:text-3xl text-slate-800">Assessment Editor</h1>
+                <p className="text-xs text-slate-500 mt-1">Create & Manage</p>
               </div>
               <AdminExamEditor showToast={showToast} />
             </div>
@@ -332,29 +332,29 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
           {activeTab === 'dashboard' && (
             <div className="space-y-4 sm:space-y-6 animate-fade-in">
               <div className="px-4 sm:px-0">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">Financial Overview</h1>
+                <h1 className="text-2xl sm:text-3xl text-slate-800">Financial Overview</h1>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 sm:gap-4 border-y sm:border border-slate-200 sm:rounded-2xl overflow-hidden bg-white">
                 <div className="p-5 border-b sm:border-b-0 sm:border-r border-slate-200 flex items-center gap-4 hover:bg-slate-50 transition-colors">
                   <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 text-lg sm:text-xl"><i className="fa-solid fa-wallet"></i></div>
                   <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Raised</p>
-                    <p className="text-xl sm:text-2xl font-black text-slate-800">₹{totalRaised.toLocaleString("en-IN")}</p>
+                    <p className="text-[10px] text-slate-400">Total Raised</p>
+                    <p className="text-xl sm:text-2xl text-slate-800">₹{totalRaised.toLocaleString("en-IN")}</p>
                   </div>
                 </div>
                 <div className="p-5 border-b sm:border-b-0 sm:border-r border-slate-200 flex items-center gap-4 hover:bg-slate-50 transition-colors">
                   <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 text-lg sm:text-xl"><i className="fa-solid fa-hand-holding-heart"></i></div>
                   <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Donors</p>
-                    <p className="text-xl sm:text-2xl font-black text-slate-800">{donations.length}</p>
+                    <p className="text-[10px] text-slate-400">Total Donors</p>
+                    <p className="text-xl sm:text-2xl text-slate-800">{donations.length}</p>
                   </div>
                 </div>
                 <div className="p-5 flex items-center gap-4 hover:bg-slate-50 transition-colors">
                   <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500 text-lg sm:text-xl"><i className="fa-solid fa-bullseye"></i></div>
                   <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Goal Progress</p>
-                    <p className="text-xl sm:text-2xl font-black text-slate-800">{Math.min(100, Math.round((totalRaised / targetAmount) * 100))}%</p>
+                    <p className="text-[10px] text-slate-400">Goal Progress</p>
+                    <p className="text-xl sm:text-2xl text-slate-800">{Math.min(100, Math.round((totalRaised / targetAmount) * 100))}%</p>
                   </div>
                 </div>
               </div>
@@ -364,7 +364,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                   <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                   <input type="text" placeholder="Search by name, UTR or phone..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-slate-50 border border-slate-200 py-2.5 pl-10 pr-4 rounded-lg text-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none transition-all" />
                 </div>
-                <button onClick={handleExportCsv} className="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white text-sm px-6 py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors">
+                <button onClick={handleExportCsv} className="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white text-sm px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors">
                   <i className="fa-solid fa-download"></i> Export CSV
                 </button>
               </div>
@@ -374,26 +374,26 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                   <table className="w-full text-left border-collapse">
                     <thead className="bg-slate-50 border-b border-slate-200">
                       <tr>
-                        <th className="p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Date</th>
-                        <th className="p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Donor Info</th>
-                        <th className="p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">UTR Number</th>
-                        <th className="p-4 text-[10px] font-bold text-teal-600 uppercase tracking-widest text-right whitespace-nowrap">Amount</th>
-                        <th className="p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Actions</th>
+                        <th className="p-4 text-[10px] text-slate-500 whitespace-nowrap">Date</th>
+                        <th className="p-4 text-[10px] text-slate-500 whitespace-nowrap">Donor Info</th>
+                        <th className="p-4 text-[10px] text-slate-500 whitespace-nowrap">UTR Number</th>
+                        <th className="p-4 text-[10px] text-teal-600 text-right whitespace-nowrap">Amount</th>
+                        <th className="p-4 text-[10px] text-slate-500 text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {filteredDonations.length === 0 ? (
-                        <tr><td colSpan="5" className="p-8 text-center text-sm font-semibold text-slate-400">No records found.</td></tr>
+                        <tr><td colSpan="5" className="p-8 text-center text-sm text-slate-400">No records found.</td></tr>
                       ) : (
                         filteredDonations.map((d) => (
                           <tr key={d.id} className="hover:bg-slate-50 transition-colors">
-                            <td className="p-4 text-xs font-semibold text-slate-500 whitespace-nowrap">{new Date(d.timestamp).toLocaleDateString("en-IN")}</td>
+                            <td className="p-4 text-xs text-slate-500 whitespace-nowrap">{new Date(d.timestamp).toLocaleDateString("en-IN")}</td>
                             <td className="p-4">
-                              <div className="text-sm font-bold text-slate-800">{d.name}</div>
-                              <div className="text-[11px] font-semibold text-slate-400 mt-0.5">{d.phone}</div>
+                              <div className="text-sm text-slate-800">{d.name}</div>
+                              <div className="text-[11px] text-slate-400 mt-0.5">{d.phone}</div>
                             </td>
-                            <td className="p-4"><span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded border border-slate-200">{d.utr || "N/A"}</span></td>
-                            <td className="p-4 text-sm font-black text-teal-700 text-right">₹{Number(d.amount).toLocaleString("en-IN")}</td>
+                            <td className="p-4"><span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded border border-slate-200">{d.utr || "N/A"}</span></td>
+                            <td className="p-4 text-sm text-teal-700 text-right">₹{Number(d.amount).toLocaleString("en-IN")}</td>
                             <td className="p-4 text-center">
                               <button onClick={() => handleDeleteDonation(d.id)} className="h-8 w-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center mx-auto transition-colors" title="Delete">
                                 <i className="fa-solid fa-trash-can text-xs"></i>
@@ -413,14 +413,14 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
           {activeTab === 'qna' && (
             <div className="animate-fade-in space-y-4 sm:space-y-6">
               <div className="px-4 sm:px-0">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">Q&A Inbox</h1>
-                <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-widest">{pendingQuestions.length} Pending Questions</p>
+                <h1 className="text-2xl sm:text-3xl text-slate-800">Q&A Inbox</h1>
+                <p className="text-xs text-slate-500 mt-1">{pendingQuestions.length} Pending Questions</p>
               </div>
 
               {pendingQuestions.length === 0 ? (
                 <div className="text-center py-20 bg-white border-y sm:border border-slate-200 sm:rounded-2xl">
                   <i className="fa-solid fa-inbox text-4xl mb-4 text-slate-300"></i>
-                  <p className="font-semibold text-sm text-slate-500">Inbox is empty. No new questions from users.</p>
+                  <p className="text-sm text-slate-500">Inbox is empty. No new questions from users.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -428,15 +428,15 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                     <div key={q.id} className="bg-white p-5 sm:p-6 border-y sm:border border-slate-200 sm:rounded-2xl">
                       <div className="flex justify-between items-start mb-4">
                         <div>
-                          <span className="bg-amber-50 text-amber-600 border border-amber-200 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Pending</span>
-                          <p className="text-xs font-semibold text-slate-400 mt-2">Asked by <span className="text-slate-600">{q.userName}</span></p>
+                          <span className="bg-amber-50 text-amber-600 border border-amber-200 px-2 py-1 rounded text-[10px]">Pending</span>
+                          <p className="text-xs text-slate-400 mt-2">Asked by <span className="text-slate-600">{q.userName}</span></p>
                         </div>
                         <button onClick={() => handleTrashQuestion(q.id)} className="h-8 w-8 bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 rounded-lg flex items-center justify-center transition-colors">
                           <i className="fa-solid fa-trash-can text-xs"></i>
                         </button>
                       </div>
 
-                      <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-4">"{q.question}"</h3>
+                      <h3 className="text-base sm:text-lg text-slate-800 mb-4">"{q.question}"</h3>
 
                       <div className="space-y-3">
                         <textarea
@@ -449,7 +449,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                         <button
                           onClick={() => handlePublishAnswer(q.id, q.question)}
                           disabled={isPublishing}
-                          className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
+                          className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50"
                         >
                           Publish to FAQ <i className="fa-solid fa-check ml-1"></i>
                         </button>
@@ -465,42 +465,42 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
           {activeTab === 'users' && (
             <div className="animate-fade-in space-y-4 sm:space-y-6">
               <div className="px-4 sm:px-0">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">Citizen Database</h1>
-                <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-widest">{usersList.length} Registered</p>
+                <h1 className="text-2xl sm:text-3xl text-slate-800">Citizen Database</h1>
+                <p className="text-xs text-slate-500 mt-1">{usersList.length} Registered</p>
               </div>
               <div className="bg-white border-y sm:border border-slate-200 sm:rounded-2xl overflow-hidden">
                 {isFetchingUsers ? (
                   <div className="p-16 text-center text-slate-400">
                     <i className="fa-solid fa-circle-notch fa-spin text-2xl text-teal-500 mb-3"></i>
-                    <p className="text-xs font-bold uppercase tracking-widest">Scanning...</p>
+                    <p className="text-xs">Scanning...</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
-                          <th className="p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Citizen Info</th>
-                          <th className="p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Role</th>
-                          <th className="p-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden sm:table-cell">Unique ID</th>
+                          <th className="p-4 text-[10px] text-slate-500">Citizen Info</th>
+                          <th className="p-4 text-[10px] text-slate-500 text-center">Role</th>
+                          <th className="p-4 text-[10px] text-slate-500 hidden sm:table-cell">Unique ID</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {usersList.length === 0 ? (
-                          <tr><td colSpan="3" className="p-8 text-center text-sm font-semibold text-slate-400">No users found.</td></tr>
+                          <tr><td colSpan="3" className="p-8 text-center text-sm text-slate-400">No users found.</td></tr>
                         ) : (
                           usersList.map((user) => (
                             <tr key={user.uid} className="hover:bg-slate-50 transition-colors">
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
-                                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center font-bold text-white ${user.role === 'admin' ? 'bg-slate-800' : 'bg-teal-500'}`}>{user.name?.charAt(0).toUpperCase() || "?"}</div>
+                                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center text-white ${user.role === 'admin' ? 'bg-slate-800' : 'bg-teal-500'}`}>{user.name?.charAt(0).toUpperCase() || "?"}</div>
                                   <div>
-                                    <p className="font-bold text-slate-800 text-sm leading-tight">{user.name || "Unknown"}</p>
-                                    <p className="text-[11px] font-semibold text-slate-500 mt-0.5">{user.email || "No Email"}</p>
+                                    <p className="text-slate-800 text-sm leading-tight">{user.name || "Unknown"}</p>
+                                    <p className="text-[11px] text-slate-500 mt-0.5">{user.email || "No Email"}</p>
                                   </div>
                                 </div>
                               </td>
-                              <td className="p-4 text-center"><span className={`px-2.5 py-1 rounded text-[9px] font-bold uppercase tracking-widest border ${user.role === 'admin' ? 'bg-slate-900 text-white border-slate-800' : 'bg-teal-50 text-teal-700 border-teal-200'}`}>{user.role || 'client'}</span></td>
-                              <td className="p-4 hidden sm:table-cell"><code className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded border border-slate-200 font-bold">{user.uid}</code></td>
+                              <td className="p-4 text-center"><span className={`px-2.5 py-1 rounded text-[9px] border ${user.role === 'admin' ? 'bg-slate-900 text-white border-slate-800' : 'bg-teal-50 text-teal-700 border-teal-200'}`}>{user.role || 'client'}</span></td>
+                              <td className="p-4 hidden sm:table-cell"><code className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded border border-slate-200 font-mono">{user.uid}</code></td>
                             </tr>
                           ))
                         )}
@@ -516,13 +516,13 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
           {activeTab === 'subjects' && (
             <div className="animate-fade-in space-y-4 sm:space-y-6 max-w-3xl">
               <div className="px-4 sm:px-0">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">Learning Subjects</h1>
+                <h1 className="text-2xl sm:text-3xl text-slate-800">Learning Subjects</h1>
               </div>
               <div className="bg-white p-5 sm:p-6 border-y sm:border border-slate-200 sm:rounded-2xl">
-                <p className="text-xs font-semibold text-slate-500 mb-4">Enter a topic, and the engine will fetch its definition automatically.</p>
+                <p className="text-xs text-slate-500 mb-4">Enter a topic, and the engine will fetch its definition automatically.</p>
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  <input type="text" placeholder="Type subject (e.g. Quantum Physics)" value={newSubject} onChange={(e) => setNewSubject(e.target.value)} className="w-full border border-slate-300 bg-white rounded-lg py-2.5 px-4 text-sm font-semibold outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all" onKeyDown={(e) => e.key === 'Enter' && handleAddSubject()} />
-                  <button onClick={handleAddSubject} disabled={isFetchingDef} className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-8 py-2.5 rounded-lg font-bold disabled:bg-slate-300 transition-colors flex items-center justify-center">
+                  <input type="text" placeholder="Type subject (e.g. Quantum Physics)" value={newSubject} onChange={(e) => setNewSubject(e.target.value)} className="w-full border border-slate-300 bg-white rounded-lg py-2.5 px-4 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all" onKeyDown={(e) => e.key === 'Enter' && handleAddSubject()} />
+                  <button onClick={handleAddSubject} disabled={isFetchingDef} className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-8 py-2.5 rounded-lg disabled:bg-slate-300 transition-colors flex items-center justify-center">
                     {isFetchingDef ? <i className="fa-solid fa-spinner fa-spin"></i> : "Add"}
                   </button>
                 </div>
@@ -532,8 +532,8 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                 {subjectsList.map(sub => (
                   <div key={sub.id} className="bg-white border-b sm:border border-slate-200 p-5 sm:rounded-2xl flex justify-between items-start group hover:border-slate-300 transition-colors">
                     <div className="pr-4">
-                      <h5 className="font-bold text-slate-800 text-sm mb-1.5">{sub.name}</h5>
-                      <p className="text-[11px] text-slate-500 font-medium leading-relaxed line-clamp-3">{sub.definition}</p>
+                      <h5 className="text-slate-800 text-sm mb-1.5">{sub.name}</h5>
+                      <p className="text-[11px] text-slate-500 line-clamp-3">{sub.definition}</p>
                     </div>
                     <button onClick={() => handleDeleteSubject(sub.id, sub.name)} className="text-slate-300 hover:text-rose-500 bg-white border border-transparent hover:border-rose-100 hover:bg-rose-50 h-8 w-8 rounded-lg flex items-center justify-center transition-colors shrink-0">
                       <i className="fa-solid fa-trash-can text-xs"></i>
@@ -548,36 +548,36 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
           {activeTab === 'settings' && (
             <div className="animate-fade-in space-y-4 sm:space-y-6 max-w-2xl">
               <div className="px-4 sm:px-0">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">Platform Settings</h1>
+                <h1 className="text-2xl sm:text-3xl text-slate-800">Platform Settings</h1>
               </div>
 
               <div className="bg-white p-5 sm:p-6 border-y sm:border border-slate-200 sm:rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-base font-bold text-slate-800">Financial Goal Target</h3>
-                  <p className="text-xs font-semibold text-slate-500 mt-1">Set the total amount aiming to raise.</p>
+                  <h3 className="text-base text-slate-800">Financial Goal Target</h3>
+                  <p className="text-xs text-slate-500 mt-1">Set the total amount aiming to raise.</p>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
                   <div className="relative flex-1 sm:flex-none">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₹</span>
-                    <input type="number" value={newTarget} onChange={(e) => setNewTarget(e.target.value)} className="w-full sm:w-32 border border-slate-300 rounded-lg py-2 pl-7 pr-3 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 font-bold text-slate-800 transition-all" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
+                    <input type="number" value={newTarget} onChange={(e) => setNewTarget(e.target.value)} className="w-full sm:w-32 border border-slate-300 rounded-lg py-2 pl-7 pr-3 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-800 transition-all" />
                   </div>
-                  <button onClick={handleSaveTarget} className="bg-slate-800 hover:bg-slate-900 text-white px-5 rounded-lg text-sm font-bold transition-colors shrink-0">Save</button>
+                  <button onClick={handleSaveTarget} className="bg-slate-800 hover:bg-slate-900 text-white px-5 rounded-lg text-sm transition-colors shrink-0">Save</button>
                 </div>
               </div>
 
               <div className="bg-teal-50 p-5 sm:p-6 border-y sm:border border-teal-100 sm:rounded-2xl">
-                <h3 className="text-base font-bold text-teal-900 mb-1">Secret Scholarship Links</h3>
-                <p className="text-xs font-semibold text-teal-700/80 mb-4">Generate link with a lower minimum donation limit.</p>
+                <h3 className="text-base text-teal-900 mb-1">Secret Scholarship Links</h3>
+                <p className="text-xs text-teal-700/80 mb-4">Generate link with a lower minimum donation limit.</p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-600 font-bold text-sm">₹</span>
-                    <input type="number" value={scholarshipAmount} onChange={(e) => setScholarshipAmount(e.target.value)} placeholder="Amount" className="w-full border border-teal-200 bg-white rounded-lg py-2.5 pl-8 pr-4 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 font-bold text-teal-900 transition-all" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-600 text-sm">₹</span>
+                    <input type="number" value={scholarshipAmount} onChange={(e) => setScholarshipAmount(e.target.value)} placeholder="Amount" className="w-full border border-teal-200 bg-white rounded-lg py-2.5 pl-8 pr-4 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-teal-900 transition-all" />
                   </div>
-                  <button onClick={handleCreateLink} className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-colors">Generate</button>
+                  <button onClick={handleCreateLink} className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-lg text-sm transition-colors">Generate</button>
                 </div>
                 {generatedLink && (
                   <div className="mt-4 p-3 bg-white border border-teal-200 rounded-lg flex items-center justify-between gap-3">
-                    <code className="text-[10px] sm:text-xs text-teal-800 font-bold truncate">{generatedLink}</code>
+                    <code className="text-[10px] sm:text-xs text-teal-800 font-mono truncate">{generatedLink}</code>
                   </div>
                 )}
               </div>
