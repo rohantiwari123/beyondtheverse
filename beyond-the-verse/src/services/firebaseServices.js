@@ -25,13 +25,19 @@ import { messaging } from "../firebase";
 // 🤖 AUTO-GRAMMAR BOT API (Free LanguageTool)
 // ==========================================
 const checkSpellingWithAPI = async (text) => {
+  // 🌟 1. चेक करो कि क्या टेक्स्ट में हिंदी (Devanagari) अक्षर हैं?
+  const isHindi = /[\u0900-\u097F]/.test(text);
+  
+  // 🌟 2. भाषा का कोड सेट करो ('hi' या 'en-US')
+  const langCode = isHindi ? "hi" : "en-US";
+
   try {
     const response = await fetch("https://api.languagetool.org/v2/check", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         text: text,
-        language: "auto", // Ye apne aap language detect karega
+        language: langCode, // 🌟 'auto' की जगह अब फिक्स भाषा जाएगी
       }),
     });
     
@@ -41,7 +47,7 @@ const checkSpellingWithAPI = async (text) => {
     if (data && data.matches) {
       data.matches.forEach(match => {
         if (match.replacements && match.replacements.length > 0) {
-          // Galti wale word ko extract karna
+          // गलती वाले वर्ड को एक्सट्रेक्ट करना
           const wrongWord = match.context.text.substring(match.context.offset, match.context.offset + match.context.length);
           mistakes.push({
             wrong: wrongWord,
@@ -53,7 +59,7 @@ const checkSpellingWithAPI = async (text) => {
     return mistakes;
   } catch (error) {
     console.error("Spell check api failed:", error);
-    return []; // Agar API fail ho jaye, toh app crash nahi hoga
+    return []; // अगर API फेल हो जाए, तो ऐप क्रैश नहीं होगा
   }
 };
 
