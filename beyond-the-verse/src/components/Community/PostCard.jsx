@@ -11,7 +11,8 @@ import {
   togglePinPost, 
   toggleBookmarkPost, 
   addPostInteraction,
-  createNotification 
+  createNotification,
+  checkSpellingWithAPI // 🌟 Naya joda gaya: Bot ko import kar liya
 } from '../../services/firebaseServices';
 
 export default function PostCard({ post, showToast, isSinglePost }) {
@@ -112,16 +113,22 @@ export default function PostCard({ post, showToast, isSinglePost }) {
     setReason("");
   };
 
+  // 🌟 YAHAN BOT KA JADOO LAGA DIYA HAI
   const handleSubmitReason = async () => {
     if (!reason.trim() || hasInteracted) return; 
     setIsSubmitting(true);
+    
+    const currentReasonText = reason.trim();
+    const interactionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+
     try {
+      // 1. Pehle normal user ka reflection post hoga
       await addPostInteraction(post.id, {
-        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+        id: interactionId,
         userId, 
         userName: userName || "Explorer", 
         type: activeGate, 
-        text: reason.trim(), 
+        text: currentReasonText, 
         timestamp: new Date().toISOString(),
         isPinned: false, 
         replies: [], 
@@ -138,6 +145,27 @@ export default function PostCard({ post, showToast, isSinglePost }) {
       setActiveGate(null);
       setReason("");
       setShowComments(true); 
+
+      // 🌟 2. BOT MAGIC: Background me us reflection ko check karega
+      checkSpellingWithAPI(currentReasonText).then(async (mistakes) => {
+        if (mistakes && mistakes.length > 0) {
+          const botReplyData = {
+            id: "bot_" + Date.now().toString(36),
+            parentId: interactionId, // 🌟 Ye Bot ka comment user ke reflection ke niche judega
+            userId: "system_bot_001",
+            userName: "Grammar Bot 🤖",
+            type: "support",
+            text: `🤖 **Auto-Bot Alert:** I noticed a few typos in your reflection. Here are some suggestions:`,
+            mistakes: mistakes.slice(0, 5),
+            timestamp: new Date().toISOString(),
+            commentGates: { support: [], counter: [], doubt: [] },
+            isAdminComment: true // Admin jaisa highlight
+          };
+          // 3. Bot ka reply database me push
+          await addPostInteraction(post.id, botReplyData);
+        }
+      }).catch(err => console.log("Bot Error:", err));
+
     } catch (e) { showToast("Failed to record.", false); } 
     finally { setIsSubmitting(false); }
   };
@@ -351,4 +379,4 @@ export default function PostCard({ post, showToast, isSinglePost }) {
 
     </div>
   );
-}
+  }
