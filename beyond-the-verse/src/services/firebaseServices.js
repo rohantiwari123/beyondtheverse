@@ -24,7 +24,8 @@ import { messaging } from "../firebase";
 // ==========================================
 // 🤖 AUTO-GRAMMAR BOT API (Using DICT_API_KEY & Gemini 2.5)
 // ==========================================
-const checkSpellingWithAPI = async (text) => {
+// 🌟 FIX: Yahan 'export' laga diya hai taaki dusri files isko use kar sakein
+export const checkSpellingWithAPI = async (text) => {
   // 🌟 सीधा आपकी पुरानी VITE_DICT_API_KEY का इस्तेमाल
   const API_KEY = import.meta.env.VITE_DICT_API_KEY;
 
@@ -76,6 +77,7 @@ const checkSpellingWithAPI = async (text) => {
     return []; 
   }
 };
+
 // ==========================================
 // 📝 1. COMMUNITY & CATEGORIES
 // ==========================================
