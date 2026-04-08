@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// 🌟 DEKHO: addDoc, setDoc, serverTimestamp yahan se hata diye gaye hain (Kyunki wo ab services me hain)
 import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import PostCard from '../../components/Community/PostCard';
 
-// 🌟 JADOO: Apne naye "Chef" ko bula liya!
 import { createPost, saveCategories } from '../../services/firebaseServices';
 
 export default function CommunityPage({ showToast }) {
@@ -17,15 +15,11 @@ export default function CommunityPage({ showToast }) {
   const [newPost, setNewPost] = useState("");
   const [category, setCategory] = useState("Philosophy");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // 🌟 NEW: Language detection state
-  const [isHindi, setIsHindi] = useState(false);
 
   const [categories, setCategories] = useState(["Philosophy", "Science", "Quantum", "Spirituality", "Reflection"]);
   const [isEditingCategories, setIsEditingCategories] = useState(false);
   const [newCatText, setNewCatText] = useState("");
 
-  // 🌟 READ (Fetch) Data
   useEffect(() => {
     const catRef = doc(db, "settings", "categories");
     const unsubCat = onSnapshot(catRef, (docSnap) => {
@@ -50,7 +44,6 @@ export default function CommunityPage({ showToast }) {
     };
   }, []);
 
-  // 🌟 ADMIN ACTION: ADD CATEGORY
   const handleAddCategory = async () => {
     if (!newCatText.trim()) return;
     const updatedCats = [...categories, newCatText.trim()];
@@ -63,7 +56,6 @@ export default function CommunityPage({ showToast }) {
     }
   };
 
-  // 🌟 ADMIN ACTION: DELETE CATEGORY
   const handleDeleteCategory = async (catToDelete) => {
     const updatedCats = categories.filter(c => c !== catToDelete);
     try {
@@ -74,7 +66,6 @@ export default function CommunityPage({ showToast }) {
     }
   };
 
-  // 🌟 CREATE POST ACTION
   const handlePostSubmit = async (e) => {
     e.preventDefault();
     if (!newPost.trim()) return;
@@ -94,7 +85,6 @@ export default function CommunityPage({ showToast }) {
       });
       
       setNewPost("");
-      setIsHindi(false); // 🌟 NEW: Post submit hone par wapas default pe set karna
       showToast("Post published! 🚀");
     } catch (error) {
       showToast("Failed to post.", false);
@@ -103,16 +93,7 @@ export default function CommunityPage({ showToast }) {
     }
   };
 
-  // 🌟 NEW: Handle Textarea Change & Language Detection
-  const handleTextChange = (e) => {
-    const textValue = e.target.value;
-    setNewPost(textValue);
-    // Agar text me Devanagari (Hindi) character hai, to isHindi true ho jayega
-    setIsHindi(/[\u0900-\u097F]/.test(textValue));
-  };
-
   return (
-    // 🌟 CHANGED: Yahan se hardcoded 'verse-hi' hata diya
     <div className="min-h-screen bg-slate-50 pt-2 md:pt-8 pb-20">
       <div className="max-w-3xl mx-auto w-full flex flex-col gap-3 sm:gap-4 md:gap-6 px-0 sm:px-4 md:px-6 lg:px-0">
         
@@ -127,17 +108,13 @@ export default function CommunityPage({ showToast }) {
                 <div className="flex-1">
                   <textarea 
                     value={newPost}
-                    onChange={handleTextChange} /* 🌟 CHANGED: Naya handler lagaya */
+                    onChange={(e) => setNewPost(e.target.value)}
                     placeholder="Share your thoughts, logic, or reflections..."
-                    // 🌟 CHANGED: isHindi ke hisaab se dynamically class badal rahi hai
-                    className={`w-full bg-transparent border-0 outline-none focus:ring-0 focus:outline-none focus:border-transparent p-0 pt-2 md:pt-3 text-lg md:text-xl placeholder:text-slate-400 resize-y min-h-[120px] md:min-h-[160px] overflow-y-auto transition-all duration-300 ${
-                      isHindi ? 'verse-hi text-slate-900' : 'verse-en text-slate-800'
-                    }`}
+                    className="w-full bg-transparent border-0 outline-none focus:ring-0 focus:outline-none focus:border-transparent p-0 pt-2 md:pt-3 text-lg md:text-xl text-slate-900 placeholder:text-slate-400 resize-y min-h-[120px] md:min-h-[160px] overflow-y-auto leading-[1.7]"
                   />
                 </div>
               </div>
               
-              {/* Baaki ka niche ka UI same hai */}
               <div className="pt-4 border-t border-slate-100 flex flex-col gap-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 overflow-x-auto no-scrollbar pb-2 -mb-2">
@@ -206,4 +183,4 @@ export default function CommunityPage({ showToast }) {
       </div>
     </div>
   );
-}
+        }
