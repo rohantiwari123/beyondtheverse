@@ -26,14 +26,18 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
 
   const targetId = interaction.id || interaction.timestamp;
   const gates = interaction.commentGates || { support: [], counter: [], doubt: [] };
-  const isAdminComment = interaction.isAdminComment === true || interaction.role === 'admin';
+  
+  // 🌟 FIX: Bot aur Admin ko alag-alag pehchanna
+  const isBot = interaction.userId === 'system_bot_001';
+  const isAdminBadge = interaction.isAdminComment === true || interaction.role === 'admin';
 
   useEffect(() => {
-    if (isOwner && isAdmin && !isAdminComment) {
+    // Bot ko admin upgrade process se bahar rakha hai
+    if (isOwner && isAdmin && !isAdminBadge && !isBot) {
       upgradeCommentToAdmin(post.id, post.interactions, targetId)
         .catch(err => console.error("Admin upgrade failed", err));
     }
-  }, [isOwner, isAdmin, isAdminComment, post.id, targetId, post.interactions]);
+  }, [isOwner, isAdmin, isAdminBadge, isBot, post.id, targetId, post.interactions]);
 
   const supportCount = gates.support.length;
   const counterCount = gates.counter.length;
@@ -105,7 +109,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     finally { setIsSubmitting(false); }
   };
 
-  // 🌟 NAYA: Markdown (**) ko bold span me convert karne wala function
+  // Markdown (**) ko bold span me convert karne wala function
   const formatMessage = (text) => {
     if (!text) return null;
     const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -117,9 +121,18 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     });
   };
 
-  // 🌟 CLEAN THEME: Deep colors/shadows hata diye, flat slate theme lagayi hai
-  const avatarClass = isAdminComment ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-600";
-  const nameColorClass = isAdminComment ? "text-slate-900 font-medium" : "text-slate-700";
+  // 🌟 FIX: Avatar aur Name ki styling alag-alag (Bot vs Admin vs User)
+  const avatarClass = isBot 
+    ? "bg-slate-800 text-white" 
+    : isAdminBadge 
+      ? "bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-sm shadow-amber-500/20" 
+      : "bg-slate-100 text-slate-600";
+      
+  const nameColorClass = isBot 
+    ? "text-slate-900 font-medium" 
+    : isAdminBadge 
+      ? "text-amber-900 font-medium" 
+      : "text-slate-700";
 
   return (
     <div className={`transition-all group w-full ${isMainComment ? 'py-2' : ''}`}>
@@ -135,9 +148,14 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
 
         <div className={`${isMainComment ? 'h-10 w-10 text-sm' : 'h-8 w-8 text-xs'} rounded-full flex items-center justify-center shrink-0 relative transition-all ${avatarClass}`}>
           {interaction.userName?.charAt(0).toUpperCase()}
-          {isAdminComment && (
+          {isBot && (
             <div className="absolute -top-0.5 -right-0.5 text-slate-500 bg-white rounded-full h-3.5 w-3.5 flex items-center justify-center border border-slate-200">
-              <i className="fa-solid fa-check text-[7px]"></i>
+              <i className="fa-solid fa-robot text-[7px]"></i>
+            </div>
+          )}
+          {!isBot && isAdminBadge && (
+            <div className="absolute -top-1 -right-1 text-amber-500 bg-white rounded-full h-3.5 w-3.5 flex items-center justify-center shadow-sm border border-amber-100">
+              <i className="fa-solid fa-crown text-[6px]"></i>
             </div>
           )}
         </div>
@@ -149,16 +167,21 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
                 {interaction.userName}
               </span>
 
-              {isAdminComment && (
+              {/* 🌟 FIX: Bot aur Admin ka Badge alag kar diya */}
+              {isBot ? (
                 <span className="bg-slate-100 text-slate-600 text-[9px] uppercase px-1.5 py-0.5 rounded flex items-center gap-1 border border-slate-200 tracking-wide">
                   Bot
                 </span>
-              )}
+              ) : isAdminBadge ? (
+                <span className="bg-amber-100 text-amber-700 text-[9px] uppercase px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-200 tracking-wide">
+                  ADMIN
+                </span>
+              ) : null}
 
               {interaction.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-[10px]"></i>}
 
-              {/* Bot ka type label hide karna ho toh yahan condition laga sakte ho, abhi normal rakha hai */}
-              {!isAdminComment && (
+              {/* Bot ko Support/Counter wala label nahi dikhega */}
+              {!isBot && (
                 <span className={`text-[9px] md:text-[10px] uppercase flex items-center gap-1.5 ${config.color} ${config.bg} border ${config.border} px-2 py-0.5 rounded-md`}>
                   <i className={config.icon}></i> {config.label}
                 </span>
@@ -207,12 +230,12 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
             </div>
           ) : (
             <>
-              {/* 🌟 NAYA: Formatted Text */}
+              {/* Normal Text Output */}
               <p className={`text-slate-700 whitespace-pre-wrap text-justify break-words ${isMainComment ? 'text-[14px] mt-1' : 'text-sm mt-0.5'} mb-1`}>
                 {formatMessage(interaction.text)}
               </p>
 
-              {/* 🌟 NAYA: CLEAN TABLE UI (Minimal Border, no shadow) */}
+              {/* Bot ki galtiyo wali Table */}
               {interaction.mistakes && interaction.mistakes.length > 0 && (
                 <div className="mt-2 mb-3 overflow-hidden rounded-lg border border-slate-200 w-full max-w-sm">
                   <table className="w-full text-left text-[13px]">
@@ -244,7 +267,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
             </>
           )}
 
-          {!isEditing && !isAdminComment && (
+          {!isEditing && !isBot && (
             <div className="flex items-center gap-4 mt-2">
               <button onClick={() => handleIconClick('support')} className={`flex items-center gap-1.5 text-[11px] transition-all hover:-translate-y-0.5 ${hasReacted && gates.support.includes(userId) ? 'text-emerald-600' : 'text-slate-400 hover:text-emerald-600'}`}>
                 <i className={`${hasReacted && gates.support.includes(userId) ? 'fa-solid' : 'fa-regular'} fa-circle-check text-sm`}></i>{supportCount > 0 && <span>{supportCount}</span>}
@@ -401,4 +424,4 @@ export default function CommentBox({ post, showToast }) {
       </div>
     </div>
   );
-              }
+                                     }
