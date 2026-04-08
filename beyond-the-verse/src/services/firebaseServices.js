@@ -22,22 +22,19 @@ import { getToken } from "firebase/messaging";
 import { messaging } from "../firebase";
 
 // ==========================================
-// 🤖 AUTO-GRAMMAR BOT API (Free LanguageTool)
+// 🤖 AUTO-GRAMMAR BOT API (Mobile Debugging Version)
 // ==========================================
 const checkSpellingWithAPI = async (text) => {
-  // 🌟 1. चेक करो कि क्या टेक्स्ट में हिंदी (Devanagari) अक्षर हैं?
   const isHindi = /[\u0900-\u097F]/.test(text);
-  
-  // 🌟 2. भाषा का कोड सेट करो ('hi' या 'en-US')
   const langCode = isHindi ? "hi" : "en-US";
 
   try {
     const response = await fetch("https://api.languagetool.org/v2/check", {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
       body: new URLSearchParams({
         text: text,
-        language: langCode, // 🌟 'auto' की जगह अब फिक्स भाषा जाएगी
+        language: langCode,
       }),
     });
     
@@ -47,7 +44,6 @@ const checkSpellingWithAPI = async (text) => {
     if (data && data.matches) {
       data.matches.forEach(match => {
         if (match.replacements && match.replacements.length > 0) {
-          // गलती वाले वर्ड को एक्सट्रेक्ट करना
           const wrongWord = match.context.text.substring(match.context.offset, match.context.offset + match.context.length);
           mistakes.push({
             wrong: wrongWord,
@@ -56,10 +52,16 @@ const checkSpellingWithAPI = async (text) => {
         }
       });
     }
+    
+    // 🌟 MOBILE DEBUG ALERT: जैसे ही आप पोस्ट करेंगे, स्क्रीन पर एक मैसेज आएगा
+    if (isHindi) {
+      alert(`बॉट ने चेक किया: ${langCode}\nगलतियां मिलीं: ${mistakes.length}`);
+    }
+
     return mistakes;
   } catch (error) {
-    console.error("Spell check api failed:", error);
-    return []; // अगर API फेल हो जाए, तो ऐप क्रैश नहीं होगा
+    alert("API Error: " + error.message);
+    return []; 
   }
 };
 
