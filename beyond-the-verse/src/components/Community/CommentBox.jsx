@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { formatDateTime } from '../../utils/dateFormatter';
 
-// 🌟 Real Service Imports
+// 🌟 Real Service Imports (Bot aur addPostInteraction joda gaya)
 import {
   upgradeCommentToAdmin,
   deleteCommentInteraction,
   editCommentInteraction,
   togglePinComment,
-  addCommentReply
+  addCommentReply,
+  addPostInteraction,    // 🌟 Naya joda gaya (Bot ke reply ke liye)
+  checkSpellingWithAPI   // 🌟 Naya joda gaya (Bot ka dimaag)
 } from '../../services/firebaseServices';
 
 function InteractionNode({ interaction, allInteractions, post, showToast, isMainComment }) {
@@ -27,7 +29,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
   const targetId = interaction.id || interaction.timestamp;
   const gates = interaction.commentGates || { support: [], counter: [], doubt: [] };
   
-  // 🌟 FIX: Bot aur Admin ko alag-alag pehchanna
+  // 🌟 Bot aur Admin ko alag-alag pehchanna
   const isBot = interaction.userId === 'system_bot_001';
   const isAdminBadge = interaction.isAdminComment === true || interaction.role === 'admin';
 
@@ -86,25 +88,54 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     setIsReplying(true);
   };
 
+  // 🌟 YAHAN BOT KO LAGA DIYA HAI
   const handleReplySubmit = async () => {
     if (replyText.trim().length < 2) return;
     setIsSubmitting(true);
+    
+    const currentReplyText = replyText.trim();
+    const replyId = Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+
     try {
       const replyData = {
-        id: Date.now().toString(36) + Math.random().toString(36).substring(2, 9),
+        id: replyId,
         parentId: targetId,
         userId,
         userName: userName || "Explorer",
         type: replyType,
-        text: replyText.trim(),
+        text: currentReplyText,
         timestamp: new Date().toISOString(),
         commentGates: { support: [], counter: [], doubt: [] },
         isAdminComment: isAdmin
       };
+      
+      // 1. User ka reply Database me daala
       await addCommentReply(post.id, post.interactions, targetId, replyData, gates);
+      
       setReplyText("");
       setIsReplying(false);
       showToast("Logic recorded! 🚀");
+
+      // 🌟 2. BOT MAGIC: Background me reply ko check karna
+      checkSpellingWithAPI(currentReplyText).then(async (mistakes) => {
+        if (mistakes && mistakes.length > 0) {
+          const botReplyData = {
+            id: "bot_" + Date.now().toString(36),
+            parentId: replyId, // 🌟 Bot ka reply seedha user ke is naye reply ke niche dikhega
+            userId: "system_bot_001",
+            userName: "Grammar Bot 🤖",
+            type: "support",
+            text: `🤖 **Auto-Bot Alert:** I noticed a few typos in your reflection. Here are some suggestions:`,
+            mistakes: mistakes.slice(0, 5),
+            timestamp: new Date().toISOString(),
+            commentGates: { support: [], counter: [], doubt: [] },
+            isAdminComment: true // Admin jaisa highlight
+          };
+          // 3. Bot ka message upload karna
+          await addPostInteraction(post.id, botReplyData);
+        }
+      }).catch(err => console.log("Bot Error:", err));
+
     } catch (e) { showToast("Failed to reply.", false); }
     finally { setIsSubmitting(false); }
   };
@@ -121,7 +152,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     });
   };
 
-  // 🌟 FIX: Avatar aur Name ki styling alag-alag (Bot vs Admin vs User)
+  // Avatar aur Name ki styling
   const avatarClass = isBot 
     ? "bg-slate-800 text-white" 
     : isAdminBadge 
@@ -167,7 +198,6 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
                 {interaction.userName}
               </span>
 
-              {/* 🌟 FIX: Bot aur Admin ka Badge alag kar diya */}
               {isBot ? (
                 <span className="bg-slate-100 text-slate-600 text-[9px] uppercase px-1.5 py-0.5 rounded flex items-center gap-1 border border-slate-200 tracking-wide">
                   Bot
@@ -180,7 +210,6 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
 
               {interaction.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-[10px]"></i>}
 
-              {/* Bot ko Support/Counter wala label nahi dikhega */}
               {!isBot && (
                 <span className={`text-[9px] md:text-[10px] uppercase flex items-center gap-1.5 ${config.color} ${config.bg} border ${config.border} px-2 py-0.5 rounded-md`}>
                   <i className={config.icon}></i> {config.label}
@@ -424,4 +453,4 @@ export default function CommentBox({ post, showToast }) {
       </div>
     </div>
   );
-                                     }
+    }
