@@ -1,12 +1,22 @@
-/* 1. Google Fonts Import: सिर्फ Inter */
+/* 1. Font Imports */
+/* Base Font: Inter */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Terminal/Tag Font: JetBrains Mono */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap');
+/* Logo Font: Cabinet Grotesk (Fontshare) */
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,500,700,400,900&display=swap');
 
 /* 2. Tailwind v4 Import */
 @import "tailwindcss";
 
+/* 3. Tailwind v4 Theme Configuration (No tailwind.config.js needed!) */
 @theme {
   /* पूरी वेबसाइट का डिफ़ॉल्ट UI फॉन्ट */
   --font-sans: "Inter", -apple-system, system-ui, sans-serif;
+  /* हेडर लोगो के लिए प्रीमियम फॉन्ट */
+  --font-cabinet: "Cabinet Grotesk", sans-serif;
+  /* सिस्टम/टर्मिनल टैग्स के लिए फॉन्ट */
+  --font-mono: "JetBrains Mono", monospace;
 }
 
 @layer base {

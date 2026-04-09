@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom"; 
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { subscribeToUserNotifications, markNotificationAsRead, requestPushNotificationPermission } from '../../services/firebaseServices'; 
-import { formatDateTime } from '../../utils/dateFormatter'; 
+import { subscribeToUserNotifications, markNotificationAsRead, requestPushNotificationPermission } from '../../services/firebaseServices';
+import { formatDateTime } from '../../utils/dateFormatter';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const location = useLocation(); 
+  const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, isAdmin, userName, userId, logout } = useAuth(); 
+  const { isAuthenticated, isAdmin, userName, userId, logout } = useAuth();
 
   // Notification States
   const [notifications, setNotifications] = useState([]);
@@ -66,34 +66,52 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-white/95 backdrop-blur-xl sticky top-0 z-40 border-b border-slate-200 w-full overflow-visible">
+      {/* 🌟 Yahan sirf 'fixed left-0 right-0' joda gaya hai */}
+      <header className="bg-white/95 backdrop-blur-xl fixed top-0 left-0 right-0 z-40 border-b border-slate-200 w-full overflow-visible">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center">
-          
-          {/* 1. LEFT ZONE: LOGO */}
-          <div className="flex items-center justify-start min-w-max lg:w-1/4">
-            <Link to="/" className="flex items-center gap-2 lg:gap-3 select-none group">
-              <div className="flex items-center justify-center h-8 w-8 lg:h-10 lg:w-10 bg-teal-50 border border-teal-100 rounded-lg lg:rounded-xl shrink-0 transition-transform group-hover:scale-105">
-                <i className="fa-solid fa-atom text-teal-600 text-lg lg:text-xl"></i>
-              </div>
-              <div className="flex flex-col justify-center overflow-hidden">
-                <h1 className="text-[13px] sm:text-base lg:text-lg text-slate-800 truncate">
-                  Beyond The <span className="text-teal-600">Verse</span>
-                </h1>
-                <span className="hidden xs:block text-[7px] lg:text-[8px] text-slate-400 uppercase mt-0.5 truncate">Empowering Education</span>
-              </div>
-            </Link>
-          </div>
+
+{/* 1. LEFT ZONE: TYPOGRAPHIC LOGO (Horizontal Layout) */}
+<div className="flex items-center justify-start min-w-max lg:w-1/4">
+  <Link to="/" className="flex flex-col justify-center items-start select-none  ">
+    
+    {/* 🌟 Horizontal Logo Structure */}
+    {/* items-baseline lagaya hai taaki sabhi words niche se ek level par rahein */}
+    <div className="flex items-baseline gap-1">
+      
+      {/* Word 1: Beyond (Heavy & Dark) */}
+      <span className="text-[22px] sm:text-[26px] lg:text-[34px] text-slate-900 font-cabinet font-black tracking-tighter leading-none">
+        Beyond
+      </span>
+      
+      {/* Word 2: The (Light & Neutral) */}
+      <span className="text-[16px] sm:text-[20px] lg:text-[24px] text-slate-400 font-cabinet font-black tracking-tight leading-none">
+        The
+      </span>
+      
+      {/* Word 3: Verse (Brand Color & Bold) */}
+      <span className="text-[20px] sm:text-[24px] lg:text-[28px] text-teal-600 font-cabinet font-black tracking-tight leading-none">
+        Verse
+      </span>
+      
+    </div>
+    
+    {/* Tagline (Inter Font - Clean, Neutral & Elegant) */}
+    <span className="hidden xs:flex items-center gap-1.5 text-[6.5px] sm:text-[7px] lg:text-[8px] text-slate-400 uppercase mt-1.5 sm:mt-2 truncate tracking-[0.35em] font-medium font-sans">
+      <div className="h-px w-3 bg-teal-500/40"></div> Empowering Education
+    </span>
+    
+  </Link>
+</div>
 
           {/* 2. CENTER ZONE: NAVIGATION */}
           <nav className="hidden xl:flex flex-1 justify-center px-4">
             <div className="flex items-center gap-1 xl:gap-2">
               {navLinks.map((link) => (
-                <Link 
-                  key={link.name} 
+                <Link
+                  key={link.name}
                   to={link.path}
-                  className={`px-3 py-2 rounded-lg text-[12px] xl:text-[13px] transition-all whitespace-nowrap ${
-                    isPathActive(link.path) ? "bg-teal-50 text-teal-700" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
-                  }`}
+                  className={`px-3 py-2 rounded-lg text-[12px] xl:text-[13px] transition-all whitespace-nowrap ${isPathActive(link.path) ? "font-bold text-teal-700" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+                    }`}
                 >
                   {link.name}
                 </Link>
@@ -103,15 +121,14 @@ export default function Header() {
 
           {/* 3. RIGHT ZONE: ACTIONS */}
           <div className="flex items-center justify-end flex-1 lg:w-1/4 gap-2">
-            
+
             {/* UNIVERSAL NOTIFICATION BELL */}
             {isAuthenticated && (
               <div className="relative">
-                <button 
+                <button
                   onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-                  className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${
-                    showNotifDropdown ? 'bg-teal-50 text-teal-600 border-teal-200' : 'text-slate-500 border-transparent hover:bg-slate-100 hover:text-slate-800'
-                  }`}
+                  className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${showNotifDropdown ? 'bg-teal-50 text-teal-600 border-teal-200' : 'text-slate-500 border-transparent hover:bg-slate-100 hover:text-slate-800'
+                    }`}
                 >
                   <i className="fa-regular fa-bell text-[15px] xl:text-base"></i>
                   {unreadCount > 0 && (
@@ -128,7 +145,7 @@ export default function Header() {
                         <span className="text-slate-800 text-[13px] uppercase">Notifications</span>
                         {unreadCount > 0 && <span className="bg-teal-100 text-teal-700 text-[9px] uppercase px-2 py-1 rounded-md border border-teal-200">{unreadCount} New</span>}
                       </div>
-                      
+
                       <div className="max-h-[350px] overflow-y-auto hide-scrollbar">
                         {notifications.length === 0 ? (
                           <div className="p-8 text-center text-slate-400">
@@ -137,8 +154,8 @@ export default function Header() {
                           </div>
                         ) : (
                           notifications.map(notif => (
-                            <div 
-                              key={notif.id} 
+                            <div
+                              key={notif.id}
                               onClick={() => handleNotificationClick(notif)}
                               className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors flex gap-3.5 ${!notif.isRead ? 'bg-teal-50/40' : ''}`}
                             >
@@ -166,32 +183,29 @@ export default function Header() {
               {isAuthenticated && userName && (
                 <>
                   {isAdmin && (
-                    <Link 
-                      to="/admin" 
-                      className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${
-                        isPathActive('/admin') ? "bg-slate-900 text-white border-slate-900" : "text-slate-400 border-transparent hover:bg-slate-100"
-                      }`}
+                    <Link
+                      to="/admin"
+                      className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${isPathActive('/admin') ? "bg-slate-900 text-white border-slate-900" : "text-slate-400 border-transparent hover:bg-slate-100"
+                        }`}
                       title="Admin Dashboard"
                     >
                       <i className="fa-solid fa-shield-halved text-xs xl:text-sm"></i>
                     </Link>
                   )}
 
-                  <Link 
-                    to="/settings" 
-                    className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${
-                      isPathActive('/settings') ? "bg-teal-50 text-teal-600 border-teal-200" : "text-slate-400 border-transparent hover:bg-slate-100"
-                    }`}
+                  <Link
+                    to="/settings"
+                    className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${isPathActive('/settings') ? "bg-teal-50 text-teal-600 border-teal-200" : "text-slate-400 border-transparent hover:bg-slate-100"
+                      }`}
                     title="Settings"
                   >
                     <i className="fa-solid fa-gear text-xs xl:text-sm"></i>
                   </Link>
 
-                  <Link 
-                    to="/profile" 
-                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-full transition-all border ${
-                      isPathActive('/profile') ? "bg-teal-50 text-teal-700 border-teal-200" : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
-                    }`}
+                  <Link
+                    to="/profile"
+                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-full transition-all border ${isPathActive('/profile') ? "bg-teal-50 text-teal-700 border-teal-200" : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                      }`}
                   >
                     <i className={`fa-solid fa-circle-user text-sm ${isPathActive('/profile') ? 'text-teal-500' : 'text-slate-400'}`}></i>
                     <span className="text-[11px] xl:text-xs truncate max-w-[50px] xl:max-w-[100px]">
@@ -214,8 +228,8 @@ export default function Header() {
 
             {/* Mobile Menu Toggle */}
             <div className="flex xl:hidden">
-              <button 
-                onClick={() => setIsMobileMenuOpen(true)} 
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
                 className="h-9 w-9 flex items-center justify-center bg-slate-800 text-white rounded-lg active:scale-95 transition-transform"
               >
                 <i className="fa-solid fa-bars text-sm"></i>
@@ -225,13 +239,16 @@ export default function Header() {
         </div>
       </header>
 
+      {/* 🌟 Yahan ek Spacer Div joda gaya hai taaki content header ke piche na daab jaye */}
+      <div className="h-14 sm:h-16 w-full shrink-0"></div>
+
       {/* MOBILE DRAWER */}
-      <div 
-        className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity z-[100] xl:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} 
+      <div
+        className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity z-[100] xl:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={() => setIsMobileMenuOpen(false)}
       ></div>
 
-      <div 
+      <div
         className={`fixed top-0 right-0 h-screen w-[280px] sm:w-[320px] bg-white z-[110] xl:hidden flex flex-col transition-transform duration-300 ease-in-out border-l border-slate-200 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
@@ -246,13 +263,12 @@ export default function Header() {
 
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {navLinks.map((link) => (
-            <Link 
-              key={link.name} 
-              to={link.path} 
-              onClick={() => setIsMobileMenuOpen(false)} 
-              className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${
-                isPathActive(link.path) ? "bg-teal-50 text-teal-700" : "text-slate-600 hover:bg-slate-50"
-              }`}
+            <Link
+              key={link.name}
+              to={link.path}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${isPathActive(link.path) ? "bg-teal-50 text-teal-700" : "text-slate-600 hover:bg-slate-50"
+                }`}
             >
               <div className="w-5 flex justify-center shrink-0"><i className={`fa-solid ${link.icon} text-base`}></i></div>
               <span className="text-sm">{link.name}</span>
@@ -273,7 +289,7 @@ export default function Header() {
                   <p className="text-[13px] text-slate-800 truncate">{userName}</p>
                 </div>
               </Link>
-              
+
               <div className="flex items-center gap-1 border-l border-slate-100 pl-1">
                 {isAdmin && (
                   <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${isPathActive('/admin') ? 'text-slate-900 bg-slate-100' : 'text-slate-400'}`}>
