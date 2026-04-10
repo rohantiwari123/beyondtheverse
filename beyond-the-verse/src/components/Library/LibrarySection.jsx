@@ -64,19 +64,33 @@ export default function LibrarySection() {
     if (modalType === "folder" && !newItemName.trim()) return;
     if (modalType === "file" && !selectedFile) return;
 
-    setIsProcessing(true); // Start loading
+    setIsProcessing(true); // 🌟 Spinner Chalu
+    console.log("🚀 Starting upload process...");
 
     try {
       if (modalType === "folder") {
+        console.log("📂 Creating folder:", newItemName);
         await createLibraryFolder(newItemName, currentFolder);
       } else {
+        console.log("📄 Uploading PDF:", selectedFile.name, "Size:", (selectedFile.size / 1024 / 1024).toFixed(2), "MB");
+        
+        // Agar file 10MB se badi hai to alert de (Optional)
+        if (selectedFile.size > 10 * 1024 * 1024) {
+          alert("File size is too large! Please upload a PDF under 10MB.");
+          setIsProcessing(false);
+          return;
+        }
+
         await uploadLibraryFile(selectedFile, currentFolder);
+        console.log("✅ PDF Upload Successful!");
       }
-      closeModal();
+      closeModal(); // Upload ke baad modal band
     } catch (error) {
+      console.error("❌ Upload Failed:", error);
       alert("Error: " + error.message);
     } finally {
-      setIsProcessing(false); // Stop loading
+      setIsProcessing(false); // 🌟 Spinner Band (Chahe pass ho ya fail)
+      console.log("🛑 Process Finished. Spinner stopped.");
     }
   };
 
