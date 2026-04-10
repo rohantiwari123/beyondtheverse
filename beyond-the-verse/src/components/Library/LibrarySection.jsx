@@ -58,35 +58,30 @@ export default function LibrarySection() {
     setActiveMenu(null);
   };
 
-  // 🌟 2. CREATE FOLDER / UPLOAD PDF (Firebase)
+  // 🌟 2. CREATE FOLDER / SAVE PDF LINK (Firebase)
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    if (modalType === "folder" && !newItemName.trim()) return;
+    
+    // Naya Validation: Dono (folder aur file) ke liye naam chahiye, aur file me link (selectedFile)
+    if (!newItemName.trim()) return;
     if (modalType === "file" && !selectedFile) return;
 
     setIsProcessing(true); // 🌟 Spinner Chalu
-    console.log("🚀 Starting upload process...");
+    console.log("🚀 Starting process...");
 
     try {
       if (modalType === "folder") {
         console.log("📂 Creating folder:", newItemName);
         await createLibraryFolder(newItemName, currentFolder);
       } else {
-        console.log("📄 Uploading PDF:", selectedFile.name, "Size:", (selectedFile.size / 1024 / 1024).toFixed(2), "MB");
-        
-        // Agar file 10MB se badi hai to alert de (Optional)
-        if (selectedFile.size > 10 * 1024 * 1024) {
-          alert("File size is too large! Please upload a PDF under 10MB.");
-          setIsProcessing(false);
-          return;
-        }
-
-        await uploadLibraryFile(selectedFile, currentFolder);
-        console.log("✅ PDF Upload Successful!");
+        // 🌟 Yahan selectedFile ab URL (link) hai, aur newItemName PDF ka naam hai
+        console.log("📄 Saving PDF Link:", newItemName);
+        await uploadLibraryFile(selectedFile, currentFolder, newItemName);
+        console.log("✅ PDF Link Saved Successfully!");
       }
-      closeModal(); // Upload ke baad modal band
+      closeModal(); // Save hone ke baad modal band
     } catch (error) {
-      console.error("❌ Upload Failed:", error);
+      console.error("❌ Action Failed:", error);
       alert("Error: " + error.message);
     } finally {
       setIsProcessing(false); // 🌟 Spinner Band (Chahe pass ho ya fail)
@@ -218,4 +213,4 @@ export default function LibrarySection() {
 
     </section>
   );
-}
+          }
