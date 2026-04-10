@@ -568,26 +568,34 @@ export const createLibraryFolder = async (name, parentId) => {
   }
 };
 
-// 3. Upload PDF File
-export const uploadLibraryFile = async (file, parentId) => {
+// 🌟 3. ADD PDF LINK (AUTO CONVERT TO DIRECT DOWNLOAD)
+export const uploadLibraryFile = async (linkUrl, parentId, pdfName) => {
   try {
-    // A. Upload file to Firebase Storage
-    const storageRef = ref(storage, `library/${Date.now()}_${file.name}`);
-    const snapshot = await uploadBytes(storageRef, file);
-    const downloadUrl = await getDownloadURL(snapshot.ref);
+    if (!linkUrl || !pdfName) throw new Error("Name and Link are required!");
 
-    // B. Save file metadata to Firestore
+    let finalUrl = linkUrl.trim();
+
+    // 🚀 THE GOOGLE DRIVE HACK: Convert normal link to Direct Download link
+    if (finalUrl.includes("drive.google.com")) {
+      const idMatch = finalUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || finalUrl.match(/id=([a-zA-Z0-9_-]+)/);
+      if (idMatch && idMatch[1]) {
+        const fileId = idMatch[1];
+        finalUrl = `https://drive.google.com/uc?export=download&id=${fileId}`; // Direct download link
+      }
+    }
+
+    // Sirf Firestore Database mein entry banayenge (No Storage Upload)
     const docRef = await addDoc(collection(db, "library"), {
-      name: file.name,
+      name: pdfName.trim(),
       type: "file",
       parentId: parentId,
-      url: downloadUrl,
-      storagePath: snapshot.ref.fullPath, // Delete karne ke kaam aayega
+      url: finalUrl, 
       createdAt: serverTimestamp()
     });
+
     return docRef;
   } catch (error) {
-    console.error("Error uploading file:", error);
+    console.error("Error saving PDF link:", error);
     throw error;
   }
 };
@@ -605,15 +613,10 @@ export const renameLibraryItem = async (itemId, newName) => {
   }
 };
 
-// 5. Delete Item (File or Folder)
+// 🌟 5. DELETE ITEM (Ab storage se delete nahi karna padega, sirf database se)
 export const deleteLibraryItem = async (item) => {
   try {
-    // Agar file hai, to pehle use Firebase Storage se udao
-    if (item.type === "file" && item.storagePath) {
-      const storageRef = ref(storage, item.storagePath);
-      await deleteObject(storageRef);
-    }
-    // Fir Firestore se document delete karo
+    // Sirf Firestore se document delete karo
     await deleteDoc(doc(db, "library", item.id));
     return true;
   } catch (error) {
