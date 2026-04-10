@@ -21,7 +21,7 @@ export default function LibraryModal({
       <div role="dialog" aria-modal="true" aria-labelledby="modal-title" className="relative w-full max-w-md bg-white border-t sm:border border-slate-200 rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 pb-10 sm:pb-8 z-10 animate-fade-in-up sm:animate-none shadow-2xl">
         <div className="flex justify-between items-center mb-6 sm:mb-8">
           <h3 id="modal-title" className="text-xl font-bold text-slate-900">
-            {modalType === "folder" ? "New Folder" : "Upload File"}
+            {modalType === "folder" ? "New Folder" : "Add PDF Link"}
           </h3>
           <button 
             onClick={closeModal} 
@@ -46,29 +46,27 @@ export default function LibraryModal({
               />
             </div>
           ) : (
-            <div className={`border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center relative transition-all
-              ${isProcessing ? 'border-slate-200 bg-slate-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-100 focus-within:border-slate-900 focus-within:ring-1 focus-within:ring-slate-900 cursor-pointer'}`}>
-              
-              <input 
-                type="file" 
-                accept="application/pdf, .pdf" // 🌟 Best practice for PDF
-                onChange={(e) => setSelectedFile(e.target.files[0])}
-                disabled={isProcessing} // 🌟 Uploading ke time file change disable
-                className={`absolute inset-0 w-full h-full opacity-0 z-10 ${isProcessing ? 'cursor-not-allowed' : 'cursor-pointer'}`} 
-                required 
-                aria-label="File upload input"
-              />
-              
-              <div className={`w-14 h-14 border rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm transition-colors
-                ${isProcessing ? 'bg-slate-100 border-slate-200' : 'bg-white border-slate-200'}`}>
-                <i className={`fa-solid fa-arrow-up text-lg ${isProcessing ? 'text-slate-300' : 'text-slate-700'}`}></i>
+            /* 🌟 FILE INPUT HATA DIYA, AB SIRF NAME AUR LINK BOX HAI */
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="pdfName" className="block text-sm font-medium text-slate-700 mb-2">PDF Name</label>
+                <input 
+                  id="pdfName" type="text" value={newItemName} onChange={(e) => setNewItemName(e.target.value)}
+                  placeholder="e.g. The Bhagavad Gita" 
+                  disabled={isProcessing} 
+                  className="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 text-base transition-colors disabled:bg-slate-50 disabled:text-slate-400" required 
+                />
               </div>
-              <p className={`text-base font-semibold truncate px-2 ${isProcessing ? 'text-slate-400' : 'text-slate-900'}`}>
-                {selectedFile ? selectedFile.name : "Select a PDF"}
-              </p>
-              <p className={`text-sm mt-1 ${isProcessing ? 'text-slate-300' : 'text-slate-500'}`}>
-                {isProcessing ? "Uploading in progress..." : "or drag and drop here"}
-              </p>
+              <div>
+                <label htmlFor="pdfLink" className="block text-sm font-medium text-slate-700 mb-2">Google Drive / Direct Link</label>
+                {/* Yahan selectedFile ab as a Text (URL) kaam karega */}
+                <input 
+                  id="pdfLink" type="url" value={selectedFile || ''} onChange={(e) => setSelectedFile(e.target.value)}
+                  placeholder="Paste link here..." 
+                  disabled={isProcessing} 
+                  className="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 text-base transition-colors disabled:bg-slate-50 disabled:text-slate-400" required 
+                />
+              </div>
             </div>
           )}
 
@@ -84,14 +82,14 @@ export default function LibraryModal({
             {isProcessing ? (
               <>
                 <i className="fa-solid fa-circle-notch fa-spin"></i>
-                {modalType === "folder" ? "Creating..." : "Uploading PDF..."}
+                {modalType === "folder" ? "Creating..." : "Saving Link..."}
               </>
             ) : (
-              modalType === "folder" ? "Create Folder" : "Confirm Upload"
+              modalType === "folder" ? "Create Folder" : "Save PDF Link"
             )}
           </button>
         </form>
       </div>
     </div>
   );
-        }
+              }
