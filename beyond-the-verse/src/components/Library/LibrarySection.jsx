@@ -1,50 +1,53 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext"; // 🌟 Auth Context (Ensure path is correct)
+import { useAuth } from "../../context/AuthContext"; 
 import { 
   subscribeToLibraryItems, 
   createLibraryFolder, 
   uploadLibraryFile, 
   renameLibraryItem, 
-  deleteLibraryItem 
-} from "../../services/firebaseServices"; // 🌟 Firebase Services Import
-
+  deleteLibraryItem,
+  moveLibraryItem,
+  copyLibraryItem
+} from "../../services/firebaseServices"; 
 import LibraryToolbar from "./LibraryToolbar";
 import LibraryEmptyState from "./LibraryEmptyState";
 import LibraryItemCard from "./LibraryItemCard";
 import LibraryModal from "./LibraryModal";
+import LoginOverlay from "../../components/common/LoginOverlay"; 
 
 export default function LibrarySection() {
-  const { isAdmin } = useAuth(); // 🌟 Sirf Admin ko add/delete permissions dikhane ke liye
+  const { currentUser, isAdmin } = useAuth(); 
 
-  // 🌟 REAL FIREBASE STATE
+  const [toast, setToast] = useState(null);
+  const [clipboard, setClipboard] = useState(null); 
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false); // Uploading state
+  const [isProcessing, setIsProcessing] = useState(false); 
 
   const [currentFolder, setCurrentFolder] = useState("root");
   const [folderHistory, setFolderHistory] = useState([{ id: "root", name: "Library" }]);
 
-  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState("");
   const [newItemName, setNewItemName] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
-
-  // Menu State
   const [activeMenu, setActiveMenu] = useState(null);
 
   const currentItems = items.filter((item) => item.parentId === currentFolder);
 
-  // 🌟 1. REAL-TIME LISTENER (Fetch Data)
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000); 
+  };
+
   useEffect(() => {
     const unsubscribe = subscribeToLibraryItems((fetchedItems) => {
       setItems(fetchedItems);
       setIsLoading(false);
     });
-    return () => unsubscribe(); // Cleanup on unmount
+    return () => unsubscribe(); 
   }, []);
 
-  // Navigation Logic
   const handleOpenFolder = (folder) => {
     setCurrentFolder(folder.id);
     setFolderHistory([...folderHistory, folder]);
@@ -58,87 +61,89 @@ export default function LibrarySection() {
     setActiveMenu(null);
   };
 
-  // 🌟 2. CREATE FOLDER / SAVE PDF LINK (Firebase)
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    
-    // Naya Validation: Dono (folder aur file) ke liye naam chahiye, aur file me link (selectedFile)
     if (!newItemName.trim()) return;
     if (modalType === "file" && !selectedFile) return;
 
-    setIsProcessing(true); // 🌟 Spinner Chalu
-    console.log("🚀 Starting process...");
-
+    setIsProcessing(true);
     try {
       if (modalType === "folder") {
-        console.log("📂 Creating folder:", newItemName);
         await createLibraryFolder(newItemName, currentFolder);
+        showToast("Folder created successfully!");
       } else {
-        // 🌟 Yahan selectedFile ab URL (link) hai, aur newItemName PDF ka naam hai
-        console.log("📄 Saving PDF Link:", newItemName);
         await uploadLibraryFile(selectedFile, currentFolder, newItemName);
-        console.log("✅ PDF Link Saved Successfully!");
+        showToast("PDF Link saved successfully!");
       }
-      closeModal(); // Save hone ke baad modal band
+      closeModal(); 
     } catch (error) {
-      console.error("❌ Action Failed:", error);
-      alert("Error: " + error.message);
+      showToast(error.message, "error");
     } finally {
-      setIsProcessing(false); // 🌟 Spinner Band (Chahe pass ho ya fail)
-      console.log("🛑 Process Finished. Spinner stopped.");
+      setIsProcessing(false); 
     }
   };
 
-  // 🌟 3. DELETE LOGIC (Firebase)
-  const handleDelete = async (e, item) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if(window.confirm(`Are you sure you want to delete "${item.name}"?`)) {
-      setActiveMenu(null);
-      try {
-        await deleteLibraryItem(item); // Storage + Firestore dono se delete
-      } catch (error) {
-        alert("Delete failed: " + error.message);
-      }
+  const handleDelete = async (item) => {
+    setActiveMenu(null);
+    try {
+      await deleteLibraryItem(item);
+      showToast("Item deleted successfully!");
+    } catch (error) {
+      showToast(error.message, "error");
     }
   };
 
-  // 🌟 4. RENAME LOGIC (Firebase)
-  const handleRename = async (e, item) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const newName = prompt("Enter new name:", item.name);
-    if (newName && newName.trim() !== "" && newName !== item.name) {
-      setActiveMenu(null);
-      try {
-        await renameLibraryItem(item.id, newName);
-      } catch (error) {
-        alert("Rename failed: " + error.message);
-      }
-    } else {
-      setActiveMenu(null);
+  const handleRename = async (item, newName) => {
+    setActiveMenu(null);
+    try {
+      await renameLibraryItem(item.id, newName);
+      showToast("Item renamed successfully!");
+    } catch (error) {
+      showToast(error.message, "error");
     }
   };
 
-  // 🌟 5. SHARE LOGIC (Copy URL)
   const handleShare = (e, item) => {
     e.preventDefault();
     e.stopPropagation();
+    setActiveMenu(null);
     
     if (item.type === "file" && item.url) {
       navigator.clipboard.writeText(item.url);
-      alert("PDF Link copied to clipboard!");
+      showToast("PDF Link copied to clipboard!");
     } else {
-      alert("Open the folder and share its contents.");
+      showToast("Please open the folder to share its contents.", "error");
     }
+  };
+
+  const handleStartMoveCopy = (e, item, action) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setClipboard({ item, action });
     setActiveMenu(null);
   };
 
-  // Modal Handlers
+  const handlePaste = async () => {
+    if (!clipboard) return;
+    setIsProcessing(true);
+    try {
+      if (clipboard.action === 'move') {
+        await moveLibraryItem(clipboard.item.id, currentFolder);
+        showToast("Item moved successfully!");
+      } else {
+        await copyLibraryItem(clipboard.item, currentFolder);
+        showToast("Item copied successfully!");
+      }
+      setClipboard(null); 
+    } catch (error) {
+      showToast(error.message, "error");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const openModal = (type) => {
-    if (!isAdmin) return alert("Only admins can do this.");
+    if (!isAdmin) return showToast("Only admins can perform this action.", "error");
     setModalType(type);
     setIsModalOpen(true);
   };
@@ -150,55 +155,68 @@ export default function LibrarySection() {
   };
 
   return (
-    <section className="w-full max-w-7xl mx-auto pt-4 pb-12 sm:py-8 lg:py-12 min-h-[80vh] flex flex-col font-sans">
+    <section className="w-full max-w-7xl mx-auto pt-4 pb-12 sm:py-8 lg:py-12 min-h-[80vh] flex flex-col font-sans relative">
+
+      {/* TOAST NOTIFICATION */}
+      {toast && (
+        <div className="fixed bottom-8 sm:bottom-12 left-1/2 -translate-x-1/2 z-[100] animate-fade-in-up pointer-events-none">
+          <div className={`px-5 py-3 rounded-full shadow-2xl flex items-center gap-2.5 text-sm sm:text-base font-medium text-white ${toast.type === 'error' ? 'bg-rose-600' : 'bg-slate-900'}`}>
+            <i className={`fa-solid ${toast.type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'}`}></i>
+            {toast.message}
+          </div>
+        </div>
+      )}
 
       {/* Toolbar Component */}
       <LibraryToolbar
         folderHistory={folderHistory}
         handleGoBack={handleGoBack}
         openModal={openModal}
-        isAdmin={isAdmin} // Pass isAdmin to hide buttons if normal user
+        isAdmin={isAdmin}
+        clipboard={clipboard}
+        handlePaste={handlePaste}
+        setClipboard={setClipboard}
       />
 
-      {/* Invisible overlay for closing dropdown menus */}
-      {activeMenu && (
-        <div className="fixed inset-0 z-40" onClick={() => setActiveMenu(null)} aria-hidden="true"></div>
-      )}
+      {/* 🚨 YAHAN SE OVERLAY HATA DIYA GAYA HAI JO PAGE STUCK KAR RAHA THA 🚨 */}
 
-      {/* Content Area */}
-      <main className="w-full sm:px-6 lg:px-8 flex-1 outline-none" tabIndex={-1}>
-        
-        {isLoading ? (
-          // 🌟 LOADING SPINNER
-          <div className="py-32 flex justify-center items-center">
-            <i className="fa-solid fa-spinner fa-spin text-3xl text-teal-600"></i>
-          </div>
-        ) : currentItems.length === 0 ? (
-          
-          <LibraryEmptyState openModal={openModal} isAdmin={isAdmin} />
-
-        ) : (
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-0 sm:gap-5 border-t border-slate-200 sm:border-none">
-            {currentItems.map((item) => (
-              <LibraryItemCard
-                key={item.id}
-                item={item}
-                handleOpenFolder={handleOpenFolder}
-                activeMenu={activeMenu}
-                setActiveMenu={setActiveMenu}
-                handleRename={handleRename}
-                handleShare={handleShare}
-                handleDelete={handleDelete}
-                isAdmin={isAdmin} // Pass isAdmin to hide 3-dots for normal users
-              />
-            ))}
-          </div>
-
+      <main className="w-full sm:px-6 lg:px-8 flex-1 outline-none relative" tabIndex={-1}>
+        {!currentUser && (
+          <LoginOverlay 
+            icon="fa-solid fa-lock" 
+            title="Access Restricted" 
+            description="Unlock the wisdom inside. Join Beyond the Verse to explore, read, and download from our exclusive library." 
+          />
         )}
+
+        <div className={`transition-all duration-300 h-full ${!currentUser ? "pointer-events-none opacity-30 select-none" : ""}`}>
+          {isLoading ? (
+            <div className="py-32 flex justify-center items-center">
+              <i className="fa-solid fa-spinner fa-spin text-3xl text-teal-600"></i>
+            </div>
+          ) : currentItems.length === 0 ? (
+            <LibraryEmptyState openModal={openModal} isAdmin={isAdmin} />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-0 sm:gap-5 border-t border-slate-200 sm:border-none">
+              {currentItems.map((item) => (
+                <LibraryItemCard
+                  key={item.id}
+                  item={item}
+                  handleOpenFolder={handleOpenFolder}
+                  activeMenu={activeMenu}
+                  setActiveMenu={setActiveMenu}
+                  handleRename={handleRename}
+                  handleShare={handleShare}
+                  handleDelete={handleDelete}
+                  isAdmin={isAdmin}
+                  handleStartMoveCopy={handleStartMoveCopy}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </main>
 
-      {/* Modal Component */}
       <LibraryModal
         isModalOpen={isModalOpen}
         closeModal={closeModal}
@@ -208,9 +226,9 @@ export default function LibrarySection() {
         setNewItemName={setNewItemName}
         selectedFile={selectedFile}
         setSelectedFile={setSelectedFile}
-        isProcessing={isProcessing} // To show loading state on button
+        isProcessing={isProcessing} 
       />
 
     </section>
   );
-          }
+}

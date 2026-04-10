@@ -1,5 +1,3 @@
-import React from 'react';
-import Header from '../../components/Layout/Header';
 import LibrarySection from '../../components/Library/LibrarySection';
 
 export default function LibraryPage() {
@@ -7,8 +5,6 @@ export default function LibraryPage() {
     // 🌟 Minimal selection color & Edge-to-edge layout
     <div className="relative flex flex-col min-h-screen w-full bg-white font-sans selection:bg-slate-900 selection:text-white overflow-x-hidden">
       
-      {/* Universal Header */}
-      <Header />
       
       {/* 🌟 Main Content Area */}
       <main className="flex-1 w-full flex flex-col">

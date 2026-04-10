@@ -6,6 +6,8 @@ import { useAuth } from '../../context/AuthContext';
 import PostCard from '../../components/Community/PostCard';
 
 import { createPost, saveCategories } from '../../services/firebaseServices';
+// 🌟 1. YAHAN LOGIN OVERLAY IMPORT KIYA HAI (Path check kar lena)
+import LoginOverlay from '../../components/common/LoginOverlay'; 
 
 export default function CommunityPage({ showToast }) {
   const { isAuthenticated, userName, userId, isAdmin } = useAuth();
@@ -94,11 +96,23 @@ export default function CommunityPage({ showToast }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-2 md:pt-8 pb-20">
-      <div className="max-w-3xl mx-auto w-full flex flex-col gap-3 sm:gap-4 md:gap-6 px-0 sm:px-4 md:px-6 lg:px-0">
+    // 🌟 RELATIVE CLASS ADD KI TAQI OVERLAY PURE PAGE PAR LAGE
+    <div className="min-h-screen bg-slate-50 pt-2 md:pt-8 pb-20 relative">
+      
+      {/* 🌟 2. NEW LOGIN OVERLAY (Agar user logged in nahi hai) */}
+      {!isAuthenticated && (
+        <LoginOverlay 
+          icon="fa-solid fa-feather-pointed" 
+          title="Join the Verse" 
+          description="Log in to share your reflections, debate with logic, and become a part of the community." 
+        />
+      )}
+
+      {/* 🌟 3. WRAPPER: Agar login nahi hai to page blur aur click disable ho jayega */}
+      <div className={`max-w-3xl mx-auto w-full flex flex-col gap-3 sm:gap-4 md:gap-6 px-0 sm:px-4 md:px-6 lg:px-0 transition-all duration-300 ${!isAuthenticated ? "pointer-events-none opacity-30 select-none" : ""}`}>
         
-        {/* POST COMPOSER */}
-        {isAuthenticated ? (
+        {/* POST COMPOSER (Sirf tab render hoga jab user logged in ho) */}
+        {isAuthenticated && (
           <div className="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-4 md:p-6 relative z-10 w-full">
             <form onSubmit={handlePostSubmit}>
               <div className="flex gap-3 md:gap-4 mb-4">
@@ -153,15 +167,6 @@ export default function CommunityPage({ showToast }) {
               </div>
             </form>
           </div>
-        ) : (
-          <div className="bg-white border-y sm:border border-slate-200 p-8 sm:rounded-2xl flex flex-col items-center justify-center text-center relative z-10 w-full">
-            <div className="h-12 w-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mb-4">
-              <i className="fa-solid fa-feather-pointed text-xl"></i>
-            </div>
-            <h3 className="text-lg text-slate-900 mb-2">Join the Verse</h3>
-            <p className="text-sm text-slate-500 mb-5 max-w-sm">Log in to share your reflections, debate with logic, and become a part of the community.</p>
-            <button onClick={() => navigate('/login')} className="bg-slate-900 text-white rounded-full px-8 py-2.5 text-sm transition-colors hover:bg-slate-800">Log in to post</button>
-          </div>
         )}
 
         {/* POSTS FEED */}
@@ -173,7 +178,7 @@ export default function CommunityPage({ showToast }) {
             </div>
           ) : (
             posts.map((post) => (
-              <div key={post.id} className="border-slate-200  overflow-hidden w-full">
+              <div key={post.id} className="border-slate-200 overflow-hidden w-full">
                 <PostCard post={post} showToast={showToast} />
               </div>
             ))
@@ -183,4 +188,4 @@ export default function CommunityPage({ showToast }) {
       </div>
     </div>
   );
-        }
+}

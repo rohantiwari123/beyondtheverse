@@ -624,3 +624,33 @@ export const deleteLibraryItem = async (item) => {
     throw error;
   }
 };
+
+// 🌟 6. MOVE ITEM (Change parentId)
+export const moveLibraryItem = async (itemId, newParentId) => {
+  try {
+    await updateDoc(doc(db, "library", itemId), { 
+      parentId: newParentId 
+    });
+    return true;
+  } catch (error) {
+    console.error("Error moving item:", error);
+    throw error;
+  }
+};
+
+// 🌟 7. COPY ITEM
+export const copyLibraryItem = async (item, newParentId) => {
+  try {
+    const { id, createdAt, ...rest } = item; // ID aur purana time hata kar baki data lo
+    await addDoc(collection(db, "library"), {
+      ...rest,
+      name: `${rest.name} (Copy)`, // Copy pehchanne ke liye
+      parentId: newParentId,
+      createdAt: serverTimestamp()
+    });
+    return true;
+  } catch (error) {
+    console.error("Error copying item:", error);
+    throw error;
+  }
+};
