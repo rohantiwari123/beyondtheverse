@@ -17,10 +17,11 @@ export default function Header() {
 
   const navLinks = [
     { name: 'Home', path: '/', icon: 'fa-house' },
+    { name: 'Library', path: '/library', icon: 'fa-box-archive' },
     { name: 'Assessments', path: '/exam', icon: 'fa-file-signature' },
     { name: 'Community', path: '/community', icon: 'fa-users' },
-    { name: 'Donate', path: '/donate', icon: 'fa-hand-holding-heart' },
-    { name: 'About', path: '/about', icon: 'fa-circle-info' }
+    { name: 'About', path: '/about', icon: 'fa-circle-info' },
+    { name: 'Donate', path: '/donate', icon: 'fa-hand-holding-heart' }
   ];
 
   const handleLogout = async () => {
@@ -70,38 +71,37 @@ export default function Header() {
       <header className="bg-white/95 backdrop-blur-xl fixed top-0 left-0 right-0 z-40 border-b border-slate-200 w-full overflow-visible">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center">
 
-{/* 1. LEFT ZONE: TYPOGRAPHIC LOGO (Horizontal Layout) */}
-<div className="flex items-center justify-start min-w-max lg:w-1/4">
-  <Link to="/" className="flex flex-col justify-center items-start select-none  ">
-    
-    {/* 🌟 Horizontal Logo Structure */}
-    {/* items-baseline lagaya hai taaki sabhi words niche se ek level par rahein */}
-    <div className="flex items-baseline gap-1">
-      
-      {/* Word 1: Beyond (Heavy & Dark) */}
-      <span className="text-[22px] sm:text-[26px] lg:text-[34px] text-slate-900 font-cabinet font-black tracking-tighter leading-none">
-        Beyond
-      </span>
-      
-      {/* Word 2: The (Light & Neutral) */}
-      <span className="text-[16px] sm:text-[20px] lg:text-[24px] text-slate-400 font-cabinet font-black tracking-tight leading-none">
-        The
-      </span>
-      
-      {/* Word 3: Verse (Brand Color & Bold) */}
-      <span className="text-[20px] sm:text-[24px] lg:text-[28px] text-teal-600 font-cabinet font-black tracking-tight leading-none">
-        Verse
-      </span>
-      
-    </div>
-    
-    {/* Tagline (Inter Font - Clean, Neutral & Elegant) */}
-    <span className="hidden xs:flex items-center gap-1.5 text-[6.5px] sm:text-[7px] lg:text-[8px] text-slate-400 uppercase mt-1.5 sm:mt-2 truncate tracking-[0.35em] font-medium font-sans">
-      <div className="h-px w-3 bg-teal-500/40"></div> Empowering Education
-    </span>
-    
-  </Link>
-</div>
+          {/* 1. LEFT ZONE: TYPOGRAPHIC LOGO (Horizontal Layout) */}
+          <div className="flex items-center justify-start min-w-max lg:w-1/4">
+            <Link to="/" className="flex flex-col justify-center items-start select-none">
+              
+              {/* 🌟 Horizontal Logo Structure */}
+              <div className="flex items-baseline gap-1">
+                
+                {/* Word 1: Beyond (Heavy & Dark) */}
+                <span className="text-[22px] sm:text-[26px] lg:text-[34px] text-slate-900 font-cabinet font-black tracking-tighter leading-none">
+                  Beyond
+                </span>
+                
+                {/* Word 2: The (Light & Neutral) */}
+                <span className="text-[16px] sm:text-[20px] lg:text-[24px] lowercase tracking-tighter leading-[0.85] text-slate-400 font-serif italic font-bold tracking-tight leading-none">
+                  The
+                </span>
+                
+                {/* Word 3: Verse (Brand Color & Bold) */}
+                <span className="text-[20px] sm:text-[24px] lg:text-[28px] text-teal-600 font-cabinet font-black tracking-tight leading-none">
+                  Verse
+                </span>
+                
+              </div>
+              
+              {/* Tagline (Inter Font - Clean, Neutral & Elegant) */}
+              <span className="hidden xs:flex items-center gap-1.5 text-[6.5px] sm:text-[7px] lg:text-[8px] text-slate-400 uppercase mt-1.5 sm:mt-2 truncate tracking-[0.35em] font-medium font-sans">
+                <div className="h-px w-3 bg-teal-500/40"></div> Empowering Education
+              </span>
+              
+            </Link>
+          </div>
 
           {/* 2. CENTER ZONE: NAVIGATION */}
           <nav className="hidden xl:flex flex-1 justify-center px-4">
@@ -110,8 +110,9 @@ export default function Header() {
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`px-3 py-2 rounded-lg text-[12px] xl:text-[13px] transition-all whitespace-nowrap ${isPathActive(link.path) ? "font-bold text-teal-700" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
-                    }`}
+                  className={`px-3 py-2 rounded-lg text-[12px] xl:text-[13px] transition-all whitespace-nowrap ${
+                    isPathActive(link.path) ? "font-bold text-teal-700" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+                  }`}
                 >
                   {link.name}
                 </Link>
@@ -127,8 +128,9 @@ export default function Header() {
               <div className="relative">
                 <button
                   onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-                  className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${showNotifDropdown ? 'bg-teal-50 text-teal-600 border-teal-200' : 'text-slate-500 border-transparent hover:bg-slate-100 hover:text-slate-800'
-                    }`}
+                  className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${
+                    showNotifDropdown ? 'bg-teal-50 text-teal-600 border-teal-200' : 'text-slate-500 border-transparent hover:bg-slate-100 hover:text-slate-800'
+                  }`}
                 >
                   <i className="fa-regular fa-bell text-[15px] xl:text-base"></i>
                   {unreadCount > 0 && (
@@ -185,8 +187,9 @@ export default function Header() {
                   {isAdmin && (
                     <Link
                       to="/admin"
-                      className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${isPathActive('/admin') ? "bg-slate-900 text-white border-slate-900" : "text-slate-400 border-transparent hover:bg-slate-100"
-                        }`}
+                      className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${
+                        isPathActive('/admin') ? "bg-slate-900 text-white border-slate-900" : "text-slate-400 border-transparent hover:bg-slate-100"
+                      }`}
                       title="Admin Dashboard"
                     >
                       <i className="fa-solid fa-shield-halved text-xs xl:text-sm"></i>
@@ -195,8 +198,9 @@ export default function Header() {
 
                   <Link
                     to="/settings"
-                    className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${isPathActive('/settings') ? "bg-teal-50 text-teal-600 border-teal-200" : "text-slate-400 border-transparent hover:bg-slate-100"
-                      }`}
+                    className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${
+                      isPathActive('/settings') ? "bg-teal-50 text-teal-600 border-teal-200" : "text-slate-400 border-transparent hover:bg-slate-100"
+                    }`}
                     title="Settings"
                   >
                     <i className="fa-solid fa-gear text-xs xl:text-sm"></i>
@@ -204,8 +208,9 @@ export default function Header() {
 
                   <Link
                     to="/profile"
-                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-full transition-all border ${isPathActive('/profile') ? "bg-teal-50 text-teal-700 border-teal-200" : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
-                      }`}
+                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-full transition-all border ${
+                      isPathActive('/profile') ? "bg-teal-50 text-teal-700 border-teal-200" : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                    }`}
                   >
                     <i className={`fa-solid fa-circle-user text-sm ${isPathActive('/profile') ? 'text-teal-500' : 'text-slate-400'}`}></i>
                     <span className="text-[11px] xl:text-xs truncate max-w-[50px] xl:max-w-[100px]">
@@ -244,12 +249,16 @@ export default function Header() {
 
       {/* MOBILE DRAWER */}
       <div
-        className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity z-[100] xl:hidden ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity z-[100] xl:hidden ${
+          isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
         onClick={() => setIsMobileMenuOpen(false)}
       ></div>
 
       <div
-        className={`fixed top-0 right-0 h-screen w-[280px] sm:w-[320px] bg-white z-[110] xl:hidden flex flex-col transition-transform duration-300 ease-in-out border-l border-slate-200 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed top-0 right-0 h-screen w-[280px] sm:w-[320px] bg-white z-[110] xl:hidden flex flex-col transition-transform duration-300 ease-in-out border-l border-slate-200 ${
+          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
       >
         <div className="flex items-center justify-between p-5 border-b border-slate-100">
           <div className="flex items-center gap-2">
@@ -267,8 +276,9 @@ export default function Header() {
               key={link.name}
               to={link.path}
               onClick={() => setIsMobileMenuOpen(false)}
-              className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${isPathActive(link.path) ? "bg-teal-50 text-teal-700" : "text-slate-600 hover:bg-slate-50"
-                }`}
+              className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${
+                isPathActive(link.path) ? "bg-teal-50 text-teal-700" : "text-slate-600 hover:bg-slate-50"
+              }`}
             >
               <div className="w-5 flex justify-center shrink-0"><i className={`fa-solid ${link.icon} text-base`}></i></div>
               <span className="text-sm">{link.name}</span>
@@ -279,9 +289,13 @@ export default function Header() {
         {/* MOBILE BOTTOM ACTIONS */}
         <div className="p-4 pb-8 border-t border-slate-100 bg-slate-50 flex flex-col gap-3">
           {isAuthenticated && (
-            <div className={`p-2 rounded-xl border flex items-center justify-between transition-colors ${isPathActive('/profile') || isPathActive('/settings') || isPathActive('/admin') ? 'bg-white border-teal-200 shadow-sm' : 'bg-white border-slate-200'}`}>
+            <div className={`p-2 rounded-xl border flex items-center justify-between transition-colors ${
+              isPathActive('/profile') || isPathActive('/settings') || isPathActive('/admin') ? 'bg-white border-teal-200 shadow-sm' : 'bg-white border-slate-200'
+            }`}>
               <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 flex-1 overflow-hidden px-1">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 border ${isPathActive('/profile') ? 'bg-teal-500 text-white border-teal-600' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 border ${
+                  isPathActive('/profile') ? 'bg-teal-500 text-white border-teal-600' : 'bg-slate-100 text-slate-600 border-slate-200'
+                }`}>
                   {userName?.charAt(0).toUpperCase()}
                 </div>
                 <div className="overflow-hidden flex-1">
@@ -292,11 +306,15 @@ export default function Header() {
 
               <div className="flex items-center gap-1 border-l border-slate-100 pl-1">
                 {isAdmin && (
-                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${isPathActive('/admin') ? 'text-slate-900 bg-slate-100' : 'text-slate-400'}`}>
+                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${
+                    isPathActive('/admin') ? 'text-slate-900 bg-slate-100' : 'text-slate-400'
+                  }`}>
                     <i className="fa-solid fa-shield-halved text-sm"></i>
                   </Link>
                 )}
-                <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${isPathActive('/settings') ? 'text-teal-600 bg-teal-50/50' : 'text-slate-400'}`}>
+                <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${
+                  isPathActive('/settings') ? 'text-teal-600 bg-teal-50/50' : 'text-slate-400'
+                }`}>
                   <i className="fa-solid fa-gear text-sm"></i>
                 </Link>
               </div>

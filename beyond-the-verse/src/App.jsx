@@ -21,6 +21,7 @@ import SinglePostPage from './pages/Community/SinglePostPage';
 import CommunityPage from './pages/Community/CommunityPage';
 import ExamPage from './pages/Exam/ExamPage';
 import ExamEngine from './components/Exam/ExamEngine';
+import LibraryPage from './pages/Library/LibraryPage';
 
 // Admin Dashboard Page
 import AdminDashboard from './pages/Admin/AdminDashboard';
@@ -66,7 +67,7 @@ export default function App() {
   const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin', '/profile', '/settings', '/community'].includes(location.pathname) || location.pathname.startsWith('/post/');
 
   return (
-    <div className="relative min-h-screen bg-[#f8fafc] text-slate-800 overflow-x-hidden selection:bg-teal-200 selection:text-teal-900">      
+    <div className="relative selection:bg-teal-600 selection:text-white min-h-screen bg-[#f8fafc] text-slate-800 overflow-x-hidden ">      
       {/* Background Decorations */}
       <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none z-0"></div>
       <div className="fixed -top-32 -left-32 w-96 h-96 bg-teal-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
@@ -106,6 +107,7 @@ export default function App() {
           } />
 
           <Route path="/settings" element={<SettingsPage showToast={showToast} />} />
+          <Route path="/library" element={<LibraryPage />} />
           
           {/* Fallback Route */}
           <Route path="*" element={<Navigate to="/" />} />

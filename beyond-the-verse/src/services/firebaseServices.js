@@ -6,7 +6,7 @@ import {
   getDoc, 
   getDocs, 
   query, 
-  where,        
+  where,         
   orderBy, 
   updateDoc, 
   deleteDoc, 
@@ -17,9 +17,11 @@ import {
   writeBatch
 } from 'firebase/firestore';
 import { updateProfile, updatePassword } from 'firebase/auth'; 
-import { db, auth } from '../firebase'; 
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'; 
 import { getToken } from "firebase/messaging";
-import { messaging } from "../firebase";
+
+// 🌟 Sab kuch ek hi line mein import karein taaki "Redeclaration" error na aaye
+import { db, auth, storage, messaging } from '../firebase';
 
 // ==========================================
 // 🤖 AUTO-GRAMMAR BOT API (Now using Groq Llama 3)
@@ -532,5 +534,90 @@ export const requestPushNotificationPermission = async (userId) => {
     }
   } catch (error) {
     console.error("Error asking for permission:", error);
+  }
+};
+
+// ==========================================
+// 📚 11. LIBRARY & KNOWLEDGE BASE
+// ==========================================
+
+// 1. Get Real-time Library Data
+export const subscribeToLibraryItems = (callback) => {
+  const q = query(collection(db, "library"), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snapshot) => {
+    const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(items);
+  }, (error) => {
+    console.error("Error fetching library items:", error);
+  });
+};
+
+// 2. Create New Folder
+export const createLibraryFolder = async (name, parentId) => {
+  try {
+    const docRef = await addDoc(collection(db, "library"), {
+      name: name.trim(),
+      type: "folder",
+      parentId: parentId,
+      createdAt: serverTimestamp()
+    });
+    return docRef;
+  } catch (error) {
+    console.error("Error creating folder:", error);
+    throw error;
+  }
+};
+
+// 3. Upload PDF File
+export const uploadLibraryFile = async (file, parentId) => {
+  try {
+    // A. Upload file to Firebase Storage
+    const storageRef = ref(storage, `library/${Date.now()}_${file.name}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadUrl = await getDownloadURL(snapshot.ref);
+
+    // B. Save file metadata to Firestore
+    const docRef = await addDoc(collection(db, "library"), {
+      name: file.name,
+      type: "file",
+      parentId: parentId,
+      url: downloadUrl,
+      storagePath: snapshot.ref.fullPath, // Delete karne ke kaam aayega
+      createdAt: serverTimestamp()
+    });
+    return docRef;
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    throw error;
+  }
+};
+
+// 4. Rename Item (File or Folder)
+export const renameLibraryItem = async (itemId, newName) => {
+  try {
+    await updateDoc(doc(db, "library", itemId), { 
+      name: newName.trim() 
+    });
+    return true;
+  } catch (error) {
+    console.error("Error renaming item:", error);
+    throw error;
+  }
+};
+
+// 5. Delete Item (File or Folder)
+export const deleteLibraryItem = async (item) => {
+  try {
+    // Agar file hai, to pehle use Firebase Storage se udao
+    if (item.type === "file" && item.storagePath) {
+      const storageRef = ref(storage, item.storagePath);
+      await deleteObject(storageRef);
+    }
+    // Fir Firestore se document delete karo
+    await deleteDoc(doc(db, "library", item.id));
+    return true;
+  } catch (error) {
+    console.error("Error deleting item:", error);
+    throw error;
   }
 };
