@@ -1,44 +1,44 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react"; 
 import { useAuth } from "../../context/AuthContext"; 
 import { 
-  subscribeToLibraryItems, 
-  createLibraryFolder, 
-  uploadLibraryFile, 
-  renameLibraryItem, 
-  deleteLibraryItem,
-  moveLibraryItem,
-  copyLibraryItem
+  subscribeToLibraryItems, createLibraryFolder, uploadLibraryFile, 
+  renameLibraryItem, deleteLibraryItem, moveLibraryItem, copyLibraryItem
 } from "../../services/firebaseServices"; 
+
+// Components
 import LibraryToolbar from "./LibraryToolbar";
 import LibraryEmptyState from "./LibraryEmptyState";
 import LibraryItemCard from "./LibraryItemCard";
 import LibraryModal from "./LibraryModal";
 import LoginOverlay from "../../components/common/LoginOverlay"; 
+import Toast from "../../components/common/Toast"; 
 
 export default function LibrarySection() {
   const { currentUser, isAdmin } = useAuth(); 
-
-  const [toast, setToast] = useState(null);
+  
+  // States
+  const [toast, setToast] = useState({ show: false, message: '', isSuccess: true });
   const [clipboard, setClipboard] = useState(null); 
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false); 
-
   const [currentFolder, setCurrentFolder] = useState("root");
   const [folderHistory, setFolderHistory] = useState([{ id: "root", name: "Library" }]);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState("");
   const [newItemName, setNewItemName] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [activeMenu, setActiveMenu] = useState(null);
 
-  const currentItems = items.filter((item) => item.parentId === currentFolder);
+  // --- LOGIC (UNTOUCHED) ---
+  const currentItems = useMemo(() => {
+    return items.filter((item) => item.parentId === currentFolder);
+  }, [items, currentFolder]);
 
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000); 
-  };
+  const showToast = useCallback((message, type = 'success') => {
+    setToast({ show: true, message, isSuccess: type === 'success' });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000); 
+  }, []);
 
   useEffect(() => {
     const unsubscribe = subscribeToLibraryItems((fetchedItems) => {
@@ -48,24 +48,28 @@ export default function LibrarySection() {
     return () => unsubscribe(); 
   }, []);
 
-  const handleOpenFolder = (folder) => {
-    setCurrentFolder(folder.id);
-    setFolderHistory([...folderHistory, folder]);
-    setActiveMenu(null);
-  };
+  useEffect(() => {
+    const closeMenu = () => setActiveMenu(null);
+    if (activeMenu) window.addEventListener('click', closeMenu);
+    return () => window.removeEventListener('click', closeMenu);
+  }, [activeMenu]);
 
-  const handleGoBack = (index) => {
+  const handleOpenFolder = useCallback((folder) => {
+    setCurrentFolder(folder.id);
+    setFolderHistory(prev => [...prev, folder]);
+    setActiveMenu(null);
+  }, []);
+
+  const handleGoBack = useCallback((index) => {
     const newHistory = folderHistory.slice(0, index + 1);
     setFolderHistory(newHistory);
     setCurrentFolder(newHistory[newHistory.length - 1].id);
     setActiveMenu(null);
-  };
+  }, [folderHistory]);
 
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     if (!newItemName.trim()) return;
-    if (modalType === "file" && !selectedFile) return;
-
     setIsProcessing(true);
     try {
       if (modalType === "folder") {
@@ -73,7 +77,7 @@ export default function LibrarySection() {
         showToast("Folder created successfully!");
       } else {
         await uploadLibraryFile(selectedFile, currentFolder, newItemName);
-        showToast("PDF Link saved successfully!");
+        showToast("PDF Link saved!");
       }
       closeModal(); 
     } catch (error) {
@@ -84,43 +88,17 @@ export default function LibrarySection() {
   };
 
   const handleDelete = async (item) => {
-    setActiveMenu(null);
     try {
       await deleteLibraryItem(item);
-      showToast("Item deleted successfully!");
-    } catch (error) {
-      showToast(error.message, "error");
-    }
+      showToast("Item deleted permanently.");
+    } catch (error) { showToast(error.message, "error"); }
   };
 
   const handleRename = async (item, newName) => {
-    setActiveMenu(null);
     try {
       await renameLibraryItem(item.id, newName);
-      showToast("Item renamed successfully!");
-    } catch (error) {
-      showToast(error.message, "error");
-    }
-  };
-
-  const handleShare = (e, item) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setActiveMenu(null);
-    
-    if (item.type === "file" && item.url) {
-      navigator.clipboard.writeText(item.url);
-      showToast("PDF Link copied to clipboard!");
-    } else {
-      showToast("Please open the folder to share its contents.", "error");
-    }
-  };
-
-  const handleStartMoveCopy = (e, item, action) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setClipboard({ item, action });
-    setActiveMenu(null);
+      showToast("Renamed successfully!");
+    } catch (error) { showToast(error.message, "error"); }
   };
 
   const handlePaste = async () => {
@@ -129,17 +107,13 @@ export default function LibrarySection() {
     try {
       if (clipboard.action === 'move') {
         await moveLibraryItem(clipboard.item.id, currentFolder);
-        showToast("Item moved successfully!");
       } else {
         await copyLibraryItem(clipboard.item, currentFolder);
-        showToast("Item copied successfully!");
       }
+      showToast(`${clipboard.action === 'move' ? 'Moved' : 'Copied'} successfully!`);
       setClipboard(null); 
-    } catch (error) {
-      showToast(error.message, "error");
-    } finally {
-      setIsProcessing(false);
-    }
+    } catch (error) { showToast(error.message, "error"); }
+    finally { setIsProcessing(false); }
   };
 
   const openModal = (type) => {
@@ -154,62 +128,73 @@ export default function LibrarySection() {
     setSelectedFile(null);
   };
 
+  const handleStartMoveCopy = (e, item, action) => {
+    if(e) e.stopPropagation();
+    setClipboard({ item, action });
+    setActiveMenu(null);
+  };
+
+  const handleShareLink = (e, item) => {
+    if(e) e.stopPropagation();
+    navigator.clipboard.writeText(item.url);
+    showToast("Shareable link copied!");
+    setActiveMenu(null);
+  };
+
+  // --- RESPONSIVE JSX ---
   return (
-    <section className="w-full max-w-7xl mx-auto pt-4 pb-12 sm:py-8 lg:py-12 min-h-[80vh] flex flex-col font-sans relative">
+    <section className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12 min-h-[85vh] flex flex-col font-sans relative overflow-x-hidden">
+      
+      {/* 🌟 Toast - Position fixed by its own component */}
+      <Toast toast={toast} />
 
-      {/* TOAST NOTIFICATION */}
-      {toast && (
-        <div className="fixed bottom-8 sm:bottom-12 left-1/2 -translate-x-1/2 z-[100] animate-fade-in-up pointer-events-none">
-          <div className={`px-5 py-3 rounded-full shadow-2xl flex items-center gap-2.5 text-sm sm:text-base font-medium text-white ${toast.type === 'error' ? 'bg-rose-600' : 'bg-slate-900'}`}>
-            <i className={`fa-solid ${toast.type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'}`}></i>
-            {toast.message}
-          </div>
-        </div>
-      )}
+      {/* Toolbar - Responsive spacing */}
+      <div className="mb-4 sm:mb-6 lg:mb-8">
+        <LibraryToolbar 
+          folderHistory={folderHistory} 
+          handleGoBack={handleGoBack} 
+          openModal={openModal} 
+          isAdmin={isAdmin} 
+          clipboard={clipboard} 
+          handlePaste={handlePaste} 
+          setClipboard={setClipboard} 
+        />
+      </div>
 
-      {/* Toolbar Component */}
-      <LibraryToolbar
-        folderHistory={folderHistory}
-        handleGoBack={handleGoBack}
-        openModal={openModal}
-        isAdmin={isAdmin}
-        clipboard={clipboard}
-        handlePaste={handlePaste}
-        setClipboard={setClipboard}
-      />
-
-      {/* 🚨 YAHAN SE OVERLAY HATA DIYA GAYA HAI JO PAGE STUCK KAR RAHA THA 🚨 */}
-
-      <main className="w-full sm:px-6 lg:px-8 flex-1 outline-none relative" tabIndex={-1}>
+      <main className="flex-1 relative w-full">
         {!currentUser && (
           <LoginOverlay 
             icon="fa-solid fa-lock" 
             title="Access Restricted" 
-            description="Unlock the wisdom inside. Join Beyond the Verse to explore, read, and download from our exclusive library." 
+            description="Unlock the wisdom inside. Join Beyond the Verse." 
           />
         )}
-
-        <div className={`transition-all duration-300 h-full ${!currentUser ? "pointer-events-none opacity-30 select-none" : ""}`}>
+        
+        <div className={`transition-all duration-300 h-full ${!currentUser ? "pointer-events-none opacity-20 blur-sm select-none" : ""}`}>
           {isLoading ? (
-            <div className="py-32 flex justify-center items-center">
-              <i className="fa-solid fa-spinner fa-spin text-3xl text-teal-600"></i>
+            <div className="absolute inset-0 flex justify-center items-center flex-col gap-4 min-h-[40vh]">
+              <i className="fa-solid fa-spinner fa-spin text-3xl sm:text-4xl text-teal-600"></i>
+              <p className="text-slate-400 text-sm sm:text-base font-medium animate-pulse tracking-wide">Fetching wisdom...</p>
             </div>
           ) : currentItems.length === 0 ? (
-            <LibraryEmptyState openModal={openModal} isAdmin={isAdmin} />
+            <div className="py-12 sm:py-20">
+              <LibraryEmptyState openModal={openModal} isAdmin={isAdmin} />
+            </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-0 sm:gap-5 border-t border-slate-200 sm:border-none">
+            /* 🌟 RESPONSIVE GRID SYSTEM 🌟 */
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-5 lg:gap-6 mt-2">
               {currentItems.map((item) => (
-                <LibraryItemCard
-                  key={item.id}
-                  item={item}
-                  handleOpenFolder={handleOpenFolder}
-                  activeMenu={activeMenu}
-                  setActiveMenu={setActiveMenu}
-                  handleRename={handleRename}
-                  handleShare={handleShare}
-                  handleDelete={handleDelete}
-                  isAdmin={isAdmin}
-                  handleStartMoveCopy={handleStartMoveCopy}
+                <LibraryItemCard 
+                  key={item.id} 
+                  item={item} 
+                  handleOpenFolder={handleOpenFolder} 
+                  activeMenu={activeMenu} 
+                  setActiveMenu={setActiveMenu} 
+                  handleRename={handleRename} 
+                  handleDelete={handleDelete} 
+                  isAdmin={isAdmin} 
+                  handleStartMoveCopy={handleStartMoveCopy} 
+                  handleShare={handleShareLink}
                 />
               ))}
             </div>
@@ -217,18 +202,17 @@ export default function LibrarySection() {
         </div>
       </main>
 
-      <LibraryModal
-        isModalOpen={isModalOpen}
-        closeModal={closeModal}
-        modalType={modalType}
-        handleCreateSubmit={handleCreateSubmit}
-        newItemName={newItemName}
-        setNewItemName={setNewItemName}
-        selectedFile={selectedFile}
-        setSelectedFile={setSelectedFile}
+      <LibraryModal 
+        isModalOpen={isModalOpen} 
+        closeModal={closeModal} 
+        modalType={modalType} 
+        handleCreateSubmit={handleCreateSubmit} 
+        newItemName={newItemName} 
+        setNewItemName={setNewItemName} 
+        selectedFile={selectedFile} 
+        setSelectedFile={setSelectedFile} 
         isProcessing={isProcessing} 
       />
-
     </section>
   );
 }

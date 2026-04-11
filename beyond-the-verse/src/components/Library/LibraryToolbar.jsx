@@ -1,242 +1,110 @@
-import React, { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext"; 
-import { 
-  subscribeToLibraryItems, 
-  createLibraryFolder, 
-  uploadLibraryFile, 
-  renameLibraryItem, 
-  deleteLibraryItem,
-  moveLibraryItem,
-  copyLibraryItem
-} from "../../services/firebaseServices"; 
-import LibraryToolbar from "./LibraryToolbar";
-import LibraryEmptyState from "./LibraryEmptyState";
-import LibraryItemCard from "./LibraryItemCard";
-import LibraryModal from "./LibraryModal";
-import LoginOverlay from "../../components/common/LoginOverlay"; 
+import React, { memo } from 'react';
 
-export default function LibrarySection() {
-  const { currentUser, isAdmin } = useAuth(); 
+const LibraryToolbar = memo(({ 
+  folderHistory, 
+  handleGoBack, 
+  openModal, 
+  isAdmin, 
+  clipboard, 
+  handlePaste, 
+  setClipboard 
+}) => {
 
-  // 🌟 DIALOG HATA DIYA HAI, SIRF TOAST BACHA HAI
-  const [toast, setToast] = useState(null);
-
-  const [clipboard, setClipboard] = useState(null); 
-  const [items, setItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false); 
-
-  const [currentFolder, setCurrentFolder] = useState("root");
-  const [folderHistory, setFolderHistory] = useState([{ id: "root", name: "Library" }]);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState("");
-  const [newItemName, setNewItemName] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [activeMenu, setActiveMenu] = useState(null);
-
-  const currentItems = items.filter((item) => item.parentId === currentFolder);
-
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000); 
-  };
-
-  useEffect(() => {
-    const unsubscribe = subscribeToLibraryItems((fetchedItems) => {
-      setItems(fetchedItems);
-      setIsLoading(false);
-    });
-    return () => unsubscribe(); 
-  }, []);
-
-  const handleOpenFolder = (folder) => {
-    setCurrentFolder(folder.id);
-    setFolderHistory([...folderHistory, folder]);
-    setActiveMenu(null);
-  };
-
-  const handleGoBack = (index) => {
-    const newHistory = folderHistory.slice(0, index + 1);
-    setFolderHistory(newHistory);
-    setCurrentFolder(newHistory[newHistory.length - 1].id);
-    setActiveMenu(null);
-  };
-
-  const handleCreateSubmit = async (e) => {
-    e.preventDefault();
-    if (!newItemName.trim()) return;
-    if (modalType === "file" && !selectedFile) return;
-
-    setIsProcessing(true);
-    try {
-      if (modalType === "folder") {
-        await createLibraryFolder(newItemName, currentFolder);
-        showToast("Folder created successfully!");
-      } else {
-        await uploadLibraryFile(selectedFile, currentFolder, newItemName);
-        showToast("PDF Link saved successfully!");
-      }
-      closeModal(); 
-    } catch (error) {
-      showToast(error.message, "error");
-    } finally {
-      setIsProcessing(false); 
-    }
-  };
-
-  // 🌟 DIRECT DELETE LOGIC (Ab ye direct Card se call hoga)
-  const handleDelete = async (item) => {
-    setActiveMenu(null);
-    try {
-      await deleteLibraryItem(item);
-      showToast("Item deleted successfully!");
-    } catch (error) {
-      showToast(error.message, "error");
-    }
-  };
-
-  // 🌟 DIRECT RENAME LOGIC (Ab ye direct Card se naya naam receive karega)
-  const handleRename = async (item, newName) => {
-    setActiveMenu(null);
-    try {
-      await renameLibraryItem(item.id, newName);
-      showToast("Item renamed successfully!");
-    } catch (error) {
-      showToast(error.message, "error");
-    }
-  };
-
-  const handleShare = (e, item) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setActiveMenu(null);
+  // --- 🎨 DESIGN SYSTEM (Variables) ---
+  const styles = {
+    header: "px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8 mt-2",
+    // Mobile पर ऊपर-नीचे (col), Desktop पर आमने-सामने (row)
+    wrapper: "flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6",
     
-    if (item.type === "file" && item.url) {
-      navigator.clipboard.writeText(item.url);
-      showToast("PDF Link copied to clipboard!");
-    } else {
-      showToast("Please open the folder to share its contents.", "error");
-    }
-  };
+    // Breadcrumbs: Mobile पर टच-स्क्रोल आसान बनाने के लिए overflow
+    nav: "flex items-center gap-1 overflow-x-auto no-scrollbar py-1 flex-1 -mx-2 px-2 sm:mx-0 sm:px-0",
+    breadcrumbBtn: (isLast) => `whitespace-nowrap text-[13px] sm:text-[15px] font-bold px-2.5 py-1.5 rounded-xl transition-all duration-150 ${
+      isLast 
+        ? 'text-slate-900 cursor-default' 
+        : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 active:scale-95'
+    }`,
+    separator: "text-slate-300 shrink-0",
 
-  const handleStartMoveCopy = (e, item, action) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setClipboard({ item, action });
-    setActiveMenu(null);
-  };
-
-  const handlePaste = async () => {
-    if (!clipboard) return;
-    setIsProcessing(true);
-    try {
-      if (clipboard.action === 'move') {
-        await moveLibraryItem(clipboard.item.id, currentFolder);
-        showToast("Item moved successfully!");
-      } else {
-        await copyLibraryItem(clipboard.item, currentFolder);
-        showToast("Item copied successfully!");
-      }
-      setClipboard(null); 
-    } catch (error) {
-      showToast(error.message, "error");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const openModal = (type) => {
-    if (!isAdmin) return showToast("Only admins can perform this action.", "error");
-    setModalType(type);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setNewItemName("");
-    setSelectedFile(null);
+    // Actions Container: Mobile पर बटन फुल विड्थ ले सकते हैं
+    actions: "flex items-center gap-2 sm:gap-3 shrink-0",
+    
+    // Buttons: Card के डिजाइन से मैच करते हुए (rounded-xl + No shadow)
+    btnBase: "h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-[11px] sm:text-[12px] font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2.5 border",
+    btnFolder: "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300 flex-1 sm:flex-none",
+    btnUpload: "bg-slate-900 border-slate-900 text-white hover:bg-slate-800 flex-1 sm:flex-none",
+    
+    // Paste Mode UI
+    pasteBox: "flex items-center gap-1.5 bg-teal-50 border border-teal-100 p-1 rounded-2xl w-full sm:w-auto",
+    btnPaste: "h-8 sm:h-9 px-4 bg-teal-600 border border-teal-600 text-white text-[10px] sm:text-[11px] font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 flex items-center gap-2",
+    btnCancel: "w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-teal-700 hover:bg-teal-100 rounded-xl transition-colors"
   };
 
   return (
-    <section className="w-full max-w-7xl mx-auto pt-4 pb-12 sm:py-8 lg:py-12 min-h-[80vh] flex flex-col font-sans relative">
+    <header className={styles.header}>
+      <div className={styles.wrapper}>
+        
+        {/* 1. BREADCRUMBS: स्लीक नेविगेशन */}
+        <nav aria-label="Breadcrumb" className={styles.nav}>
+          <ol className="flex items-center min-w-0">
+            {folderHistory.map((folder, index) => {
+              const isLast = index === folderHistory.length - 1;
+              return (
+                <li key={folder.id} className="flex items-center shrink-0">
+                  <button  
+                    onClick={() => handleGoBack(index)} 
+                    disabled={isLast}
+                    className={styles.breadcrumbBtn(isLast)}
+                  >
+                    {folder.name}
+                  </button>
+                  
+                  {!isLast && (
+                    <span className={styles.separator}>
+                      <i className="fa-solid fa-chevron-right text-[9px] mx-1"></i>
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
 
-      {/* TOAST NOTIFICATION */}
-      {toast && (
-        <div className="fixed bottom-8 sm:bottom-12 left-1/2 -translate-x-1/2 z-[100] animate-fade-in-up pointer-events-none">
-          <div className={`px-5 py-3 rounded-full shadow-2xl flex items-center gap-2.5 text-sm sm:text-base font-medium text-white ${toast.type === 'error' ? 'bg-rose-600' : 'bg-slate-900'}`}>
-            <i className={`fa-solid ${toast.type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'}`}></i>
-            {toast.message}
+        {/* 2. ADMIN ACTIONS: बटन्स */}
+        {isAdmin && (
+          <div className={styles.actions}>
+            
+            {clipboard ? (
+              /* 📋 PASTE MODE: No shadows, clean borders */
+              <div className={styles.pasteBox}>
+                <button onClick={handlePaste} className={styles.btnPaste}>
+                  <i className="fa-solid fa-paste"></i>
+                  Paste
+                </button>
+                <button onClick={() => setClipboard(null)} className={styles.btnCancel}>
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            ) : (
+              /* 📂 DEFAULT MODE: Side-by-side buttons */
+              <>
+                <button onClick={() => openModal("folder")} className={`${styles.btnBase} ${styles.btnFolder}`}>
+                  <i className="fa-solid fa-folder-plus text-[14px]"></i>
+                  <span className="hidden xs:inline">Folder</span>
+                  <span className="xs:hidden text-[10px]">Folder</span>
+                </button>
+                <button onClick={() => openModal("file")} className={`${styles.btnBase} ${styles.btnUpload}`}>
+                  <i className="fa-solid fa-upload text-[14px]"></i>
+                  <span className="hidden xs:inline">Upload</span>
+                  <span className="xs:hidden text-[10px]">Upload</span>
+                </button>
+              </>
+            )}
+            
           </div>
-        </div>
-      )}
-
-      {/* Toolbar Component */}
-      <LibraryToolbar
-        folderHistory={folderHistory}
-        handleGoBack={handleGoBack}
-        openModal={openModal}
-        isAdmin={isAdmin}
-        clipboard={clipboard}
-        handlePaste={handlePaste}
-        setClipboard={setClipboard}
-      />
-
-      {/* Close Menu Overlay */}
-      {activeMenu && (
-        <div className="fixed inset-0 z-40" onClick={() => setActiveMenu(null)} aria-hidden="true"></div>
-      )}
-
-      <main className="w-full sm:px-6 lg:px-8 flex-1 outline-none relative" tabIndex={-1}>
-        {!currentUser && (
-          <LoginOverlay 
-            icon="fa-solid fa-lock" 
-            title="Access Restricted" 
-            description="Unlock the wisdom inside. Join Beyond the Verse to explore, read, and download from our exclusive library." 
-          />
         )}
-
-        <div className={`transition-all duration-300 h-full ${!currentUser ? "pointer-events-none opacity-30 select-none" : ""}`}>
-          {isLoading ? (
-            <div className="py-32 flex justify-center items-center">
-              <i className="fa-solid fa-spinner fa-spin text-3xl text-teal-600"></i>
-            </div>
-          ) : currentItems.length === 0 ? (
-            <LibraryEmptyState openModal={openModal} isAdmin={isAdmin} />
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-0 sm:gap-5 border-t border-slate-200 sm:border-none">
-              {currentItems.map((item) => (
-                <LibraryItemCard
-                  key={item.id}
-                  item={item}
-                  handleOpenFolder={handleOpenFolder}
-                  activeMenu={activeMenu}
-                  setActiveMenu={setActiveMenu}
-                  handleRename={handleRename}
-                  handleShare={handleShare}
-                  handleDelete={handleDelete}
-                  isAdmin={isAdmin}
-                  handleStartMoveCopy={handleStartMoveCopy}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* Modal Component */}
-      <LibraryModal
-        isModalOpen={isModalOpen}
-        closeModal={closeModal}
-        modalType={modalType}
-        handleCreateSubmit={handleCreateSubmit}
-        newItemName={newItemName}
-        setNewItemName={setNewItemName}
-        selectedFile={selectedFile}
-        setSelectedFile={setSelectedFile}
-        isProcessing={isProcessing} 
-      />
-
-    </section>
+      </div>
+    </header>
   );
-}
+});
+
+export default LibraryToolbar;
