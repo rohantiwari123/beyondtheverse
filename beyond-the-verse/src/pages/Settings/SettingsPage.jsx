@@ -1,67 +1,81 @@
-// src/pages/Settings/SettingsPage.jsx
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import BackButton from '../../components/common/BackButton';
+
+// Components
 import GeneralSettings from '../../components/Settings/GeneralSettings';
 import SecuritySettings from '../../components/Settings/SecuritySettings';
+import NotificationSettings from '../../components/Settings/NotificationSettings'; // 🌟 Naya Import
+import DangerZone from '../../components/Settings/DangerZone'; // 🌟 Naya Import
+import BackButton from '../../components/common/BackButton';
 
-export default function SettingsPage({ showToast }) {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('general');
+export default function SettingsPage() {
+    const { currentUser } = useAuth();
+    const [activeTab, setActiveTab] = useState('general');
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-    }
-  }, [isAuthenticated, navigate]);
-
-  if (!isAuthenticated) return null;
-
-  return (
-    <div className="w-full min-h-screen bg-slate-50 pb-20 pt-6 sm:pt-10">
-      <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8 animate-fade-in">
-        
-        {/* Back Button */}
-        <div className="px-4 sm:px-6 lg:px-8">
-          <BackButton />
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-6 lg:gap-8 px-0 sm:px-6 lg:px-8">
-          
-          {/* 🌟 SIDEBAR / MOBILE TABS */}
-          <div className="w-full md:w-64 shrink-0 px-4 sm:px-0">
-            <div className="bg-white p-3 sm:p-5 sm:rounded-2xl border-b sm:border border-slate-200 md:sticky md:top-24 overflow-x-auto hide-scrollbar">
-              <h2 className="hidden md:flex text-lg text-slate-800 mb-6 px-2 items-center gap-2">
-                <i className="fa-solid fa-gear text-teal-600"></i> Settings
-              </h2>
-              <nav className="flex md:flex-col gap-2 min-w-max md:min-w-0">
-                <button 
-                  onClick={() => setActiveTab('general')}
-                  className={`flex items-center gap-2 sm:gap-3 px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition-colors text-xs sm:text-sm text-left whitespace-nowrap ${activeTab === 'general' ? 'bg-teal-50 text-teal-700 border border-teal-100/50' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'}`}
-                >
-                  <i className="fa-solid fa-user w-4 sm:w-5 text-center"></i> General Profile
-                </button>
-                <button 
-                  onClick={() => setActiveTab('security')}
-                  className={`flex items-center gap-2 sm:gap-3 px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition-colors text-xs sm:text-sm text-left whitespace-nowrap ${activeTab === 'security' ? 'bg-teal-50 text-teal-700 border border-teal-100/50' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'}`}
-                >
-                  <i className="fa-solid fa-shield-halved w-4 sm:w-5 text-center"></i> Security
-                </button>
-              </nav>
+    if (!currentUser) {
+        return (
+            <div className="flex justify-center items-center min-h-[60vh]">
+                <i className="fa-solid fa-circle-notch fa-spin text-3xl text-teal-600"></i>
             </div>
-          </div>
+        );
+    }
 
-          {/* 🌟 MAIN CONTENT AREA */}
-          <div className="flex-1 max-w-full overflow-hidden">
-            {activeTab === 'general' && <GeneralSettings showToast={showToast} />}
-            {activeTab === 'security' && <SecuritySettings showToast={showToast} />}
-          </div>
+    return (
+        <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 animate-fade-in">
+            
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8 sm:mb-10">
+                <div>
+                    <div className="mb-4"><BackButton to={-1} label="Back" /></div>
+                    <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Account Settings</h1>
+                    <p className="text-sm sm:text-base text-slate-500 font-medium mt-1">Manage your identity, security, and preferences.</p>
+                </div>
+            </div>
 
-        </div>
-      </div>
-    </div>
-  );
+            <div className="flex flex-col md:flex-row gap-8">
+                
+                {/* 🌟 SIDEBAR TABS */}
+                <aside className="w-full md:w-64 shrink-0">
+                    <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto hide-scrollbar pb-2 md:pb-0">
+                        <button 
+                            onClick={() => setActiveTab('general')}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'general' ? 'bg-teal-50 text-teal-700 border border-teal-100 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}
+                        >
+                            <i className="fa-solid fa-user-gear w-5 text-center"></i> General Profile
+                        </button>
+                        
+                        <button 
+                            onClick={() => setActiveTab('security')}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'security' ? 'bg-teal-50 text-teal-700 border border-teal-100 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}
+                        >
+                            <i className="fa-solid fa-shield-halved w-5 text-center"></i> Security
+                        </button>
+
+                        {/* 🌟 Naye Tabs */}
+                        <button 
+                            onClick={() => setActiveTab('notifications')}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'notifications' ? 'bg-teal-50 text-teal-700 border border-teal-100 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}
+                        >
+                            <i className="fa-solid fa-bell w-5 text-center"></i> Notifications
+                        </button>
+
+                        <button 
+                            onClick={() => setActiveTab('danger')}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap mt-0 md:mt-4 ${activeTab === 'danger' ? 'bg-rose-50 text-rose-700 border border-rose-100 shadow-sm' : 'text-rose-400 hover:bg-rose-50 border border-transparent'}`}
+                        >
+                            <i className="fa-solid fa-triangle-exclamation w-5 text-center"></i> Danger Zone
+                        </button>
+                    </nav>
+                </aside>
+
+                {/* 🌟 DYNAMIC CONTENT AREA */}
+                <main className="flex-1 min-w-0">
+                    {activeTab === 'general' && <GeneralSettings />}
+                    {activeTab === 'security' && <SecuritySettings />}
+                    {activeTab === 'notifications' && <NotificationSettings />}
+                    {activeTab === 'danger' && <DangerZone />}
+                </main>
+
+            </div>
+        </section>
+    );
 }

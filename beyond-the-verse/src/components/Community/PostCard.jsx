@@ -43,6 +43,9 @@ export default function PostCard({ post, showToast, isSinglePost }) {
 
   const isAdminPost = post.isAdminPost === true || post.role === 'admin'; 
 
+  // 🌟 PRO FRONTEND TRICK: Agar post current user ki hai, toh hamesha naya (live) naam dikhao, warna database wala
+  const currentDisplayName = isOwner ? userName : post.userName;
+
   useEffect(() => {
     if (isOwner && isAdmin && !isAdminPost) {
       upgradeToAdminPost(post.id).catch(err => console.error("Failed to auto-upgrade", err));
@@ -126,7 +129,7 @@ export default function PostCard({ post, showToast, isSinglePost }) {
       await addPostInteraction(post.id, {
         id: interactionId,
         userId, 
-        userName: userName || "Explorer", 
+        userName: userName || "Explorer", // Naya comment hamesha naye naam se jayega
         type: activeGate, 
         text: currentReasonText, 
         timestamp: new Date().toISOString(),
@@ -179,7 +182,8 @@ export default function PostCard({ post, showToast, isSinglePost }) {
       <div className="flex items-start justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className={`h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 rounded-full flex items-center justify-center text-sm sm:text-base relative shrink-0 ${isAdminPost ? "bg-gradient-to-br from-amber-400 to-amber-600 text-white" : "bg-slate-900 text-white"}`}>
-            {post.userName?.charAt(0).toUpperCase()}
+            {/* 🌟 FIX: Avatar me bhi currentDisplayName lagaya */}
+            {currentDisplayName?.charAt(0).toUpperCase()}
             {isAdminPost && (
               <div className="absolute -top-1 -right-1 text-amber-500 bg-white rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center border border-amber-100 shadow-sm">
                 <i className="fa-solid fa-crown text-[8px] sm:text-[10px]"></i>
@@ -189,7 +193,8 @@ export default function PostCard({ post, showToast, isSinglePost }) {
 
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h4 className={`text-sm sm:text-base lg:text-lg truncate ${isAdminPost ? 'text-amber-900' : 'text-slate-900'}`}>{post.userName}</h4>
+              {/* 🌟 FIX: Name me bhi currentDisplayName lagaya */}
+              <h4 className={`text-sm sm:text-base lg:text-lg truncate ${isAdminPost ? 'text-amber-900' : 'text-slate-900'}`}>{currentDisplayName}</h4>
               {isAdminPost && (
                 <span className="bg-amber-100 text-amber-700 text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded border border-amber-200">
                   Admin
@@ -379,4 +384,4 @@ export default function PostCard({ post, showToast, isSinglePost }) {
 
     </div>
   );
-  }
+}

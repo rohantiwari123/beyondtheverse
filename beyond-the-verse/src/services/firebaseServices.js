@@ -16,12 +16,11 @@ import {
   onSnapshot,
   writeBatch
 } from 'firebase/firestore';
-import { updateProfile, updatePassword } from 'firebase/auth'; 
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'; 
+import { updateProfile, updatePassword, deleteUser } from 'firebase/auth'; 
 import { getToken } from "firebase/messaging";
 
 // 🌟 Sab kuch ek hi line mein import karein taaki "Redeclaration" error na aaye
-import { db, auth, storage, messaging } from '../firebase';
+import { db, auth, messaging } from '../firebase';
 
 // ==========================================
 // 🤖 AUTO-GRAMMAR BOT API (Now using Groq Llama 3)
@@ -671,5 +670,75 @@ export const copyLibraryItem = async (item, newParentId) => {
   } catch (error) {
     console.error("Error copying item:", error);
     throw error;
+  }
+};
+
+// ==========================================
+// ⚙️ 12. ADVANCED SETTINGS (Notifications & Danger Zone)
+// ==========================================
+
+export const getUserPreferences = async (userId) => {
+  try {
+    const docSnap = await getDoc(doc(db, "users", userId));
+    if (docSnap.exists() && docSnap.data().notificationPrefs) {
+      return docSnap.data().notificationPrefs;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error getting preferences:", error);
+    return null;
+  }
+};
+
+export const updateUserPreferences = async (userId, prefs) => {
+  try {
+    await updateDoc(doc(db, "users", userId), { notificationPrefs: prefs });
+    return true;
+  } catch (error) {
+    console.error("Error updating preferences:", error);
+    throw error;
+  }
+};
+
+export const deleteUserAccount = async (userId) => {
+  try {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No user logged in");
+    
+    // 1. Pehle Firestore se user ka data delete karo
+    await deleteDoc(doc(db, "users", userId));
+    
+    // 2. Phir Firebase Auth se hamesha ke liye delete kar do
+    await deleteUser(user);
+    return true;
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    throw error;
+  }
+};
+
+// ==========================================
+// 👤 13. PROFILE DATA SERVICES
+// ==========================================
+
+export const getUserPosts = async (userId) => {
+  try {
+    const q = query(collection(db, "posts"), where("userId", "==", userId), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error fetching user posts:", error);
+    return [];
+  }
+};
+
+export const getUserBookmarkedPosts = async (userId) => {
+  try {
+    const q = query(collection(db, "posts"), where("bookmarks", "array-contains", userId), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Error fetching bookmarked posts:", error);
+    return [];
   }
 };

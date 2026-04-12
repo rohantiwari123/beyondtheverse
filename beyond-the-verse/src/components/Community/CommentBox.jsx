@@ -2,15 +2,13 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { formatDateTime } from '../../utils/dateFormatter';
 
-// 🌟 Real Service Imports (Bot aur addPostInteraction joda gaya)
+// 🌟 Real Service Imports (Bot hata diya gaya hai)
 import {
   upgradeCommentToAdmin,
   deleteCommentInteraction,
   editCommentInteraction,
   togglePinComment,
-  addCommentReply,
-  addPostInteraction,    // 🌟 Naya joda gaya (Bot ke reply ke liye)
-  checkSpellingWithAPI   // 🌟 Naya joda gaya (Bot ka dimaag)
+  addCommentReply
 } from '../../services/firebaseServices';
 
 function InteractionNode({ interaction, allInteractions, post, showToast, isMainComment }) {
@@ -24,22 +22,23 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(interaction.text);
+  
   const isOwner = interaction.userId === userId;
+
+  // 🌟 PRO FRONTEND TRICK: Agar comment current user ka hai, toh naya (live) naam dikhao
+  const currentDisplayName = isOwner ? userName : interaction.userName;
 
   const targetId = interaction.id || interaction.timestamp;
   const gates = interaction.commentGates || { support: [], counter: [], doubt: [] };
   
-  // 🌟 Bot aur Admin ko alag-alag pehchanna
-  const isBot = interaction.userId === 'system_bot_001';
   const isAdminBadge = interaction.isAdminComment === true || interaction.role === 'admin';
 
   useEffect(() => {
-    // Bot ko admin upgrade process se bahar rakha hai
-    if (isOwner && isAdmin && !isAdminBadge && !isBot) {
+    if (isOwner && isAdmin && !isAdminBadge) {
       upgradeCommentToAdmin(post.id, post.interactions, targetId)
         .catch(err => console.error("Admin upgrade failed", err));
     }
-  }, [isOwner, isAdmin, isAdminBadge, isBot, post.id, targetId, post.interactions]);
+  }, [isOwner, isAdmin, isAdminBadge, post.id, targetId, post.interactions]);
 
   const supportCount = gates.support.length;
   const counterCount = gates.counter.length;
@@ -88,7 +87,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     setIsReplying(true);
   };
 
-  // 🌟 YAHAN BOT KO LAGA DIYA HAI
+  // 🌟 BOT HATA DIYA GAYA HAI - Sirf Normal Reply Logic
   const handleReplySubmit = async () => {
     if (replyText.trim().length < 2) return;
     setIsSubmitting(true);
@@ -101,7 +100,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
         id: replyId,
         parentId: targetId,
         userId,
-        userName: userName || "Explorer",
+        userName: userName || "Explorer", // Naya reply hamesha naye naam se jayega
         type: replyType,
         text: currentReplyText,
         timestamp: new Date().toISOString(),
@@ -109,32 +108,11 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
         isAdminComment: isAdmin
       };
       
-      // 1. User ka reply Database me daala
       await addCommentReply(post.id, post.interactions, targetId, replyData, gates);
       
       setReplyText("");
       setIsReplying(false);
       showToast("Logic recorded! 🚀");
-
-      // 🌟 2. BOT MAGIC: Background me reply ko check karna
-      checkSpellingWithAPI(currentReplyText).then(async (mistakes) => {
-        if (mistakes && mistakes.length > 0) {
-          const botReplyData = {
-            id: "bot_" + Date.now().toString(36),
-            parentId: replyId, // 🌟 Bot ka reply seedha user ke is naye reply ke niche dikhega
-            userId: "system_bot_001",
-            userName: "Grammar Bot 🤖",
-            type: "support",
-            text: `🤖 **Auto-Bot Alert:** I noticed a few typos in your reflection. Here are some suggestions:`,
-            mistakes: mistakes.slice(0, 5),
-            timestamp: new Date().toISOString(),
-            commentGates: { support: [], counter: [], doubt: [] },
-            isAdminComment: true // Admin jaisa highlight
-          };
-          // 3. Bot ka message upload karna
-          await addPostInteraction(post.id, botReplyData);
-        }
-      }).catch(err => console.log("Bot Error:", err));
 
     } catch (e) { showToast("Failed to reply.", false); }
     finally { setIsSubmitting(false); }
@@ -153,15 +131,11 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
   };
 
   // Avatar aur Name ki styling
-  const avatarClass = isBot 
-    ? "bg-slate-800 text-white" 
-    : isAdminBadge 
+  const avatarClass = isAdminBadge 
       ? "bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-sm shadow-amber-500/20" 
       : "bg-slate-100 text-slate-600";
       
-  const nameColorClass = isBot 
-    ? "text-slate-900 font-medium" 
-    : isAdminBadge 
+  const nameColorClass = isAdminBadge 
       ? "text-amber-900 font-medium" 
       : "text-slate-700";
 
@@ -171,20 +145,17 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
       {!isMainComment && parentInteraction && (
         <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-2 pl-12">
           <i className="fa-solid fa-reply rotate-180"></i>
-          To <span className="text-teal-700">@{parentInteraction.userName}</span>
+          {/* 🌟 FIX: Parent interaction ke naam ko bhi update kar diya (agar wo logged in user hai) */}
+          To <span className="text-teal-700">@{parentInteraction.userId === userId ? userName : parentInteraction.userName}</span>
         </div>
       )}
 
       <div className="flex items-start gap-3 px-1">
 
         <div className={`${isMainComment ? 'h-10 w-10 text-sm' : 'h-8 w-8 text-xs'} rounded-full flex items-center justify-center shrink-0 relative transition-all ${avatarClass}`}>
-          {interaction.userName?.charAt(0).toUpperCase()}
-          {isBot && (
-            <div className="absolute -top-0.5 -right-0.5 text-slate-500 bg-white rounded-full h-3.5 w-3.5 flex items-center justify-center border border-slate-200">
-              <i className="fa-solid fa-robot text-[7px]"></i>
-            </div>
-          )}
-          {!isBot && isAdminBadge && (
+          {/* 🌟 FIX: Avatar me naya naam */}
+          {currentDisplayName?.charAt(0).toUpperCase()}
+          {isAdminBadge && (
             <div className="absolute -top-1 -right-1 text-amber-500 bg-white rounded-full h-3.5 w-3.5 flex items-center justify-center shadow-sm border border-amber-100">
               <i className="fa-solid fa-crown text-[6px]"></i>
             </div>
@@ -194,15 +165,12 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-0.5 relative">
             <div className="flex items-center gap-2 flex-wrap">
+              {/* 🌟 FIX: Display Name me naya naam */}
               <span className={`${isMainComment ? 'text-sm' : 'text-[13px]'} transition-colors ${nameColorClass}`}>
-                {interaction.userName}
+                {currentDisplayName}
               </span>
 
-              {isBot ? (
-                <span className="bg-slate-100 text-slate-600 text-[9px] uppercase px-1.5 py-0.5 rounded flex items-center gap-1 border border-slate-200 tracking-wide">
-                  Bot
-                </span>
-              ) : isAdminBadge ? (
+              {isAdminBadge ? (
                 <span className="bg-amber-100 text-amber-700 text-[9px] uppercase px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-200 tracking-wide">
                   ADMIN
                 </span>
@@ -210,11 +178,9 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
 
               {interaction.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-[10px]"></i>}
 
-              {!isBot && (
-                <span className={`text-[9px] md:text-[10px] uppercase flex items-center gap-1.5 ${config.color} ${config.bg} border ${config.border} px-2 py-0.5 rounded-md`}>
-                  <i className={config.icon}></i> {config.label}
-                </span>
-              )}
+              <span className={`text-[9px] md:text-[10px] uppercase flex items-center gap-1.5 ${config.color} ${config.bg} border ${config.border} px-2 py-0.5 rounded-md`}>
+                <i className={config.icon}></i> {config.label}
+              </span>
 
               <span className="text-[9px] md:text-[10px] text-slate-400 whitespace-nowrap">
                 • {formatDateTime(interaction.timestamp)}
@@ -258,45 +224,12 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
               </div>
             </div>
           ) : (
-            <>
-              {/* Normal Text Output */}
-              <p className={`text-slate-700 whitespace-pre-wrap text-justify break-words ${isMainComment ? 'text-[14px] mt-1' : 'text-sm mt-0.5'} mb-1`}>
-                {formatMessage(interaction.text)}
-              </p>
-
-              {/* Bot ki galtiyo wali Table */}
-              {interaction.mistakes && interaction.mistakes.length > 0 && (
-                <div className="mt-2 mb-3 overflow-hidden rounded-lg border border-slate-200 w-full max-w-sm">
-                  <table className="w-full text-left text-[13px]">
-                    <thead className="bg-slate-50/80 border-b border-slate-100">
-                      <tr>
-                        <th className="px-3 py-2 text-slate-400 font-medium uppercase tracking-wider text-[10px] w-1/2">
-                          Typo
-                        </th>
-                        <th className="px-3 py-2 text-slate-400 font-medium uppercase tracking-wider text-[10px] w-1/2">
-                          Correction
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {interaction.mistakes.map((m, idx) => (
-                        <tr key={idx} className="bg-white">
-                          <td className="px-3 py-2 text-slate-500 line-through decoration-rose-300">
-                            {m.wrong}
-                          </td>
-                          <td className="px-3 py-2 text-emerald-600 font-medium">
-                            {m.correct}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </>
+            <p className={`text-slate-700 whitespace-pre-wrap text-justify break-words ${isMainComment ? 'text-[14px] mt-1' : 'text-sm mt-0.5'} mb-1`}>
+              {formatMessage(interaction.text)}
+            </p>
           )}
 
-          {!isEditing && !isBot && (
+          {!isEditing && (
             <div className="flex items-center gap-4 mt-2">
               <button onClick={() => handleIconClick('support')} className={`flex items-center gap-1.5 text-[11px] transition-all hover:-translate-y-0.5 ${hasReacted && gates.support.includes(userId) ? 'text-emerald-600' : 'text-slate-400 hover:text-emerald-600'}`}>
                 <i className={`${hasReacted && gates.support.includes(userId) ? 'fa-solid' : 'fa-regular'} fa-circle-check text-sm`}></i>{supportCount > 0 && <span>{supportCount}</span>}
@@ -453,4 +386,4 @@ export default function CommentBox({ post, showToast }) {
       </div>
     </div>
   );
-    }
+}

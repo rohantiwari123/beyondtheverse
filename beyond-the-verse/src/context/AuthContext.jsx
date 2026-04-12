@@ -1,29 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore'; // 🌟 FIX: getDoc ki jagah onSnapshot
 import { auth, db } from '../firebase'; 
 
-// 🛡️ SECURITY FIX: Cookies की जगह LocalStorage का इस्तेमाल
-// (इससे हैकर्स आसानी से role एडिट नहीं कर पाएंगे और परफॉरमेंस बढ़ेगी)
-const saveLocalUser = (value) => {
-  localStorage.setItem('btv_user', JSON.stringify(value));
-};
-
-const getLocalUser = () => {
-  const match = localStorage.getItem('btv_user');
-  if (match) return JSON.parse(match);
-  return null;
-};
-
-const removeLocalUser = () => {
-  localStorage.removeItem('btv_user');
-};
+// 🛡️ SECURITY FIX: LocalStorage Helper Functions
+const saveLocalUser = (value) => localStorage.setItem('btv_user', JSON.stringify(value));
+const getLocalUser = () => JSON.parse(localStorage.getItem('btv_user')) || null;
+const removeLocalUser = () => localStorage.removeItem('btv_user');
 
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  // 🌟 FIX: getCookie की जगह getLocalUser
   const savedUser = getLocalUser();
   
   const [currentUser, setCurrentUser] = useState(null);
@@ -33,45 +21,62 @@ export const AuthProvider = ({ children }) => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(!savedUser);
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+    let unsubscribeSnapshot = null; // 🌟 Firestore listener ko rokne ke liye
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
         setCurrentUser(user);
-        try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            const role = userDoc.data().role || 'client';
-            const realName = userDoc.data().name || user.displayName || ""; 
-            setIsAuthenticated(true);
-            setIsAdmin(role === 'admin');
-            setUserName(realName); 
-            // 🌟 FIX: setCookie की जगह saveLocalUser
-            saveLocalUser({ uid: user.uid, role, name: realName });
-          } else {
-            const tempName = user.displayName || ""; 
-            setIsAuthenticated(true);
-            setIsAdmin(false);
-            setUserName(tempName);
-            // 🌟 FIX: setCookie की जगह saveLocalUser
-            saveLocalUser({ uid: user.uid, role: 'client', name: tempName });
+        
+        // 🚀 PRO UPGRADE: Real-time Database Listener
+        // Ab agar database mein role ya name change hoga, toh website par instantly update hoga (bina refresh)
+        unsubscribeSnapshot = onSnapshot(doc(db, 'users', user.uid), 
+          (userDoc) => {
+            if (userDoc.exists()) {
+              const role = userDoc.data().role || 'client';
+              const realName = userDoc.data().name || user.displayName || ""; 
+              
+              setIsAuthenticated(true);
+              setIsAdmin(role === 'admin');
+              setUserName(realName); 
+              
+              saveLocalUser({ uid: user.uid, role, name: realName });
+            } else {
+              const tempName = user.displayName || ""; 
+              setIsAuthenticated(true);
+              setIsAdmin(false);
+              setUserName(tempName);
+              saveLocalUser({ uid: user.uid, role: 'client', name: tempName });
+            }
+            setIsCheckingAuth(false);
+          }, 
+          (error) => {
+            console.error("AuthContext Snapshot Error:", error);
+            // Fallback agar network chala jaye
+            setIsAuthenticated(true); 
+            setUserName(user.displayName || getLocalUser()?.name || "");
+            setIsCheckingAuth(false);
           }
-        } catch (error) {
-          console.error("AuthContext Error:", error);
-          setIsAuthenticated(true); 
-          // 🌟 FIX: getCookie की जगह getLocalUser
-          setUserName(user.displayName || getLocalUser()?.name || "");
-        }
+        );
+
       } else {
+        // User logged out
         setCurrentUser(null);
-        // 🌟 FIX: eraseCookie की जगह removeLocalUser
         removeLocalUser();
         setIsAuthenticated(false);
         setIsAdmin(false);
         setUserName("");
+        setIsCheckingAuth(false);
+        
+        // 🧹 Memory Leak roko: Agar user logout ho jaye toh Firestore ko sun-na band karo
+        if (unsubscribeSnapshot) unsubscribeSnapshot();
       }
-      setIsCheckingAuth(false);
     });
 
-    return () => unsubscribeAuth();
+    // 🧹 Cleanup function jab component unmount ho
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+    };
   }, []);
 
   const login = (role, name) => {
@@ -82,7 +87,6 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     await signOut(auth);
-    // 🌟 FIX: eraseCookie की जगह removeLocalUser
     removeLocalUser();
     setCurrentUser(null);
     setIsAuthenticated(false);
@@ -90,13 +94,12 @@ export const AuthProvider = ({ children }) => {
     setUserName("");
   };
 
-  // 🌟 VALUE UPDATED: userId ab yahan se pass ho raha hai
   const value = { 
     currentUser, 
     isAuthenticated, 
     isAdmin, 
     userName, 
-    userId: currentUser?.uid || savedUser?.uid, // Dono jagah se check karega
+    userId: currentUser?.uid || savedUser?.uid, 
     login, 
     logout 
   };

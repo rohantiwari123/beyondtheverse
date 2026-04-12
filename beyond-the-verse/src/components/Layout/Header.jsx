@@ -13,7 +13,11 @@ export default function Header() {
   // Notification States
   const [notifications, setNotifications] = useState([]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  
+  // 🌟 NEW LOGIC: Notifications ko 2 hisso mein baanta gaya hai
+  const unreadNotifs = notifications.filter(n => !n.isRead);
+  const readNotifs = notifications.filter(n => n.isRead);
+  const unreadCount = unreadNotifs.length;
 
   const navLinks = [
     { name: 'Home', path: '/', icon: 'fa-house' },
@@ -67,39 +71,26 @@ export default function Header() {
 
   return (
     <>
-      {/* 🌟 Yahan sirf 'fixed left-0 right-0' joda gaya hai */}
       <header className="bg-white/95 backdrop-blur-xl fixed top-0 left-0 right-0 z-40 border-b border-slate-200 w-full overflow-visible">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center">
 
-          {/* 1. LEFT ZONE: TYPOGRAPHIC LOGO (Horizontal Layout) */}
+          {/* 1. LEFT ZONE: TYPOGRAPHIC LOGO */}
           <div className="flex items-center justify-start min-w-max lg:w-1/4">
             <Link to="/" className="flex flex-col justify-center items-start select-none">
-              
-              {/* 🌟 Horizontal Logo Structure */}
               <div className="flex items-baseline gap-1">
-                
-                {/* Word 1: Beyond (Heavy & Dark) */}
                 <span className="text-[22px] sm:text-[26px] lg:text-[34px] text-slate-900 font-cabinet font-black tracking-tighter leading-none">
                   Beyond
                 </span>
-                
-                {/* Word 2: The (Light & Neutral) */}
                 <span className="text-[16px] sm:text-[20px] lg:text-[24px] lowercase tracking-tighter leading-[0.85] text-slate-400 font-serif italic font-bold tracking-tight leading-none">
                   The
                 </span>
-                
-                {/* Word 3: Verse (Brand Color & Bold) */}
                 <span className="text-[20px] sm:text-[24px] lg:text-[28px] text-teal-600 font-cabinet font-black tracking-tight leading-none">
                   Verse
                 </span>
-                
               </div>
-              
-              {/* Tagline (Inter Font - Clean, Neutral & Elegant) */}
               <span className="hidden xs:flex items-center gap-1.5 text-[6.5px] sm:text-[7px] lg:text-[8px] text-slate-400 uppercase mt-1.5 sm:mt-2 truncate tracking-[0.35em] font-medium font-sans">
                 <div className="h-px w-3 bg-teal-500/40"></div> Empowering Education
               </span>
-              
             </Link>
           </div>
 
@@ -144,8 +135,8 @@ export default function Header() {
                     <div className="fixed inset-0 z-40" onClick={() => setShowNotifDropdown(false)}></div>
                     <div className="absolute right-0 mt-2 w-[280px] sm:w-[320px] bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-fade-in origin-top-right">
                       <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 bg-slate-50/80">
-                        <span className="text-slate-800 text-[13px] uppercase">Notifications</span>
-                        {unreadCount > 0 && <span className="bg-teal-100 text-teal-700 text-[9px] uppercase px-2 py-1 rounded-md border border-teal-200">{unreadCount} New</span>}
+                        <span className="text-slate-800 text-[13px] uppercase font-bold">Notifications</span>
+                        {unreadCount > 0 && <span className="bg-teal-100 text-teal-700 text-[9px] font-bold uppercase px-2 py-1 rounded-md border border-teal-200">{unreadCount} New</span>}
                       </div>
 
                       <div className="max-h-[350px] overflow-y-auto hide-scrollbar">
@@ -155,23 +146,54 @@ export default function Header() {
                             <p className="text-[11px] uppercase">Quiet in the verse</p>
                           </div>
                         ) : (
-                          notifications.map(notif => (
-                            <div
-                              key={notif.id}
-                              onClick={() => handleNotificationClick(notif)}
-                              className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors flex gap-3.5 ${!notif.isRead ? 'bg-teal-50/40' : ''}`}
-                            >
-                              <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 border ${!notif.isRead ? 'bg-white text-teal-600 border-teal-200 shadow-sm' : 'bg-slate-50 text-slate-400 border-slate-200'}`}>
-                                <i className="fa-solid fa-bolt text-[10px]"></i>
+                          <>
+                            {/* 🌟 NEW NOTIFICATIONS SECTION */}
+                            {unreadNotifs.length > 0 && (
+                              <div className="px-4 py-2.5 mt-1">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-teal-600">New</span>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className={`text-[13px] truncate ${!notif.isRead ? 'text-slate-800' : 'text-slate-600'}`}>{notif.title}</p>
-                                <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">{notif.message}</p>
-                                <p className="text-[9px] text-slate-400 mt-2 uppercase">{formatDateTime(notif.timestamp)}</p>
+                            )}
+                            {unreadNotifs.map(notif => (
+                              <div
+                                key={notif.id}
+                                onClick={() => handleNotificationClick(notif)}
+                                className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors flex gap-3.5 bg-teal-50/40`}
+                              >
+                                <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 border bg-white text-teal-600 border-teal-200 shadow-sm`}>
+                                  <i className="fa-solid fa-bolt text-[10px]"></i>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-[13px] truncate text-slate-800 font-medium`}>{notif.title}</p>
+                                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">{notif.message}</p>
+                                  <p className="text-[9px] text-slate-400 mt-2 uppercase">{formatDateTime(notif.timestamp)}</p>
+                                </div>
+                                <div className="h-1.5 w-1.5 rounded-full bg-teal-500 mt-2 shrink-0"></div>
                               </div>
-                              {!notif.isRead && <div className="h-1.5 w-1.5 rounded-full bg-teal-500 mt-2 shrink-0"></div>}
-                            </div>
-                          ))
+                            ))}
+
+                            {/* 🌟 EARLIER NOTIFICATIONS SECTION */}
+                            {readNotifs.length > 0 && (
+                              <div className="px-4 py-2.5 mt-1 border-t border-slate-50 bg-white">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Earlier</span>
+                              </div>
+                            )}
+                            {readNotifs.map(notif => (
+                              <div
+                                key={notif.id}
+                                onClick={() => handleNotificationClick(notif)}
+                                className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors flex gap-3.5`}
+                              >
+                                <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 border bg-slate-50 text-slate-400 border-slate-200`}>
+                                  <i className="fa-solid fa-bolt text-[10px]"></i>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-[13px] truncate text-slate-600`}>{notif.title}</p>
+                                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">{notif.message}</p>
+                                  <p className="text-[9px] text-slate-400 mt-2 uppercase">{formatDateTime(notif.timestamp)}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </>
                         )}
                       </div>
                     </div>
@@ -284,13 +306,27 @@ export default function Header() {
               <span className="text-sm">{link.name}</span>
             </Link>
           ))}
+
+          {/* 🌟 PRO FIX: Admin Dashboard ka badha button list ke andar */}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all mt-2 ${
+                isPathActive('/admin') ? "bg-slate-900 text-white" : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+              }`}
+            >
+              <div className="w-5 flex justify-center shrink-0"><i className="fa-solid fa-shield-halved text-base"></i></div>
+              <span className="text-sm font-bold">Admin Dashboard</span>
+            </Link>
+          )}
         </nav>
 
         {/* MOBILE BOTTOM ACTIONS */}
         <div className="p-4 pb-8 border-t border-slate-100 bg-slate-50 flex flex-col gap-3">
           {isAuthenticated && (
             <div className={`p-2 rounded-xl border flex items-center justify-between transition-colors ${
-              isPathActive('/profile') || isPathActive('/settings') || isPathActive('/admin') ? 'bg-white border-teal-200 shadow-sm' : 'bg-white border-slate-200'
+              isPathActive('/profile') || isPathActive('/settings') ? 'bg-white border-teal-200 shadow-sm' : 'bg-white border-slate-200'
             }`}>
               <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 flex-1 overflow-hidden px-1">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 border ${
@@ -304,14 +340,8 @@ export default function Header() {
                 </div>
               </Link>
 
+              {/* 🌟 FIX: Yahan se purana chhota shield icon hata diya gaya hai */}
               <div className="flex items-center gap-1 border-l border-slate-100 pl-1">
-                {isAdmin && (
-                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${
-                    isPathActive('/admin') ? 'text-slate-900 bg-slate-100' : 'text-slate-400'
-                  }`}>
-                    <i className="fa-solid fa-shield-halved text-sm"></i>
-                  </Link>
-                )}
                 <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${
                   isPathActive('/settings') ? 'text-teal-600 bg-teal-50/50' : 'text-slate-400'
                 }`}>
