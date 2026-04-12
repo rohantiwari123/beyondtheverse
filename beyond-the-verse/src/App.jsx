@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { onSnapshot, collection, doc } from 'firebase/firestore'; 
 import { db } from './firebase'; 
@@ -6,26 +6,35 @@ import { db } from './firebase';
 // Context Hook
 import { useAuth } from './context/AuthContext';
 
-// Components & Layout
+// Components & Layout (इन्हें Lazy load नहीं करेंगे क्योंकि ये हर पेज पर दिखते हैं)
 import Header from './components/Layout/Header';
 import Toast from './components/common/Toast';
 
-// Phase 1 Pages
-import LoginPage from './pages/Auth/LoginPage';
-import HomePage from './pages/Home/HomePage';
-import DonationPage from './pages/Donation/DonationPage';
-import AboutPage from './pages/About/AboutPage';
-import ProfilePage from './pages/Profile/ProfilePage'; 
-import SinglePostPage from './pages/Community/SinglePostPage';
-// Phase 2 Pages
-import CommunityPage from './pages/Community/CommunityPage';
-import ExamPage from './pages/Exam/ExamPage';
-import ExamEngine from './components/Exam/ExamEngine';
-import LibraryPage from './pages/Library/LibraryPage';
+// 🌟 PRO FIX 1: Code Splitting (Lazy Loading) 🌟
+// अब पेजेस सिर्फ तभी लोड होंगे जब यूज़र उनके लिंक पर क्लिक करेगा
+const LoginPage = lazy(() => import('./pages/Auth/LoginPage'));
+const HomePage = lazy(() => import('./pages/Home/HomePage'));
+const DonationPage = lazy(() => import('./pages/Donation/DonationPage'));
+const AboutPage = lazy(() => import('./pages/About/AboutPage'));
+const ProfilePage = lazy(() => import('./pages/Profile/ProfilePage')); 
+const SinglePostPage = lazy(() => import('./pages/Community/SinglePostPage'));
+const CommunityPage = lazy(() => import('./pages/Community/CommunityPage'));
+const ExamPage = lazy(() => import('./pages/Exam/ExamPage'));
+const ExamEngine = lazy(() => import('./components/Exam/ExamEngine'));
+const LibraryPage = lazy(() => import('./pages/Library/LibraryPage'));
+const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'));
+const SettingsPage = lazy(() => import('./pages/Settings/SettingsPage'));
 
-// Admin Dashboard Page
-import AdminDashboard from './pages/Admin/AdminDashboard';
-import SettingsPage from './pages/Settings/SettingsPage';
+// 🌟 PRO FIX 2: Global Page Loader 🌟
+// जब तक पेज बैकग्राउंड में डाउनलोड होगा, यूज़र को ये प्रीमियम एनीमेशन दिखेगा
+const PageLoader = () => (
+  <div className="w-full h-[60vh] flex flex-col justify-center items-center">
+    <i className="fa-solid fa-circle-notch fa-spin text-4xl text-teal-600 mb-4"></i>
+    <p className="text-slate-500 font-medium tracking-widest uppercase text-xs animate-pulse">
+      Loading Universe...
+    </p>
+  </div>
+);
 
 export default function App() {
   const navigate = useNavigate();
@@ -38,7 +47,7 @@ export default function App() {
   const [totalRaised, setTotalRaised] = useState(0);
   const [targetAmount, setTargetAmount] = useState(50000);
 
-  // Live Donations & Goal Fetch
+  // Live Donations & Goal Fetch (Logic untouched)
   useEffect(() => {
     const unsubDonations = onSnapshot(collection(db, 'donations'), (snapshot) => {
       let total = 0; let list = [];
@@ -63,7 +72,6 @@ export default function App() {
     setTimeout(() => setToast({ show: false, message: '', isSuccess: true }), 3500);
   };
 
-  // FIX: Removed strict paddings so child components can be Edge-to-Edge on mobile
   const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin', '/profile', '/settings', '/community'].includes(location.pathname) || location.pathname.startsWith('/post/');
 
   return (
@@ -80,38 +88,42 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className={`relative z-10 w-full ${isStandardLayout ? 'max-w-7xl mx-auto' : ''}`}>
-        <Routes>
-          <Route path="/login" element={!isAuthenticated ? <LoginPage showToast={showToast} /> : <Navigate to="/" />} />
+        {/* 🌟 PRO FIX 3: Suspense Wrapper 🌟 */}
+        {/* Routes को Suspense के अंदर रखना ज़रूरी है ताकि Lazy loading काम कर सके */}
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/login" element={!isAuthenticated ? <LoginPage showToast={showToast} /> : <Navigate to="/" />} />
 
-          <Route path="/" element={<HomePage onNavigateToDonate={() => navigate('/donate')} />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/donate" element={<DonationPage showToast={showToast} onBack={() => navigate('/')} />} />
-          <Route path="/community" element={<CommunityPage showToast={showToast} />} />
-        
-          <Route path="/post/:postId" element={<SinglePostPage showToast={showToast} />} /> 
+            <Route path="/" element={<HomePage onNavigateToDonate={() => navigate('/donate')} />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/donate" element={<DonationPage showToast={showToast} onBack={() => navigate('/')} />} />
+            <Route path="/community" element={<CommunityPage showToast={showToast} />} />
           
-          {/* Exam Routes */}
-          <Route path="/exam" element={<ExamPage showToast={showToast} />} />
-          <Route path="/exam/engine/:examId" element={<ExamEngine showToast={showToast} />} />
+            <Route path="/post/:postId" element={<SinglePostPage showToast={showToast} />} /> 
+            
+            {/* Exam Routes */}
+            <Route path="/exam" element={<ExamPage showToast={showToast} />} />
+            <Route path="/exam/engine/:examId" element={<ExamEngine showToast={showToast} />} />
 
-          {/* Profile Route */}
-          <Route path="/profile" element={<ProfilePage showToast={showToast} />} />
-          
-          <Route path="/admin" element={
-            <AdminDashboard 
-              showToast={showToast}
-              donations={donations}
-              totalRaised={totalRaised}
-              targetAmount={targetAmount}
-            />
-          } />
+            {/* Profile Route */}
+            <Route path="/profile" element={<ProfilePage showToast={showToast} />} />
+            
+            <Route path="/admin" element={
+              <AdminDashboard 
+                showToast={showToast}
+                donations={donations}
+                totalRaised={totalRaised}
+                targetAmount={targetAmount}
+              />
+            } />
 
-          <Route path="/settings" element={<SettingsPage showToast={showToast} />} />
-          <Route path="/library" element={<LibraryPage />} />
-          
-          {/* Fallback Route */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+            <Route path="/settings" element={<SettingsPage showToast={showToast} />} />
+            <Route path="/library" element={<LibraryPage />} />
+            
+            {/* Fallback Route */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Suspense>
       </main>
       
       {/* Toast Notification Layer */}

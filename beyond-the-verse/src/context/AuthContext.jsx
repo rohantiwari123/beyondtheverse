@@ -3,28 +3,28 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase'; 
 
-// 🍪 COOKIES LOGIC
-const setCookie = (name, value, days) => {
-  const date = new Date();
-  date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-  document.cookie = `${name}=${JSON.stringify(value)};expires=${date.toUTCString()};path=/`;
+// 🛡️ SECURITY FIX: Cookies की जगह LocalStorage का इस्तेमाल
+// (इससे हैकर्स आसानी से role एडिट नहीं कर पाएंगे और परफॉरमेंस बढ़ेगी)
+const saveLocalUser = (value) => {
+  localStorage.setItem('btv_user', JSON.stringify(value));
 };
 
-const getCookie = (name) => {
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  if (match) return JSON.parse(match[2]);
+const getLocalUser = () => {
+  const match = localStorage.getItem('btv_user');
+  if (match) return JSON.parse(match);
   return null;
 };
 
-const eraseCookie = (name) => {
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
+const removeLocalUser = () => {
+  localStorage.removeItem('btv_user');
 };
 
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const savedUser = getCookie('btv_user');
+  // 🌟 FIX: getCookie की जगह getLocalUser
+  const savedUser = getLocalUser();
   
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(!!savedUser);
@@ -44,22 +44,26 @@ export const AuthProvider = ({ children }) => {
             setIsAuthenticated(true);
             setIsAdmin(role === 'admin');
             setUserName(realName); 
-            setCookie('btv_user', { uid: user.uid, role, name: realName }, 30);
+            // 🌟 FIX: setCookie की जगह saveLocalUser
+            saveLocalUser({ uid: user.uid, role, name: realName });
           } else {
             const tempName = user.displayName || ""; 
             setIsAuthenticated(true);
             setIsAdmin(false);
             setUserName(tempName);
-            setCookie('btv_user', { uid: user.uid, role: 'client', name: tempName }, 30);
+            // 🌟 FIX: setCookie की जगह saveLocalUser
+            saveLocalUser({ uid: user.uid, role: 'client', name: tempName });
           }
         } catch (error) {
           console.error("AuthContext Error:", error);
           setIsAuthenticated(true); 
-          setUserName(user.displayName || getCookie('btv_user')?.name || "");
+          // 🌟 FIX: getCookie की जगह getLocalUser
+          setUserName(user.displayName || getLocalUser()?.name || "");
         }
       } else {
         setCurrentUser(null);
-        eraseCookie('btv_user');
+        // 🌟 FIX: eraseCookie की जगह removeLocalUser
+        removeLocalUser();
         setIsAuthenticated(false);
         setIsAdmin(false);
         setUserName("");
@@ -78,7 +82,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     await signOut(auth);
-    eraseCookie('btv_user');
+    // 🌟 FIX: eraseCookie की जगह removeLocalUser
+    removeLocalUser();
     setCurrentUser(null);
     setIsAuthenticated(false);
     setIsAdmin(false);

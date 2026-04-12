@@ -1,7 +1,7 @@
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-// GitHub aur Codespaces ke liye HashRouter sabse safe hai
-import { HashRouter } from 'react-router-dom';
+// 🌟 FIX: HashRouter हटाकर BrowserRouter इम्पोर्ट किया
+import { BrowserRouter } from 'react-router-dom';
 import './index.css';
 import App from './App.jsx';
 
@@ -61,12 +61,13 @@ console.log(
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <HashRouter>
+      {/* 🌟 FIX: HashRouter की जगह BrowserRouter लगाया और basename सेट किया */}
+      <BrowserRouter basename="/beyondtheverse">
         {/* 🌟 NAYA: Puri App ko AuthProvider ke andar lapet diya hai! 🌟 */}
         <AuthProvider>
           <App />
         </AuthProvider>
-      </HashRouter>
+      </BrowserRouter>
     </ErrorBoundary>
   </StrictMode>
 );

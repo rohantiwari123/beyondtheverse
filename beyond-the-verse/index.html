@@ -7,8 +7,22 @@
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Beyond The Verse</title>
+
+    <script type="text/javascript">
+      (function(l) {
+        if (l.search[1] === 'p' && l.search[2] === '=') {
+          var a = l.search.slice(3).split('&')[0].replace(/~and~/g, '&');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + a +
+              (l.search.slice(a.length + 3) ? '&' + l.search.slice(a.length + 3) : '') +
+              l.hash
+          );
+        }
+      }(window.location))
+    </script>
   </head>
-  <body className="">
+  
+  <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

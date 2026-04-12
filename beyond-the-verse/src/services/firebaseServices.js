@@ -118,12 +118,16 @@ export const createPost = async (postData) => {
 
     try {
       const usersSnap = await getDocs(collection(db, "users")); 
-      const batch = writeBatch(db); 
+      
+      // 🛡️ SECURITY FIX: Batch Chunking (Prevents Firebase 500 Limit Crash)
+      const batches = [];
+      let currentBatch = writeBatch(db);
+      let operationCount = 0;
       
       usersSnap.forEach((userDoc) => {
         if (userDoc.id !== postData.userId) { 
           const notifRef = doc(collection(db, "notifications"));
-          batch.set(notifRef, {
+          currentBatch.set(notifRef, {
             userId: userDoc.id, 
             triggerUserId: postData.userId, 
             title: "New Thought in Verse 🌟",
@@ -132,10 +136,25 @@ export const createPost = async (postData) => {
             isRead: false,
             timestamp: serverTimestamp()
           });
+          
+          operationCount++;
+          
+          // Execute batch when it reaches safe limit (450)
+          if (operationCount === 450) {
+            batches.push(currentBatch.commit());
+            currentBatch = writeBatch(db);
+            operationCount = 0;
+          }
         }
       });
       
-      await batch.commit();
+      // Commit any remaining operations
+      if (operationCount > 0) {
+        batches.push(currentBatch.commit());
+      }
+      
+      await Promise.all(batches);
+      
     } catch (notifError) {
       console.error("Failed to broadcast notifications:", notifError);
     }
