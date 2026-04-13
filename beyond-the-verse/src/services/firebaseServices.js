@@ -491,6 +491,49 @@ export const updateUserSecurityPassword = async (newPassword) => {
 };
 
 // ==========================================
+// 📸 UPLOAD PROFILE PICTURE (Via ImgBB - 100% Free)
+// ==========================================
+export const uploadProfilePicture = async (userId, file) => {
+  try {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    // 🔴 ImgBB ki API Key yahan paste karo (api.imgbb.com se nikal kar)
+    const apiKey = "a6229f654ae5d1e5afd8bc12581b23cb"; 
+    
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      method: "POST",
+      body: formData,
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      const photoURL = data.data.url; // Live DP Link
+
+      // 1. Firestore Database me update karo
+      const userRef = doc(db, "users", userId);
+      await updateDoc(userRef, {
+        profilePic: photoURL
+      });
+
+      // 2. Firebase Auth Profile me bhi update kar do (Taki har jagah easily mil jaye)
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { photoURL: photoURL });
+      }
+
+      return photoURL; 
+    } else {
+      throw new Error("ImgBB Upload Failed");
+    }
+
+  } catch (error) {
+    console.error("Error uploading DP:", error);
+    throw error;
+  }
+};
+
+// ==========================================
 // 🔔 9. NOTIFICATIONS SYSTEM
 // ==========================================
 
