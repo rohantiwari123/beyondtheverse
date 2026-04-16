@@ -16,12 +16,12 @@ import BackButton from "../../components/common/BackButton";
 export default function ProfilePage() {
   const { id } = useParams(); // URL me jo ID hogi
   const { currentUser, userId } = useAuth();
-  
+
   // 🌟 LOGIC: Check karo ki apni profile hai ya dusre ki
   const isMyProfile = !id || id === userId;
   const targetUserId = isMyProfile ? userId : id;
 
-  const [activeTab, setActiveTab] = useState("posts"); 
+  const [activeTab, setActiveTab] = useState("posts");
   const [publicUserData, setPublicUserData] = useState(null); // 🌟 Dusre user ka data
 
   // Data States
@@ -91,7 +91,7 @@ export default function ProfilePage() {
   return (
     // 🌟 Yahan se 'px-4' hata diya gaya hai taaki Posts edge-to-edge jaa sakein
     <section className="w-full max-w-4xl mx-auto py-4 sm:py-12 animate-fade-in">
-      
+
       {/* 🌟 BackButton, Header aur Tabs ko alag se padding di gayi hai */}
       <div className="px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
         <BackButton to={-1} label="Back" />
@@ -99,8 +99,8 @@ export default function ProfilePage() {
 
       <div className="px-4 sm:px-6 lg:px-8">
         {/* 🌟 publicUser data pass kar diya */}
-        <ProfileHeader publicUser={publicUserData} />
-      </div>
+        {/* 🌟 FIX 3: isMyProfile prop pass kiya */}
+        <ProfileHeader publicUser={publicUserData} isMyProfile={isMyProfile} />      </div>
 
       {/* PROFILE TABS */}
       <div className="mt-6 sm:mt-8 mb-4 sm:mb-6 border-b border-slate-200 px-4 sm:px-6 lg:px-8">

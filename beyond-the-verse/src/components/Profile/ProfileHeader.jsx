@@ -3,17 +3,17 @@ import { useAuth } from '../../context/AuthContext';
 import { uploadProfilePicture } from '../../services/firebaseServices'; 
 import UserAvatar from '../common/UserAvatar'; // 🌟 Naya Import
 
-// 🌟 FIX: publicUser prop add kiya taaki dusre ki profile dikh sake
-export default function ProfileHeader({ publicUser }) {
+// 🌟 FIX: isMyProfile prop add kiya (Default true) taaki loading me flicker na ho
+export default function ProfileHeader({ publicUser, isMyProfile = true }) {
     const { userName, isAdmin, currentUser } = useAuth();
     
-    // 🌟 LOGIC: Agar publicUser aaya hai, matlab kisi aur ki profile dekh rahe hain
-    const isPublicProfile = !!publicUser;
+    // 🌟 LOGIC: Ab hume pata hai ye dusre ki profile hai ya apni
+    const isPublicProfile = !isMyProfile || !!publicUser;
 
-    const displayPhotoURL = isPublicProfile ? publicUser?.profilePic : currentUser?.photoURL;
-    const displayUserName = isPublicProfile ? publicUser?.name : userName;
-    const displayEmail = isPublicProfile ? "Explorer of the Verse" : currentUser?.email;
-    const displayIsAdmin = isPublicProfile ? (publicUser?.role === 'admin') : isAdmin;
+    const displayPhotoURL = isMyProfile ? currentUser?.photoURL : publicUser?.profilePic;
+    const displayUserName = isMyProfile ? userName : publicUser?.name;
+    const displayEmail = isMyProfile ? currentUser?.email : "Explorer of the Verse";
+    const displayIsAdmin = isMyProfile ? isAdmin : (publicUser?.role === 'admin');
 
     // 🌟 DP States
     const [imagePreview, setImagePreview] = useState(displayPhotoURL || null);
@@ -26,7 +26,7 @@ export default function ProfileHeader({ publicUser }) {
 
     // 🌟 Upload Handler
     const handleImageChange = async (e) => {
-        if (isPublicProfile) return; // Dusre ki profile me DP change block
+        if (!isMyProfile) return; // Dusre ki profile me DP change block
         
         const file = e.target.files[0];
         if (!file) return;
@@ -68,7 +68,7 @@ export default function ProfileHeader({ publicUser }) {
                 />
 
                 {/* 🌟 Hover Overlay for Upload (Sirf khud ki profile par dikhega) */}
-                {!isPublicProfile && (
+                {isMyProfile && (
                     <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer text-white z-20 rounded-full">
                         <i className="fa-solid fa-camera mb-1 text-xl"></i>
                         <span className="text-[9px] font-bold uppercase tracking-wider">Change</span>
@@ -102,7 +102,7 @@ export default function ProfileHeader({ publicUser }) {
             {/* User Info (Tumhara Original Code) */}
             <div className="text-center sm:text-left z-10 flex-1">
                 <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center justify-center sm:justify-start gap-3 flex-wrap">
-                    {displayUserName}
+                    {displayUserName || "Explorer"}
                     {displayIsAdmin && <span className="bg-amber-100 text-amber-700 text-[10px] uppercase px-2 py-0.5 rounded-md border border-amber-200 tracking-wider">Admin</span>}
                 </h1>
                 <p className="text-slate-500 text-sm mt-1">{displayEmail}</p>
