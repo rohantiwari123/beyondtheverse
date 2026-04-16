@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom"; // 🌟 URL se ID padhne ke liye
 import { useAuth } from "../../context/AuthContext";
 import {
   getUserPosts,
   getUserBookmarkedPosts,
   getUserExamResults,
+  getUserProfile, // 🌟 Dusre user ka data laane ke liye
 } from "../../services/firebaseServices";
 
 // Components
@@ -12,8 +14,15 @@ import PostCard from "../../components/Community/PostCard";
 import BackButton from "../../components/common/BackButton";
 
 export default function ProfilePage() {
+  const { id } = useParams(); // URL me jo ID hogi
   const { currentUser, userId } = useAuth();
-  const [activeTab, setActiveTab] = useState("posts"); // 'posts', 'saved', 'exams'
+  
+  // 🌟 LOGIC: Check karo ki apni profile hai ya dusre ki
+  const isMyProfile = !id || id === userId;
+  const targetUserId = isMyProfile ? userId : id;
+
+  const [activeTab, setActiveTab] = useState("posts"); 
+  const [publicUserData, setPublicUserData] = useState(null); // 🌟 Dusre user ka data
 
   // Data States
   const [myPosts, setMyPosts] = useState([]);
@@ -22,20 +31,32 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!targetUserId) return;
 
     const fetchProfileData = async () => {
       setIsLoading(true);
       try {
-        const [posts, bookmarks, exams] = await Promise.all([
-          getUserPosts(userId),
-          getUserBookmarkedPosts(userId),
-          getUserExamResults(userId),
-        ]);
+        // Agar dusre ki profile hai, to uska naam aur DP lao
+        if (!isMyProfile) {
+          const pData = await getUserProfile(targetUserId);
+          setPublicUserData(pData);
+        } else {
+          setPublicUserData(null);
+        }
 
+        // Posts sabke aayenge (chahe apne ho ya public)
+        const posts = await getUserPosts(targetUserId);
         setMyPosts(posts);
-        setSavedPosts(bookmarks);
-        setExamResults(exams);
+
+        // 🌟 Saved aur Exams sirf Tabhi aayenge jab apni khud ki profile ho
+        if (isMyProfile) {
+          const [bookmarks, exams] = await Promise.all([
+            getUserBookmarkedPosts(userId),
+            getUserExamResults(userId),
+          ]);
+          setSavedPosts(bookmarks);
+          setExamResults(exams);
+        }
       } catch (error) {
         console.error("Error loading profile data:", error);
       } finally {
@@ -44,7 +65,7 @@ export default function ProfilePage() {
     };
 
     fetchProfileData();
-  }, [userId]);
+  }, [targetUserId, isMyProfile, userId]);
 
   const showToast = (msg) => alert(msg);
 
@@ -56,51 +77,72 @@ export default function ProfilePage() {
     );
   }
 
+  // 🌟 Agar public profile URL galat hai
+  if (!isMyProfile && !isLoading && !publicUserData) {
+    return (
+      <div className="text-center py-20 text-slate-500 animate-fade-in">
+        <h2 className="text-2xl font-bold mb-2">Explorer Not Found</h2>
+        <p className="mb-6">This user does not exist in the verse.</p>
+        <BackButton to={-1} label="Go Back" />
+      </div>
+    );
+  }
+
   return (
-    <section className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 animate-fade-in">
-      <div className="mb-6">
+    // 🌟 Yahan se 'px-4' hata diya gaya hai taaki Posts edge-to-edge jaa sakein
+    <section className="w-full max-w-4xl mx-auto py-4 sm:py-12 animate-fade-in">
+      
+      {/* 🌟 BackButton, Header aur Tabs ko alag se padding di gayi hai */}
+      <div className="px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
         <BackButton to={-1} label="Back" />
       </div>
 
-      {/* 🌟 Sirf Header dikhega, koi Signout button nahi */}
-      <ProfileHeader />
+      <div className="px-4 sm:px-6 lg:px-8">
+        {/* 🌟 publicUser data pass kar diya */}
+        <ProfileHeader publicUser={publicUserData} />
+      </div>
 
-      {/* 🌟 PROFILE TABS */}
-      <div className="mt-8 mb-6 border-b border-slate-200">
+      {/* PROFILE TABS */}
+      <div className="mt-6 sm:mt-8 mb-4 sm:mb-6 border-b border-slate-200 px-4 sm:px-6 lg:px-8">
         <div className="flex gap-6 overflow-x-auto hide-scrollbar">
           <button
             onClick={() => setActiveTab("posts")}
             className={`pb-4 text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === "posts" ? "text-teal-600" : "text-slate-400 hover:text-slate-800"}`}
           >
-            <i className="fa-solid fa-pen-nib mr-2"></i>My Thoughts
+            <i className="fa-solid fa-pen-nib mr-2"></i>{isMyProfile ? "My Thoughts" : "Thoughts"}
             {activeTab === "posts" && (
               <div className="absolute bottom-0 left-0 w-full h-0.5 bg-teal-600 rounded-t-full"></div>
             )}
           </button>
 
-          <button
-            onClick={() => setActiveTab("saved")}
-            className={`pb-4 text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === "saved" ? "text-teal-600" : "text-slate-400 hover:text-slate-800"}`}
-          >
-            <i className="fa-solid fa-bookmark mr-2"></i>Saved
-            {activeTab === "saved" && (
-              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-teal-600 rounded-t-full"></div>
-            )}
-          </button>
+          {/* 🌟 Private Tabs: Sirf khud ki profile par dikhenge */}
+          {isMyProfile && (
+            <>
+              <button
+                onClick={() => setActiveTab("saved")}
+                className={`pb-4 text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === "saved" ? "text-teal-600" : "text-slate-400 hover:text-slate-800"}`}
+              >
+                <i className="fa-solid fa-bookmark mr-2"></i>Saved
+                {activeTab === "saved" && (
+                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-teal-600 rounded-t-full"></div>
+                )}
+              </button>
 
-          <button
-            onClick={() => setActiveTab("exams")}
-            className={`pb-4 text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === "exams" ? "text-teal-600" : "text-slate-400 hover:text-slate-800"}`}
-          >
-            <i className="fa-solid fa-ranking-star mr-2"></i>Vault (Results)
-            {activeTab === "exams" && (
-              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-teal-600 rounded-t-full"></div>
-            )}
-          </button>
+              <button
+                onClick={() => setActiveTab("exams")}
+                className={`pb-4 text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === "exams" ? "text-teal-600" : "text-slate-400 hover:text-slate-800"}`}
+              >
+                <i className="fa-solid fa-ranking-star mr-2"></i>Vault (Results)
+                {activeTab === "exams" && (
+                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-teal-600 rounded-t-full"></div>
+                )}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      {/* 🌟 TAB CONTENT */}
+      {/* TAB CONTENT */}
       <div className="min-h-[300px]">
         {isLoading ? (
           <div className="flex justify-center items-center py-20 text-slate-300">
@@ -109,12 +151,13 @@ export default function ProfilePage() {
         ) : (
           <>
             {activeTab === "posts" && (
-              <div className="space-y-6 animate-fade-in-up">
+              // 🌟 Yahan 'gap-3 sm:gap-6' lagaya hai aur mobile par padding hata di (Edge-to-Edge)
+              <div className="flex flex-col gap-3 sm:gap-6 sm:px-6 lg:px-8 animate-fade-in-up">
                 {myPosts.length === 0 ? (
-                  <div className="text-center py-16 bg-slate-50 border border-slate-100 rounded-3xl">
+                  <div className="text-center py-16 bg-slate-50 border border-slate-100 rounded-3xl mx-4 sm:mx-0">
                     <i className="fa-solid fa-feather-pointed text-4xl text-slate-300 mb-3"></i>
                     <h3 className="text-slate-500 font-medium">
-                      You haven't shared any thoughts yet.
+                      {isMyProfile ? "You haven't shared any thoughts yet." : "No thoughts shared yet."}
                     </h3>
                   </div>
                 ) : (
@@ -125,10 +168,11 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {activeTab === "saved" && (
-              <div className="space-y-6 animate-fade-in-up">
+            {isMyProfile && activeTab === "saved" && (
+              // 🌟 Same Edge-to-Edge for Saved Posts
+              <div className="flex flex-col gap-3 sm:gap-6 sm:px-6 lg:px-8 animate-fade-in-up">
                 {savedPosts.length === 0 ? (
-                  <div className="text-center py-16 bg-slate-50 border border-slate-100 rounded-3xl">
+                  <div className="text-center py-16 bg-slate-50 border border-slate-100 rounded-3xl mx-4 sm:mx-0">
                     <i className="fa-regular fa-bookmark text-4xl text-slate-300 mb-3"></i>
                     <h3 className="text-slate-500 font-medium">
                       No saved posts in your vault.
@@ -142,8 +186,9 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {activeTab === "exams" && (
-              <div className="space-y-4 animate-fade-in-up">
+            {isMyProfile && activeTab === "exams" && (
+              // 🌟 Exams chote cards hain, inme thodi padding theek lagegi
+              <div className="flex flex-col gap-3 sm:gap-4 px-4 sm:px-6 lg:px-8 animate-fade-in-up">
                 {examResults.length === 0 ? (
                   <div className="text-center py-16 bg-slate-50 border border-slate-100 rounded-3xl">
                     <i className="fa-solid fa-award text-4xl text-slate-300 mb-3"></i>

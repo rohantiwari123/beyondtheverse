@@ -8,9 +8,10 @@ import PostCard from '../../components/Community/PostCard';
 import { createPost, saveCategories } from '../../services/firebaseServices';
 // 🌟 1. YAHAN LOGIN OVERLAY IMPORT KIYA HAI (Path check kar lena)
 import LoginOverlay from '../../components/common/LoginOverlay'; 
+import UserAvatar from '../../components/common/UserAvatar'; // 🌟 2. UserAvatar Import kiya
 
 export default function CommunityPage({ showToast }) {
-  const { isAuthenticated, userName, userId, isAdmin } = useAuth();
+  const { isAuthenticated, userName, userId, isAdmin, currentUser } = useAuth(); // currentUser bhi nikal liya
   const navigate = useNavigate();
   
   const [posts, setPosts] = useState([]);
@@ -80,6 +81,7 @@ export default function CommunityPage({ showToast }) {
         category: category, 
         userName: userName || "Explorer", 
         userId: userId,
+        photoURL: currentUser?.photoURL || null, // 🌟 Nayi post ke sath DP bhi jayegi
         isAdminPost: isAdmin, 
         isPinned: false, 
         interactions: [], 
@@ -99,7 +101,7 @@ export default function CommunityPage({ showToast }) {
     // 🌟 RELATIVE CLASS ADD KI TAQI OVERLAY PURE PAGE PAR LAGE
     <div className="min-h-screen bg-slate-50 pt-2 md:pt-8 pb-20 relative">
       
-      {/* 🌟 2. NEW LOGIN OVERLAY (Agar user logged in nahi hai) */}
+      {/* 🌟 NEW LOGIN OVERLAY (Agar user logged in nahi hai) */}
       {!isAuthenticated && (
         <LoginOverlay 
           icon="fa-solid fa-feather-pointed" 
@@ -108,7 +110,7 @@ export default function CommunityPage({ showToast }) {
         />
       )}
 
-      {/* 🌟 3. WRAPPER: Agar login nahi hai to page blur aur click disable ho jayega */}
+      {/* 🌟 WRAPPER: Agar login nahi hai to page blur aur click disable ho jayega */}
       <div className={`max-w-3xl mx-auto w-full flex flex-col gap-3 sm:gap-4 md:gap-6 px-0 sm:px-4 md:px-6 lg:px-0 transition-all duration-300 ${!isAuthenticated ? "pointer-events-none opacity-30 select-none" : ""}`}>
         
         {/* POST COMPOSER (Sirf tab render hoga jab user logged in ho) */}
@@ -116,9 +118,16 @@ export default function CommunityPage({ showToast }) {
           <div className="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-4 md:p-6 relative z-10 w-full">
             <form onSubmit={handlePostSubmit}>
               <div className="flex gap-3 md:gap-4 mb-4">
-                <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 shrink-0 mt-1">
-                  {userName?.charAt(0).toUpperCase() || "U"}
+                
+                {/* 🌟 Yahan purana div hata kar UserAvatar laga diya */}
+                <div className="mt-1">
+                  <UserAvatar 
+                    showCurrentUser={true} 
+                    size="md" 
+                    isAdmin={isAdmin}
+                  />
                 </div>
+
                 <div className="flex-1">
                   <textarea 
                     value={newPost}

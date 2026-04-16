@@ -119,6 +119,7 @@ export default function App() {
 
             <Route path="/settings" element={<SettingsPage showToast={showToast} />} />
             <Route path="/library" element={<LibraryPage />} />
+            <Route path="/profile/:id" element={<ProfilePage />} />
             
             {/* Fallback Route */}
             <Route path="*" element={<Navigate to="/" />} />

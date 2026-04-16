@@ -785,3 +785,16 @@ export const getUserBookmarkedPosts = async (userId) => {
     return [];
   }
 };
+
+// firebaseServices.js me sabse niche add karo:
+export const getUserProfile = async (targetUserId) => {
+  try {
+    const docRef = doc(db, "users", targetUserId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) return { id: docSnap.id, ...docSnap.data() };
+    return null;
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    return null;
+  }
+};

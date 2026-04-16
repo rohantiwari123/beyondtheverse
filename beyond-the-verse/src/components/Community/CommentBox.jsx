@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { formatDateTime } from '../../utils/dateFormatter';
+import UserAvatar from '../common/UserAvatar';
+import { Link } from 'react-router-dom'; // 🌟 Naya Import (Profile par bhejne ke liye)
 
-// 🌟 Real Service Imports (Bot hata diya gaya hai)
+// 🌟 Real Service Imports
 import {
   upgradeCommentToAdmin,
   deleteCommentInteraction,
@@ -12,7 +14,7 @@ import {
 } from '../../services/firebaseServices';
 
 function InteractionNode({ interaction, allInteractions, post, showToast, isMainComment }) {
-  const { isAuthenticated, isAdmin, userId, userName } = useAuth();
+  const { isAuthenticated, isAdmin, userId, userName, currentUser } = useAuth();
 
   const [isReplying, setIsReplying] = useState(false);
   const [replyType, setReplyType] = useState('support');
@@ -22,15 +24,15 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(interaction.text);
-  
+
   const isOwner = interaction.userId === userId;
 
-  // 🌟 PRO FRONTEND TRICK: Agar comment current user ka hai, toh naya (live) naam dikhao
+  // 🌟 PRO FRONTEND TRICK
   const currentDisplayName = isOwner ? userName : interaction.userName;
 
   const targetId = interaction.id || interaction.timestamp;
   const gates = interaction.commentGates || { support: [], counter: [], doubt: [] };
-  
+
   const isAdminBadge = interaction.isAdminComment === true || interaction.role === 'admin';
 
   useEffect(() => {
@@ -87,11 +89,10 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     setIsReplying(true);
   };
 
-  // 🌟 BOT HATA DIYA GAYA HAI - Sirf Normal Reply Logic
   const handleReplySubmit = async () => {
     if (replyText.trim().length < 2) return;
     setIsSubmitting(true);
-    
+
     const currentReplyText = replyText.trim();
     const replyId = Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
 
@@ -100,16 +101,17 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
         id: replyId,
         parentId: targetId,
         userId,
-        userName: userName || "Explorer", // Naya reply hamesha naye naam se jayega
+        userName: userName || "Explorer",
+        photoURL: currentUser?.photoURL || null,
         type: replyType,
         text: currentReplyText,
         timestamp: new Date().toISOString(),
         commentGates: { support: [], counter: [], doubt: [] },
         isAdminComment: isAdmin
       };
-      
+
       await addCommentReply(post.id, post.interactions, targetId, replyData, gates);
-      
+
       setReplyText("");
       setIsReplying(false);
       showToast("Logic recorded! 🚀");
@@ -118,7 +120,6 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     finally { setIsSubmitting(false); }
   };
 
-  // Markdown (**) ko bold span me convert karne wala function
   const formatMessage = (text) => {
     if (!text) return null;
     const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -130,14 +131,9 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     });
   };
 
-  // Avatar aur Name ki styling
-  const avatarClass = isAdminBadge 
-      ? "bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-sm shadow-amber-500/20" 
-      : "bg-slate-100 text-slate-600";
-      
-  const nameColorClass = isAdminBadge 
-      ? "text-amber-900 font-medium" 
-      : "text-slate-700";
+  const nameColorClass = isAdminBadge
+    ? "text-amber-900 font-medium hover:text-amber-700"
+    : "text-slate-700 hover:text-slate-900"; // 🌟 Hover effect add kiya taaki clickable lage
 
   return (
     <div className={`transition-all group w-full ${isMainComment ? 'py-2' : ''}`}>
@@ -145,30 +141,34 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
       {!isMainComment && parentInteraction && (
         <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-2 pl-12">
           <i className="fa-solid fa-reply rotate-180"></i>
-          {/* 🌟 FIX: Parent interaction ke naam ko bhi update kar diya (agar wo logged in user hai) */}
-          To <span className="text-teal-700">@{parentInteraction.userId === userId ? userName : parentInteraction.userName}</span>
+          To <Link to={`/profile/${parentInteraction.userId}`} className="text-teal-700 hover:underline">@{parentInteraction.userId === userId ? userName : parentInteraction.userName}</Link>
         </div>
       )}
 
       <div className="flex items-start gap-3 px-1">
 
-        <div className={`${isMainComment ? 'h-10 w-10 text-sm' : 'h-8 w-8 text-xs'} rounded-full flex items-center justify-center shrink-0 relative transition-all ${avatarClass}`}>
-          {/* 🌟 FIX: Avatar me naya naam */}
-          {currentDisplayName?.charAt(0).toUpperCase()}
-          {isAdminBadge && (
-            <div className="absolute -top-1 -right-1 text-amber-500 bg-white rounded-full h-3.5 w-3.5 flex items-center justify-center shadow-sm border border-amber-100">
-              <i className="fa-solid fa-crown text-[6px]"></i>
-            </div>
-          )}
-        </div>
+        {/* 🌟 FIX: DP par Link lagaya */}
+        <Link to={`/profile/${interaction.userId}`} className="shrink-0 transition-transform hover:scale-105 active:scale-95">
+          <UserAvatar
+            userId={interaction.userId} // 🌟 Bas ye ek nayi line jodani hai
+            showCurrentUser={isOwner}
+            photoURL={interaction.photoURL || interaction.userPhoto}
+            name={interaction.userName}
+            size={isMainComment ? "md" : "sm"}
+            isAdmin={isAdminBadge}
+          />
+        </Link>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-0.5 relative">
             <div className="flex items-center gap-2 flex-wrap">
-              {/* 🌟 FIX: Display Name me naya naam */}
-              <span className={`${isMainComment ? 'text-sm' : 'text-[13px]'} transition-colors ${nameColorClass}`}>
-                {currentDisplayName}
-              </span>
+
+              {/* 🌟 FIX: Naam par Link lagaya */}
+              <Link to={`/profile/${interaction.userId}`}>
+                <span className={`${isMainComment ? 'text-sm' : 'text-[13px]'} transition-colors ${nameColorClass}`}>
+                  {currentDisplayName}
+                </span>
+              </Link>
 
               {isAdminBadge ? (
                 <span className="bg-amber-100 text-amber-700 text-[9px] uppercase px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-200 tracking-wide">
