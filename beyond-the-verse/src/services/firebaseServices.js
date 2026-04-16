@@ -537,10 +537,31 @@ export const uploadProfilePicture = async (userId, file) => {
 // 🔔 9. NOTIFICATIONS SYSTEM
 // ==========================================
 
+// ==========================================
+// 🔔 9. NOTIFICATIONS SYSTEM
+// ==========================================
+
 export const createNotification = async (targetUserId, data) => {
   try {
     if (targetUserId === data.triggerUserId) return; 
 
+    // 🌟 1. User ki details nikalo (Preferences aur FCM Token dono chahiye)
+    const userDocRef = doc(db, "users", targetUserId);
+    const userDocSnap = await getDoc(userDocRef);
+
+    if (!userDocSnap.exists()) return;
+
+    const userData = userDocSnap.data();
+    const userPrefs = userData.notificationPrefs;
+    const fcmToken = userData.fcmToken; // 🌟 Phone par bhejne ki chabi
+
+    // Agar user ne setting se notifications OFF kar rakhi hai, to wapas laut jao
+    if (userPrefs && userPrefs.pushMentions === false) {
+      console.log(`Notification blocked for user ${targetUserId} by settings.`);
+      return; 
+    }
+
+    // 🌟 2. Database me save karo (In-App Notification)
     await addDoc(collection(db, "notifications"), {
       userId: targetUserId, 
       triggerUserId: data.triggerUserId, 
@@ -550,6 +571,25 @@ export const createNotification = async (targetUserId, data) => {
       isRead: false,
       timestamp: serverTimestamp()
     });
+
+    // 🌟 3. ASLI PUSH NOTIFICATION BHEJO (Backend ko call karke)
+    if (fcmToken) {
+      // 👇 YAHAN APNA CODESPACE WALA PORT 3000 KA URL DAALO 👇
+      const BACKEND_URL = "https://stunning-space-fiesta-qrwxj5r77pw34xq-3000.app.github.dev/api/send-notification";
+
+      await fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fcmToken: fcmToken,
+          title: data.title,
+          body: data.message,
+          link: data.link || "/"
+        })
+      });
+      console.log("FCM trigger sent to backend! 🚀");
+    }
+
   } catch (error) {
     console.error("Error creating notification: ", error);
   }
