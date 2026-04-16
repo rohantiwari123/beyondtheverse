@@ -575,7 +575,7 @@ export const createNotification = async (targetUserId, data) => {
     // 🌟 3. ASLI PUSH NOTIFICATION BHEJO (Backend ko call karke)
     if (fcmToken) {
       // 👇 YAHAN APNA CODESPACE WALA PORT 3000 KA URL DAALO 👇
-      const BACKEND_URL = "https://stunning-space-fiesta-qrwxj5r77pw34xq-3000.app.github.dev/api/send-notification";
+      const BACKEND_URL = "https://beyondtheverse.vercel.app/api/send-notification";
 
       await fetch(BACKEND_URL, {
         method: 'POST',
