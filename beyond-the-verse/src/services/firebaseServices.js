@@ -95,25 +95,7 @@ export const createPost = async (postData) => {
       createdAt: serverTimestamp(),
     });
 
-    checkSpellingWithAPI(postData.text).then(async (mistakes) => {
-      if (mistakes && mistakes.length > 0) {
-        await updateDoc(doc(db, "posts", docRef.id), {
-          interactions: arrayUnion({
-            id: "bot_" + Date.now().toString(36),
-            userId: "system_bot_001",
-            userName: "Grammar Bot 🤖",
-            type: "support", 
-            text: "🤖 **Auto-Bot Alert:** I noticed a few typos in your thought. Here are some suggestions:",
-            mistakes: mistakes.slice(0, 5),
-            timestamp: new Date().toISOString(),
-            isPinned: true, 
-            replies: [],
-            commentGates: { support: [], counter: [], doubt: [] },
-            isAdminComment: true 
-          })
-        });
-      }
-    });
+    // 🌟 Bot logic removed as requested!
 
     try {
       const usersSnap = await getDocs(collection(db, "users")); 
@@ -123,26 +105,52 @@ export const createPost = async (postData) => {
       let currentBatch = writeBatch(db);
       let operationCount = 0;
       
+      // 👇 YAHAN APNA ASLI VERCEL URL DAALNA 👇
+      const BACKEND_URL = "https://beyondtheverse.vercel.app/api/send-notification";
+      
       usersSnap.forEach((userDoc) => {
         if (userDoc.id !== postData.userId) { 
-          const notifRef = doc(collection(db, "notifications"));
-          currentBatch.set(notifRef, {
-            userId: userDoc.id, 
-            triggerUserId: postData.userId, 
-            title: "New Thought in Verse 🌟",
-            message: `${postData.userName || 'A user'} shared a new thought in ${postData.category || 'Community'}.`,
-            link: `/post/${docRef.id}`, 
-            isRead: false,
-            timestamp: serverTimestamp()
-          });
-          
-          operationCount++;
-          
-          // Execute batch when it reaches safe limit (450)
-          if (operationCount === 450) {
-            batches.push(currentBatch.commit());
-            currentBatch = writeBatch(db);
-            operationCount = 0;
+          const userData = userDoc.data();
+          const fcmToken = userData.fcmToken;
+          const userPrefs = userData.notificationPrefs;
+
+          // 🌟 Check karo ki kya user ne notifications band to nahi ki hain
+          if (!userPrefs || userPrefs.pushMentions !== false) {
+            
+            // 1. In-App Notification (Database me save)
+            const notifRef = doc(collection(db, "notifications"));
+            currentBatch.set(notifRef, {
+              userId: userDoc.id, 
+              triggerUserId: postData.userId, 
+              title: "New Thought in Verse 🌟",
+              message: `${postData.userName || 'A user'} shared a new thought in ${postData.category || 'Community'}.`,
+              link: `/post/${docRef.id}`, 
+              isRead: false,
+              timestamp: serverTimestamp()
+            });
+            
+            operationCount++;
+
+            // 🌟 2. ASLI PUSH NOTIFICATION (FCM / Vercel Server)
+            if (fcmToken) {
+              fetch(BACKEND_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  fcmToken: fcmToken,
+                  title: "New Thought in Verse 🌟",
+                  body: `${postData.userName || 'A user'} shared a new thought in ${postData.category || 'Community'}.`,
+                  link: `/post/${docRef.id}`
+                })
+              }).catch(err => console.error("FCM Push Error:", err)); // Error aaye to app crash na ho
+            }
+            
+            // Execute batch when it reaches safe limit (450)
+            if (operationCount >= 450) {
+              batches.push(currentBatch.commit());
+              currentBatch = writeBatch(db);
+              operationCount = 0;
+            }
           }
         }
       });
