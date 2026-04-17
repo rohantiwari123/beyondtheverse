@@ -3,31 +3,38 @@ const cors = require('cors');
 const admin = require('firebase-admin');
 
 const app = express();
-app.use(cors()); // Taki tumhari GitHub wali website isse connect kar sake
+app.use(cors());
 app.use(express.json());
 
-// 🌟 FIREBASE ADMIN SETUP (Security ke liye hum Environment Variables use karenge)
-// Deploy karte waqt hum Vercel/Render me ye FIREBASE_CREDENTIALS daalenge
+// 🌟 FIREBASE ADMIN SETUP (Safe way for Vercel)
 const serviceAccount = process.env.FIREBASE_CREDENTIALS 
   ? JSON.parse(process.env.FIREBASE_CREDENTIALS) 
-  : require('./serviceAccountKey.json'); // Local testing ke liye
+  : null;
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+// Ek bar se zyada initialize hone se bachane ke liye
+if (serviceAccount && !admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+}
+
+// 🌟 Taki browser me kholne par 'Cannot GET /' na aaye
+app.get('/', (req, res) => {
+  res.send('Beyond the Verse Notification Server is Live! 🚀');
 });
 
 // 🌟 NOTIFICATION BHEJNE WALA API ROUTE
 app.post('/api/send-notification', async (req, res) => {
+  console.log("Push request received for token:", req.body.fcmToken);
   const { fcmToken, title, body, link } = req.body;
 
   if (!fcmToken) {
     return res.status(400).json({ error: "Token is missing!" });
   }
 
-  // Firebase ko bhejne ke liye message ready karo
   const message = {
     notification: { title, body },
-    data: { url: link || "/" }, // Click karne par kahan jayega
+    data: { url: link || "/" },
     token: fcmToken
   };
 
@@ -41,8 +48,12 @@ app.post('/api/send-notification', async (req, res) => {
   }
 });
 
-// Server Start karo
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`BTVerse Backend is running on port ${PORT} 🚀`);
-});
+// 🌟 VERCEL SPECIFIC: Export the app instead of app.listen
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`BTVerse Backend is running locally on port ${PORT} 🚀`);
+  });
+}
+
+module.exports = app;
