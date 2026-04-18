@@ -282,49 +282,89 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
   );
 
   return (
-    <div className="w-full min-h-screen bg-slate-50 pb-20 pt-4 sm:pt-10">
+    <div className="w-full min-h-screen bg-slate-50">
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
 
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 lg:gap-8 px-0 sm:px-6 lg:px-8 animate-fade-in-up">
-
-        {/* 🌟 1. SIDEBAR / MOBILE TABS */}
-        <div className="w-full md:w-64 shrink-0 px-4 sm:px-0">
-          <div className="bg-white p-3 sm:p-5 sm:rounded-2xl border-b sm:border border-slate-200 md:sticky md:top-24 overflow-x-auto hide-scrollbar">
-            <h2 className="hidden md:flex text-lg text-slate-800 mb-6 px-2 items-center gap-2">
-              <i className="fa-solid fa-shield-halved text-teal-600"></i> Workspace
-            </h2>
-            <nav className="flex md:flex-col gap-2 min-w-max md:min-w-0">
-              {[
-                { id: 'academy', icon: 'fa-brain', label: 'Assessments' },
-                { id: 'dashboard', icon: 'fa-wallet', label: 'Donations' },
-                { id: 'qna', icon: 'fa-clipboard-question', label: 'Q&A Inbox' }, // 🌟 NAYA TAB
-                { id: 'users', icon: 'fa-users', label: 'Citizens' },
-                { id: 'subjects', icon: 'fa-book-open', label: 'Subjects' },
-                { id: 'settings', icon: 'fa-sliders', label: 'Settings' }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 sm:gap-3 px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition-colors text-xs sm:text-sm text-left whitespace-nowrap ${activeTab === tab.id ? 'bg-teal-50 text-teal-700 border border-teal-100/50' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'}`}
-                >
-                  <i className={`fa-solid ${tab.icon} w-4 sm:w-5 text-center`}></i> {tab.label}
-                </button>
-              ))}
+      <div className="max-w-full min-h-screen flex flex-col">
+        
+        {/* 🌟 HORIZONTAL NAVBAR (Desktop) / TABS (Mobile) */}
+        <div className="w-full bg-white border-b border-slate-200 sticky top-0 z-50">
+          <div className="max-w-full px-4 sm:px-6 lg:px-8">
+            
+            {/* Desktop Navbar - Horizontal */}
+            <nav className="hidden lg:flex items-center h-20 gap-1 overflow-x-auto">
+              <div className="flex items-center gap-2 mr-8 shrink-0">
+                <i className="fa-solid fa-shield-halved text-teal-600 text-lg"></i>
+                <span className="text-slate-900 font-semibold text-sm">Admin Workspace</span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {[
+                  { id: 'academy', icon: 'fa-brain', label: 'Assessments' },
+                  { id: 'dashboard', icon: 'fa-wallet', label: 'Donations' },
+                  { id: 'qna', icon: 'fa-clipboard-question', label: 'Q&A Inbox' },
+                  { id: 'users', icon: 'fa-users', label: 'Citizens' },
+                  { id: 'subjects', icon: 'fa-book-open', label: 'Subjects' },
+                  { id: 'settings', icon: 'fa-sliders', label: 'Settings' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all text-sm whitespace-nowrap border ${
+                      activeTab === tab.id 
+                        ? 'bg-teal-50 text-teal-700 border-teal-200' 
+                        : 'text-slate-600 hover:bg-slate-50 border-transparent'
+                    }`}
+                  >
+                    <i className={`fa-solid ${tab.icon} w-4`}></i>
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </nav>
+
+            {/* Mobile/Tablet Tabs - Vertical Scrollable */}
+            <div className="lg:hidden overflow-x-auto -mx-4 px-4 hide-scrollbar">
+              <nav className="flex gap-2 py-3 min-w-max">
+                {[
+                  { id: 'academy', icon: 'fa-brain', label: 'Assessments' },
+                  { id: 'dashboard', icon: 'fa-wallet', label: 'Donations' },
+                  { id: 'qna', icon: 'fa-clipboard-question', label: 'Q&A' },
+                  { id: 'users', icon: 'fa-users', label: 'Citizens' },
+                  { id: 'subjects', icon: 'fa-book-open', label: 'Subjects' },
+                  { id: 'settings', icon: 'fa-sliders', label: 'Settings' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-xs sm:text-sm whitespace-nowrap border ${
+                      activeTab === tab.id 
+                        ? 'bg-teal-50 text-teal-700 border-teal-200' 
+                        : 'text-slate-600 hover:bg-slate-50 border-transparent'
+                    }`}
+                  >
+                    <i className={`fa-solid ${tab.icon}`}></i>
+                    <span className="hidden sm:inline">{tab.label}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
           </div>
         </div>
 
-        {/* 🌟 2. MAIN CONTENT AREA */}
-        <div className="flex-1 max-w-full overflow-hidden">
+        {/* 🌟 MAIN CONTENT AREA */}
+        <div className="flex-1 w-full overflow-hidden">
+          <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 animate-fade-in">
 
           {/* TAB: ACADEMY */}
           {activeTab === 'academy' && (
-            <div className="animate-fade-in">
-              <div className="mb-4 sm:mb-6 px-4 sm:px-0">
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-            <i className="fa-solid fa-file-signature text-teal-600"></i>
-            Exam Editor
-          </h2>
+            <div className="animate-fade-in space-y-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2 flex items-center gap-3">
+                  <i className="fa-solid fa-file-signature text-teal-600"></i>
+                  Exam Editor
+                </h1>
+                <p className="text-sm text-slate-600 mt-1">Create and manage assessment materials</p>
               </div>
               <AdminExamEditor showToast={showToast} />
             </div>
@@ -332,73 +372,119 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
 
           {/* TAB: DONATIONS */}
           {activeTab === 'dashboard' && (
-            <div className="space-y-4 sm:space-y-6 animate-fade-in">
-              <div className="px-4 sm:px-0">
-                <h1 className="text-2xl sm:text-3xl text-slate-800">Financial Overview</h1>
+            <div className="space-y-6 animate-fade-in">
+              <div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2">Financial Overview</h1>
+                <p className="text-sm text-slate-600">Track and manage all donations</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 sm:gap-4 border-y sm:border border-slate-200 sm:rounded-2xl overflow-hidden bg-white">
-                <div className="p-5 border-b sm:border-b-0 sm:border-r border-slate-200 flex items-center gap-4 hover:bg-slate-50 transition-colors">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 text-lg sm:text-xl"><i className="fa-solid fa-wallet"></i></div>
-                  <div>
-                    <p className="text-[10px] text-slate-400">Total Raised</p>
-                    <p className="text-xl sm:text-2xl text-slate-800">₹{totalRaised.toLocaleString("en-IN")}</p>
+              {/* 🌟 Stats Cards - Fully Responsive Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl p-5 sm:p-6 hover:border-teal-300 hover:shadow-md transition-all">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-xs sm:text-sm text-slate-500 font-medium mb-2">Total Raised</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-slate-900">₹{totalRaised.toLocaleString("en-IN")}</p>
+                    </div>
+                    <div className="h-12 w-12 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600 text-xl shrink-0">
+                      <i className="fa-solid fa-wallet"></i>
+                    </div>
                   </div>
                 </div>
-                <div className="p-5 border-b sm:border-b-0 sm:border-r border-slate-200 flex items-center gap-4 hover:bg-slate-50 transition-colors">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 text-lg sm:text-xl"><i className="fa-solid fa-hand-holding-heart"></i></div>
-                  <div>
-                    <p className="text-[10px] text-slate-400">Total Donors</p>
-                    <p className="text-xl sm:text-2xl text-slate-800">{donations.length}</p>
+
+                <div className="bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl p-5 sm:p-6 hover:border-blue-300 hover:shadow-md transition-all">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-xs sm:text-sm text-slate-500 font-medium mb-2">Total Donors</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-slate-900">{donations.length}</p>
+                    </div>
+                    <div className="h-12 w-12 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-xl shrink-0">
+                      <i className="fa-solid fa-hand-holding-heart"></i>
+                    </div>
                   </div>
                 </div>
-                <div className="p-5 flex items-center gap-4 hover:bg-slate-50 transition-colors">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500 text-lg sm:text-xl"><i className="fa-solid fa-bullseye"></i></div>
-                  <div>
-                    <p className="text-[10px] text-slate-400">Goal Progress</p>
-                    <p className="text-xl sm:text-2xl text-slate-800">{Math.min(100, Math.round((totalRaised / targetAmount) * 100))}%</p>
+
+                <div className="bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl p-5 sm:p-6 hover:border-amber-300 hover:shadow-md transition-all">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-xs sm:text-sm text-slate-500 font-medium mb-2">Goal Progress</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-slate-900">{Math.min(100, Math.round((totalRaised / targetAmount) * 100))}%</p>
+                    </div>
+                    <div className="h-12 w-12 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 text-xl shrink-0">
+                      <i className="fa-solid fa-bullseye"></i>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 justify-between items-center bg-white p-3 border-y sm:border border-slate-200 sm:rounded-xl">
-                <div className="w-full sm:flex-1 relative">
+              {/* 🌟 Search & Export - Responsive */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 relative">
                   <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                  <input type="text" placeholder="Search by name, UTR or phone..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-slate-50 border border-slate-200 py-2.5 pl-10 pr-4 rounded-lg text-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none transition-all" />
+                  <input 
+                    type="text" 
+                    placeholder="Search by name, UTR or phone..." 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                    className="w-full bg-white border border-slate-200 py-3 pl-10 pr-4 rounded-lg text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
+                  />
                 </div>
-                <button onClick={handleExportCsv} className="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white text-sm px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                <button 
+                  onClick={handleExportCsv} 
+                  className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 active:scale-95 text-white text-sm px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-medium"
+                >
                   <i className="fa-solid fa-download"></i> Export CSV
                 </button>
               </div>
 
-              <div className="bg-white border-y sm:border border-slate-200 sm:rounded-2xl overflow-hidden">
+              {/* 🌟 Donations Table - Fully Responsive */}
+              <div className="bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full text-left">
                     <thead className="bg-slate-50 border-b border-slate-200">
                       <tr>
-                        <th className="p-4 text-[10px] text-slate-500 whitespace-nowrap">Date</th>
-                        <th className="p-4 text-[10px] text-slate-500 whitespace-nowrap">Donor Info</th>
-                        <th className="p-4 text-[10px] text-slate-500 whitespace-nowrap">UTR Number</th>
-                        <th className="p-4 text-[10px] text-teal-600 text-right whitespace-nowrap">Amount</th>
-                        <th className="p-4 text-[10px] text-slate-500 text-center">Actions</th>
+                        <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold text-slate-600 whitespace-nowrap">Date</th>
+                        <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold text-slate-600 whitespace-nowrap">Donor Info</th>
+                        <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold text-slate-600 whitespace-nowrap">UTR Number</th>
+                        <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold text-teal-600 text-right whitespace-nowrap">Amount</th>
+                        <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold text-slate-600 text-center">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {filteredDonations.length === 0 ? (
-                        <tr><td colSpan="5" className="p-8 text-center text-sm text-slate-400">No records found.</td></tr>
+                        <tr>
+                          <td colSpan="5" className="px-4 py-8 sm:px-6 text-center">
+                            <i className="fa-solid fa-inbox text-3xl text-slate-300 mb-3 block"></i>
+                            <p className="text-sm text-slate-400">No records found</p>
+                          </td>
+                        </tr>
                       ) : (
                         filteredDonations.map((d) => (
                           <tr key={d.id} className="hover:bg-slate-50 transition-colors">
-                            <td className="p-4 text-xs text-slate-500 whitespace-nowrap">{new Date(d.timestamp).toLocaleDateString("en-IN")}</td>
-                            <td className="p-4">
-                              <div className="text-sm text-slate-800">{d.name}</div>
-                              <div className="text-[11px] text-slate-400 mt-0.5">{d.phone}</div>
+                            <td className="px-4 py-3 sm:px-6 sm:py-4 text-xs sm:text-sm text-slate-600 whitespace-nowrap">
+                              {new Date(d.timestamp).toLocaleDateString("en-IN")}
                             </td>
-                            <td className="p-4"><span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded border border-slate-200">{d.utr || "N/A"}</span></td>
-                            <td className="p-4 text-sm text-teal-700 text-right">₹{Number(d.amount).toLocaleString("en-IN")}</td>
-                            <td className="p-4 text-center">
-                              <button onClick={() => handleDeleteDonation(d.id)} className="h-8 w-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center mx-auto transition-colors" title="Delete">
-                                <i className="fa-solid fa-trash-can text-xs"></i>
+                            <td className="px-4 py-3 sm:px-6 sm:py-4">
+                              <div className="text-xs sm:text-sm font-medium text-slate-900">{d.name}</div>
+                              <div className="text-xs text-slate-500 mt-1">{d.phone}</div>
+                            </td>
+                            <td className="px-4 py-3 sm:px-6 sm:py-4">
+                              <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200">
+                                {d.utr || "N/A"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 sm:px-6 sm:py-4 text-right">
+                              <span className="text-xs sm:text-sm font-semibold text-teal-700">
+                                ₹{Number(d.amount).toLocaleString("en-IN")}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 sm:px-6 sm:py-4 text-center">
+                              <button 
+                                onClick={() => handleDeleteDonation(d.id)} 
+                                className="h-9 w-9 rounded-lg bg-white border border-slate-200 text-slate-400 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center mx-auto transition-all"
+                                title="Delete"
+                              >
+                                <i className="fa-solid fa-trash-can text-sm"></i>
                               </button>
                             </td>
                           </tr>
@@ -413,47 +499,60 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
 
           {/* 🌟 TAB: Q&A INBOX */}
           {activeTab === 'qna' && (
-            <div className="animate-fade-in space-y-4 sm:space-y-6">
-              <div className="px-4 sm:px-0">
-                <h1 className="text-2xl sm:text-3xl text-slate-800">Q&A Inbox</h1>
-                <p className="text-xs text-slate-500 mt-1">{pendingQuestions.length} Pending Questions</p>
+            <div className="animate-fade-in space-y-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2">Q&A Inbox</h1>
+                <p className="text-sm text-slate-600">{pendingQuestions.length} Pending Questions</p>
               </div>
 
               {pendingQuestions.length === 0 ? (
-                <div className="text-center py-20 bg-white border-y sm:border border-slate-200 sm:rounded-2xl">
-                  <i className="fa-solid fa-inbox text-4xl mb-4 text-slate-300"></i>
+                <div className="text-center py-16 sm:py-20 bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl">
+                  <i className="fa-solid fa-inbox text-4xl sm:text-5xl text-slate-300 mb-4 block"></i>
                   <p className="text-sm text-slate-500">Inbox is empty. No new questions from users.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {pendingQuestions.map((q) => (
-                    <div key={q.id} className="bg-white p-5 sm:p-6 border-y sm:border border-slate-200 sm:rounded-2xl">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <span className="bg-amber-50 text-amber-600 border border-amber-200 px-2 py-1 rounded text-[10px]">Pending</span>
-                          <p className="text-xs text-slate-400 mt-2">Asked by <span className="text-slate-600">{q.userName}</span></p>
+                    <div key={q.id} className="bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl p-5 sm:p-6 lg:p-8 hover:border-slate-300 transition-all">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-5">
+                        <div className="flex-1">
+                          <span className="inline-block bg-amber-50 text-amber-700 border border-amber-200 px-3 py-1 rounded-full text-xs font-medium">Pending</span>
+                          <p className="text-xs sm:text-sm text-slate-500 mt-3">Asked by <span className="font-medium text-slate-700">{q.userName}</span></p>
                         </div>
-                        <button onClick={() => handleTrashQuestion(q.id)} className="h-8 w-8 bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 rounded-lg flex items-center justify-center transition-colors">
-                          <i className="fa-solid fa-trash-can text-xs"></i>
+                        <button 
+                          onClick={() => handleTrashQuestion(q.id)} 
+                          className="h-10 w-10 bg-white border border-slate-200 text-slate-400 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-500 rounded-lg flex items-center justify-center transition-all shrink-0"
+                          title="Delete"
+                        >
+                          <i className="fa-solid fa-trash-can text-sm"></i>
                         </button>
                       </div>
 
-                      <h3 className="text-base sm:text-lg text-slate-800 mb-4">"{q.question}"</h3>
+                      <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-5 leading-relaxed">"{q.question}"</h3>
 
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         <textarea
                           value={answerInputs[q.id] || ""}
                           onChange={(e) => setAnswerInputs({ ...answerInputs, [q.id]: e.target.value })}
                           placeholder="Write your answer here..."
-                          rows="3"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 resize-none"
-                        ></textarea>
+                          rows="4"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200 resize-none transition-all"
+                        />
                         <button
                           onClick={() => handlePublishAnswer(q.id, q.question)}
                           disabled={isPublishing}
-                          className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50"
+                          className="w-full bg-teal-600 hover:bg-teal-700 active:scale-95 text-white px-6 py-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                          Publish to FAQ <i className="fa-solid fa-check ml-1"></i>
+                          {isPublishing ? (
+                            <>
+                              <i className="fa-solid fa-spinner fa-spin"></i>
+                              Publishing...
+                            </>
+                          ) : (
+                            <>
+                              Publish to FAQ <i className="fa-solid fa-check"></i>
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>
@@ -465,44 +564,64 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
 
           {/* TAB: USERS */}
           {activeTab === 'users' && (
-            <div className="animate-fade-in space-y-4 sm:space-y-6">
-              <div className="px-4 sm:px-0">
-                <h1 className="text-2xl sm:text-3xl text-slate-800">Citizen Database</h1>
-                <p className="text-xs text-slate-500 mt-1">{usersList.length} Registered</p>
+            <div className="animate-fade-in space-y-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2">Citizen Database</h1>
+                <p className="text-sm text-slate-600">{usersList.length} Registered Users</p>
               </div>
-              <div className="bg-white border-y sm:border border-slate-200 sm:rounded-2xl overflow-hidden">
+
+              <div className="bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl overflow-hidden">
                 {isFetchingUsers ? (
-                  <div className="p-16 text-center text-slate-400">
-                    <i className="fa-solid fa-circle-notch fa-spin text-2xl text-teal-500 mb-3"></i>
-                    <p className="text-xs">Scanning...</p>
+                  <div className="p-12 sm:p-16 text-center">
+                    <i className="fa-solid fa-circle-notch fa-spin text-3xl text-teal-500 mb-4 block"></i>
+                    <p className="text-sm text-slate-500">Loading users...</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left">
                       <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
-                          <th className="p-4 text-[10px] text-slate-500">Citizen Info</th>
-                          <th className="p-4 text-[10px] text-slate-500 text-center">Role</th>
-                          <th className="p-4 text-[10px] text-slate-500 hidden sm:table-cell">Unique ID</th>
+                          <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold text-slate-600">Citizen Info</th>
+                          <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold text-slate-600 text-center">Role</th>
+                          <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold text-slate-600 hidden lg:table-cell">Unique ID</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {usersList.length === 0 ? (
-                          <tr><td colSpan="3" className="p-8 text-center text-sm text-slate-400">No users found.</td></tr>
+                          <tr>
+                            <td colSpan="3" className="px-4 py-8 sm:px-6 text-center">
+                              <i className="fa-solid fa-users text-3xl text-slate-300 mb-3 block"></i>
+                              <p className="text-sm text-slate-400">No users found</p>
+                            </td>
+                          </tr>
                         ) : (
                           usersList.map((user) => (
                             <tr key={user.uid} className="hover:bg-slate-50 transition-colors">
-                              <td className="p-4">
+                              <td className="px-4 py-3 sm:px-6 sm:py-4">
                                 <div className="flex items-center gap-3">
-                                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center text-white ${user.role === 'admin' ? 'bg-slate-800' : 'bg-teal-500'}`}>{user.name?.charAt(0).toUpperCase() || "?"}</div>
-                                  <div>
-                                    <p className="text-slate-800 text-sm leading-tight">{user.name || "Unknown"}</p>
-                                    <p className="text-[11px] text-slate-500 mt-0.5">{user.email || "No Email"}</p>
+                                  <div className={`h-10 w-10 sm:h-11 sm:w-11 rounded-lg flex items-center justify-center text-white font-semibold text-sm ${user.role === 'admin' ? 'bg-slate-900' : 'bg-teal-600'}`}>
+                                    {user.name?.charAt(0).toUpperCase() || "?"}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium text-slate-900 truncate">{user.name || "Unknown"}</p>
+                                    <p className="text-xs text-slate-500 truncate mt-0.5">{user.email || "No Email"}</p>
                                   </div>
                                 </div>
                               </td>
-                              <td className="p-4 text-center"><span className={`px-2.5 py-1 rounded text-[9px] border ${user.role === 'admin' ? 'bg-slate-900 text-white border-slate-800' : 'bg-teal-50 text-teal-700 border-teal-200'}`}>{user.role || 'client'}</span></td>
-                              <td className="p-4 hidden sm:table-cell"><code className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded border border-slate-200 font-mono">{user.uid}</code></td>
+                              <td className="px-4 py-3 sm:px-6 sm:py-4 text-center">
+                                <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${
+                                  user.role === 'admin' 
+                                    ? 'bg-slate-900 text-white border-slate-800' 
+                                    : 'bg-teal-50 text-teal-700 border-teal-200'
+                                }`}>
+                                  {user.role || 'client'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 sm:px-6 sm:py-4 hidden lg:table-cell">
+                                <code className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200 font-mono">
+                                  {user.uid.substring(0, 12)}...
+                                </code>
+                              </td>
                             </tr>
                           ))
                         )}
@@ -516,77 +635,154 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
 
           {/* TAB: SUBJECTS */}
           {activeTab === 'subjects' && (
-            <div className="animate-fade-in space-y-4 sm:space-y-6 max-w-3xl">
-              <div className="px-4 sm:px-0">
-                <h1 className="text-2xl sm:text-3xl text-slate-800">Learning Subjects</h1>
+            <div className="animate-fade-in space-y-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2">Learning Subjects</h1>
+                <p className="text-sm text-slate-600">Manage and organize course materials</p>
               </div>
-              <div className="bg-white p-5 sm:p-6 border-y sm:border border-slate-200 sm:rounded-2xl">
-                <p className="text-xs text-slate-500 mb-4">Enter a topic, and the engine will fetch its definition automatically.</p>
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  <input type="text" placeholder="Type subject (e.g. Quantum Physics)" value={newSubject} onChange={(e) => setNewSubject(e.target.value)} className="w-full border border-slate-300 bg-white rounded-lg py-2.5 px-4 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all" onKeyDown={(e) => e.key === 'Enter' && handleAddSubject()} />
-                  <button onClick={handleAddSubject} disabled={isFetchingDef} className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-8 py-2.5 rounded-lg disabled:bg-slate-300 transition-colors flex items-center justify-center">
-                    {isFetchingDef ? <i className="fa-solid fa-spinner fa-spin"></i> : "Add"}
+
+              <div className="bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl p-5 sm:p-6 lg:p-8">
+                <p className="text-xs sm:text-sm text-slate-600 mb-4">Enter a topic and the system will fetch its definition automatically from Wikipedia.</p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input 
+                    type="text" 
+                    placeholder="Type subject (e.g. Quantum Physics)" 
+                    value={newSubject} 
+                    onChange={(e) => setNewSubject(e.target.value)} 
+                    className="flex-1 border border-slate-300 bg-white rounded-lg py-3 px-4 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all"
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddSubject()}
+                  />
+                  <button 
+                    onClick={handleAddSubject} 
+                    disabled={isFetchingDef} 
+                    className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 active:scale-95 text-white px-6 sm:px-8 py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isFetchingDef ? (
+                      <>
+                        <i className="fa-solid fa-spinner fa-spin"></i>
+                        <span className="hidden sm:inline">Fetching...</span>
+                      </>
+                    ) : (
+                      <>
+                        <i className="fa-solid fa-plus"></i>
+                        Add Subject
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 sm:gap-4 border-y sm:border-0 border-slate-200">
-                {subjectsList.map(sub => (
-                  <div key={sub.id} className="bg-white border-b sm:border border-slate-200 p-5 sm:rounded-2xl flex justify-between items-start group hover:border-slate-300 transition-colors">
-                    <div className="pr-4">
-                      <h5 className="text-slate-800 text-sm mb-1.5">{sub.name}</h5>
-                      <p className="text-[11px] text-slate-500 line-clamp-3">{sub.definition}</p>
-                    </div>
-                    <button onClick={() => handleDeleteSubject(sub.id, sub.name)} className="text-slate-300 hover:text-rose-500 bg-white border border-transparent hover:border-rose-100 hover:bg-rose-50 h-8 w-8 rounded-lg flex items-center justify-center transition-colors shrink-0">
-                      <i className="fa-solid fa-trash-can text-xs"></i>
-                    </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {subjectsList.length === 0 ? (
+                  <div className="col-span-full text-center py-12 bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl">
+                    <i className="fa-solid fa-book text-4xl text-slate-300 mb-3 block"></i>
+                    <p className="text-sm text-slate-500">No subjects added yet. Start by adding one.</p>
                   </div>
-                ))}
+                ) : (
+                  subjectsList.map(sub => (
+                    <div 
+                      key={sub.id} 
+                      className="bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl p-5 sm:p-6 hover:border-teal-300 hover:shadow-md transition-all group flex flex-col"
+                    >
+                      <div className="flex justify-between items-start gap-3 mb-3">
+                        <h5 className="text-sm sm:text-base font-semibold text-slate-900 flex-1">{sub.name}</h5>
+                        <button 
+                          onClick={() => handleDeleteSubject(sub.id, sub.name)}
+                          className="h-9 w-9 bg-white border border-slate-200 text-slate-400 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-500 rounded-lg flex items-center justify-center transition-all shrink-0 opacity-0 group-hover:opacity-100"
+                          title="Delete"
+                        >
+                          <i className="fa-solid fa-trash-can text-sm"></i>
+                        </button>
+                      </div>
+                      <p className="text-xs sm:text-sm text-slate-600 line-clamp-4 flex-1 leading-relaxed">{sub.definition}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
 
           {/* TAB: SETTINGS */}
           {activeTab === 'settings' && (
-            <div className="animate-fade-in space-y-4 sm:space-y-6 max-w-2xl">
-              <div className="px-4 sm:px-0">
-                <h1 className="text-2xl sm:text-3xl text-slate-800">Platform Settings</h1>
+            <div className="animate-fade-in space-y-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2">Platform Settings</h1>
+                <p className="text-sm text-slate-600">Configure platform behavior and features</p>
               </div>
 
-              <div className="bg-white p-5 sm:p-6 border-y sm:border border-slate-200 sm:rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-base text-slate-800">Financial Goal Target</h3>
-                  <p className="text-xs text-slate-500 mt-1">Set the total amount aiming to raise.</p>
-                </div>
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <div className="relative flex-1 sm:flex-none">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
-                    <input type="number" value={newTarget} onChange={(e) => setNewTarget(e.target.value)} className="w-full sm:w-32 border border-slate-300 rounded-lg py-2 pl-7 pr-3 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-800 transition-all" />
+              <div className="bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl p-5 sm:p-6 lg:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+                  <div className="flex-1">
+                    <h3 className="text-base sm:text-lg font-semibold text-slate-900">Financial Goal Target</h3>
+                    <p className="text-xs sm:text-sm text-slate-600 mt-2">Set the total amount aiming to raise.</p>
                   </div>
-                  <button onClick={handleSaveTarget} className="bg-slate-800 hover:bg-slate-900 text-white px-5 rounded-lg text-sm transition-colors shrink-0">Save</button>
+                  <div className="flex gap-3 flex-col sm:flex-row">
+                    <div className="relative flex-1 sm:flex-none">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-medium">₹</span>
+                      <input 
+                        type="number" 
+                        value={newTarget} 
+                        onChange={(e) => setNewTarget(e.target.value)} 
+                        className="w-full sm:w-40 border border-slate-300 rounded-lg py-3 pl-8 pr-4 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all"
+                      />
+                    </div>
+                    <button 
+                      onClick={handleSaveTarget} 
+                      className="bg-slate-900 hover:bg-slate-800 active:scale-95 text-white px-6 py-3 rounded-lg text-sm font-medium transition-all w-full sm:w-auto"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-teal-50 p-5 sm:p-6 border-y sm:border border-teal-100 sm:rounded-2xl">
-                <h3 className="text-base text-teal-900 mb-1">Secret Scholarship Links</h3>
-                <p className="text-xs text-teal-700/80 mb-4">Generate link with a lower minimum donation limit.</p>
-                <div className="flex flex-col sm:flex-row gap-3">
+              <div className="bg-gradient-to-br from-teal-50 to-teal-50/50 border border-teal-200 rounded-lg sm:rounded-xl lg:rounded-2xl p-5 sm:p-6 lg:p-8">
+                <h3 className="text-base sm:text-lg font-semibold text-teal-900 mb-2">Secret Scholarship Links</h3>
+                <p className="text-xs sm:text-sm text-teal-800 mb-6">Generate a unique link with a lower minimum donation limit for scholarship recipients.</p>
+                
+                <div className="flex flex-col sm:flex-row gap-3 mb-5">
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-600 text-sm">₹</span>
-                    <input type="number" value={scholarshipAmount} onChange={(e) => setScholarshipAmount(e.target.value)} placeholder="Amount" className="w-full border border-teal-200 bg-white rounded-lg py-2.5 pl-8 pr-4 text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-teal-900 transition-all" />
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-teal-600 text-sm font-medium">₹</span>
+                    <input 
+                      type="number" 
+                      value={scholarshipAmount} 
+                      onChange={(e) => setScholarshipAmount(e.target.value)} 
+                      placeholder="Minimum amount" 
+                      className="w-full border border-teal-300 bg-white rounded-lg py-3 pl-8 pr-4 text-sm text-teal-900 placeholder-teal-600/60 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all"
+                    />
                   </div>
-                  <button onClick={handleCreateLink} className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-lg text-sm transition-colors">Generate</button>
+                  <button 
+                    onClick={handleCreateLink} 
+                    className="bg-teal-600 hover:bg-teal-700 active:scale-95 text-white px-6 py-3 rounded-lg text-sm font-medium transition-all w-full sm:w-auto flex items-center justify-center gap-2"
+                  >
+                    <i className="fa-solid fa-link"></i>
+                    Generate Link
+                  </button>
                 </div>
+
                 {generatedLink && (
-                  <div className="mt-4 p-3 bg-white border border-teal-200 rounded-lg flex items-center justify-between gap-3">
-                    <code className="text-[10px] sm:text-xs text-teal-800 font-mono truncate">{generatedLink}</code>
+                  <div className="bg-white border border-teal-300 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    <code className="text-xs sm:text-sm text-teal-800 font-mono flex-1 break-all bg-teal-50 px-3 py-2 rounded">
+                      {generatedLink}
+                    </code>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(generatedLink);
+                        showToast("Link copied!");
+                      }}
+                      className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-xs font-medium transition-all"
+                    >
+                      <i className="fa-solid fa-copy mr-1"></i>Copy
+                    </button>
                   </div>
                 )}
               </div>
             </div>
           )}
 
+          </div>
         </div>
+
       </div>
     </div>
   );
