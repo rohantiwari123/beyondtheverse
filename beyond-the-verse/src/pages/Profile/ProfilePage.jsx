@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom"; // 🌟 URL se ID padhne ke liye
+import { useParams } from "react-router-dom"; 
 import { useAuth } from "../../context/AuthContext";
 import {
   getUserPosts,
   getUserBookmarkedPosts,
   getUserExamResults,
-  getUserProfile, // 🌟 Dusre user ka data laane ke liye
+  getUserProfile, 
+  getAllExams // 🌟 NAYA IMPORT: Absent exams calculate karne ke liye
 } from "../../services/firebaseServices";
 
 // Components
@@ -14,20 +15,20 @@ import PostCard from "../../components/Community/PostCard";
 import BackButton from "../../components/common/BackButton";
 
 export default function ProfilePage() {
-  const { id } = useParams(); // URL me jo ID hogi
+  const { id } = useParams(); 
   const { currentUser, userId } = useAuth();
 
-  // 🌟 LOGIC: Check karo ki apni profile hai ya dusre ki
   const isMyProfile = !id || id === userId;
   const targetUserId = isMyProfile ? userId : id;
 
   const [activeTab, setActiveTab] = useState("posts");
-  const [publicUserData, setPublicUserData] = useState(null); // 🌟 Dusre user ka data
+  const [publicUserData, setPublicUserData] = useState(null); 
 
   // Data States
   const [myPosts, setMyPosts] = useState([]);
   const [savedPosts, setSavedPosts] = useState([]);
   const [examResults, setExamResults] = useState([]);
+  const [allExams, setAllExams] = useState([]); // 🌟 NAYA STATE
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -36,7 +37,6 @@ export default function ProfilePage() {
     const fetchProfileData = async () => {
       setIsLoading(true);
       try {
-        // Agar dusre ki profile hai, to uska naam aur DP lao
         if (!isMyProfile) {
           const pData = await getUserProfile(targetUserId);
           setPublicUserData(pData);
@@ -44,18 +44,19 @@ export default function ProfilePage() {
           setPublicUserData(null);
         }
 
-        // Posts sabke aayenge (chahe apne ho ya public)
         const posts = await getUserPosts(targetUserId);
         setMyPosts(posts);
 
-        // 🌟 Saved aur Exams sirf Tabhi aayenge jab apni khud ki profile ho
         if (isMyProfile) {
-          const [bookmarks, exams] = await Promise.all([
+          // 🌟 NAYA LOGIC: getAllExams bhi fetch kar rahe hain
+          const [bookmarks, exams, allExamsData] = await Promise.all([
             getUserBookmarkedPosts(userId),
             getUserExamResults(userId),
+            getAllExams() 
           ]);
           setSavedPosts(bookmarks);
           setExamResults(exams);
+          setAllExams(allExamsData);
         }
       } catch (error) {
         console.error("Error loading profile data:", error);
@@ -72,70 +73,68 @@ export default function ProfilePage() {
   if (!currentUser) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <i className="fa-solid fa-circle-notch fa-spin text-3xl text-teal-600"></i>
+        <div className="h-8 w-8 border-[3px] border-zinc-200 border-t-zinc-900 rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  // 🌟 Agar public profile URL galat hai
   if (!isMyProfile && !isLoading && !publicUserData) {
     return (
-      <div className="text-center py-20 text-slate-500 animate-fade-in">
-        <h2 className="text-2xl font-bold mb-2">Explorer Not Found</h2>
+      <div className="text-center py-20 text-zinc-500 animate-fade-in">
+        <h2 className="text-2xl font-bold mb-2 text-zinc-900">Explorer Not Found</h2>
         <p className="mb-6">This user does not exist in the verse.</p>
         <BackButton to={-1} label="Go Back" />
       </div>
     );
   }
 
-  return (
-    // 🌟 Yahan se 'px-4' hata diya gaya hai taaki Posts edge-to-edge jaa sakein
-    <section className="w-full max-w-4xl mx-auto py-4 sm:py-12 animate-fade-in">
+  // 🌟 FILTER LOGIC: Sirf Past Exams (Report Card ke liye)
+  const now = new Date();
+  const pastExams = allExams.filter(exam => {
+      const hasResult = examResults.some(r => r.examId === exam.id);
+      if (hasResult) return true;
 
-      {/* 🌟 BackButton, Header aur Tabs ko alag se padding di gayi hai */}
+      const startDateTime = new Date(`${exam.date} ${exam.time}`);
+      if (isNaN(startDateTime.getTime())) return false; 
+      const endDateTime = new Date(startDateTime.getTime() + 30 * 60000);
+      return now > endDateTime; 
+  });
+
+  return (
+    <section className="w-full max-w-4xl mx-auto py-4 sm:py-12 animate-fade-in font-sans">
+
       <div className="px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
         <BackButton to={-1} label="Back" />
       </div>
 
       <div className="px-4 sm:px-6 lg:px-8">
-        {/* 🌟 publicUser data pass kar diya */}
-        {/* 🌟 FIX 3: isMyProfile prop pass kiya */}
-        <ProfileHeader publicUser={publicUserData} isMyProfile={isMyProfile} />      </div>
+        <ProfileHeader publicUser={publicUserData} isMyProfile={isMyProfile} />      
+      </div>
 
       {/* PROFILE TABS */}
-      <div className="mt-6 sm:mt-8 mb-4 sm:mb-6 border-b border-slate-200 px-4 sm:px-6 lg:px-8">
-        <div className="flex gap-6 overflow-x-auto hide-scrollbar">
+      <div className="mt-6 sm:mt-8 mb-4 sm:mb-6 border-b border-zinc-200 px-4 sm:px-6 lg:px-8">
+        <div className="flex gap-6 sm:gap-8 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab("posts")}
-            className={`pb-4 text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === "posts" ? "text-teal-600" : "text-slate-400 hover:text-slate-800"}`}
+            className={`pb-4 text-sm font-bold uppercase tracking-wider transition-all relative whitespace-nowrap ${activeTab === "posts" ? "text-zinc-900 border-b-2 border-zinc-900" : "text-zinc-400 hover:text-zinc-600"}`}
           >
-            <i className="fa-solid fa-pen-nib mr-2"></i>{isMyProfile ? "My Thoughts" : "Thoughts"}
-            {activeTab === "posts" && (
-              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-teal-600 rounded-t-full"></div>
-            )}
+            {isMyProfile ? "My Thoughts" : "Thoughts"}
           </button>
 
-          {/* 🌟 Private Tabs: Sirf khud ki profile par dikhenge */}
           {isMyProfile && (
             <>
               <button
                 onClick={() => setActiveTab("saved")}
-                className={`pb-4 text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === "saved" ? "text-teal-600" : "text-slate-400 hover:text-slate-800"}`}
+                className={`pb-4 text-sm font-bold uppercase tracking-wider transition-all relative whitespace-nowrap ${activeTab === "saved" ? "text-zinc-900 border-b-2 border-zinc-900" : "text-zinc-400 hover:text-zinc-600"}`}
               >
-                <i className="fa-solid fa-bookmark mr-2"></i>Saved
-                {activeTab === "saved" && (
-                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-teal-600 rounded-t-full"></div>
-                )}
+                Saved
               </button>
 
               <button
                 onClick={() => setActiveTab("exams")}
-                className={`pb-4 text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === "exams" ? "text-teal-600" : "text-slate-400 hover:text-slate-800"}`}
+                className={`pb-4 text-sm font-bold uppercase tracking-wider transition-all relative whitespace-nowrap ${activeTab === "exams" ? "text-zinc-900 border-b-2 border-zinc-900" : "text-zinc-400 hover:text-zinc-600"}`}
               >
-                <i className="fa-solid fa-ranking-star mr-2"></i>Vault (Results)
-                {activeTab === "exams" && (
-                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-teal-600 rounded-t-full"></div>
-                )}
+                Vault
               </button>
             </>
           )}
@@ -145,18 +144,18 @@ export default function ProfilePage() {
       {/* TAB CONTENT */}
       <div className="min-h-[300px]">
         {isLoading ? (
-          <div className="flex justify-center items-center py-20 text-slate-300">
-            <i className="fa-solid fa-circle-notch fa-spin text-3xl"></i>
+          <div className="flex justify-center items-center py-20">
+            <div className="h-6 w-6 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin"></div>
           </div>
         ) : (
           <>
+            {/* POSTS TAB */}
             {activeTab === "posts" && (
-              // 🌟 Yahan 'gap-3 sm:gap-6' lagaya hai aur mobile par padding hata di (Edge-to-Edge)
               <div className="flex flex-col gap-3 sm:gap-6 sm:px-6 lg:px-8 animate-fade-in-up">
                 {myPosts.length === 0 ? (
-                  <div className="text-center py-16 bg-slate-50 border border-slate-100 rounded-3xl mx-4 sm:mx-0">
-                    <i className="fa-solid fa-feather-pointed text-4xl text-slate-300 mb-3"></i>
-                    <h3 className="text-slate-500 font-medium">
+                  <div className="text-center py-16 bg-white border border-zinc-200 sm:rounded-2xl mx-0 sm:mx-0 border-x-0 sm:border-x">
+                    <i className="fa-solid fa-feather-pointed text-4xl text-zinc-300 mb-3"></i>
+                    <h3 className="text-zinc-500 font-medium text-sm">
                       {isMyProfile ? "You haven't shared any thoughts yet." : "No thoughts shared yet."}
                     </h3>
                   </div>
@@ -168,13 +167,13 @@ export default function ProfilePage() {
               </div>
             )}
 
+            {/* SAVED TAB */}
             {isMyProfile && activeTab === "saved" && (
-              // 🌟 Same Edge-to-Edge for Saved Posts
               <div className="flex flex-col gap-3 sm:gap-6 sm:px-6 lg:px-8 animate-fade-in-up">
                 {savedPosts.length === 0 ? (
-                  <div className="text-center py-16 bg-slate-50 border border-slate-100 rounded-3xl mx-4 sm:mx-0">
-                    <i className="fa-regular fa-bookmark text-4xl text-slate-300 mb-3"></i>
-                    <h3 className="text-slate-500 font-medium">
+                  <div className="text-center py-16 bg-white border border-zinc-200 sm:rounded-2xl mx-0 sm:mx-0 border-x-0 sm:border-x">
+                    <i className="fa-regular fa-bookmark text-4xl text-zinc-300 mb-3"></i>
+                    <h3 className="text-zinc-500 font-medium text-sm">
                       No saved posts in your vault.
                     </h3>
                   </div>
@@ -186,47 +185,77 @@ export default function ProfilePage() {
               </div>
             )}
 
+            {/* 🌟 NEW VAULT TAB (Premium Minimalist Table) */}
             {isMyProfile && activeTab === "exams" && (
-              // 🌟 Exams chote cards hain, inme thodi padding theek lagegi
-              <div className="flex flex-col gap-3 sm:gap-4 px-4 sm:px-6 lg:px-8 animate-fade-in-up">
-                {examResults.length === 0 ? (
-                  <div className="text-center py-16 bg-slate-50 border border-slate-100 rounded-3xl">
-                    <i className="fa-solid fa-award text-4xl text-slate-300 mb-3"></i>
-                    <h3 className="text-slate-500 font-medium">
-                      No exam results available yet.
+              <div className="px-0 sm:px-6 lg:px-8 animate-fade-in-up">
+                <div className="bg-white border-y sm:border border-zinc-200 sm:rounded-2xl flex flex-col overflow-hidden">
+                  
+                  <div className="p-4 sm:p-5 border-b border-zinc-200 flex items-center justify-between bg-zinc-50/50">
+                    <h3 className="text-[11px] sm:text-xs font-bold uppercase tracking-widest text-zinc-700 flex items-center gap-2">
+                      <i className="fa-solid fa-file-lines text-teal-600 text-sm"></i> Assessment Records
                     </h3>
                   </div>
-                ) : (
-                  examResults.map((result) => (
-                    <div
-                      key={result.id}
-                      className="bg-white border border-slate-200 p-5 rounded-2xl flex items-center justify-between hover:shadow-md transition-shadow"
-                    >
-                      <div>
-                        <h4 className="font-bold text-slate-800 text-lg">
-                          {result.examTitle || "Assessment Result"}
-                        </h4>
-                        <p className="text-xs text-slate-500 mt-1">
-                          Submitted on:{" "}
-                          {new Date(
-                            result.submittedAt?.toDate(),
-                          ).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="bg-teal-50 border border-teal-100 px-4 py-2 rounded-xl text-center">
-                        <span className="block text-[10px] uppercase font-bold text-teal-600 tracking-wider">
-                          Score
-                        </span>
-                        <span className="text-xl font-black text-teal-700">
-                          {result.score}{" "}
-                          <span className="text-sm text-teal-500 font-medium">
-                            / {result.totalMarks}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                )}
+                  
+                  <div className="overflow-x-auto no-scrollbar">
+                    <table className="w-full text-left border-collapse min-w-[300px]">
+                      <thead>
+                        <tr className="border-b border-zinc-100 bg-white">
+                          <th className="py-3.5 px-4 sm:px-6 text-[10px] font-bold uppercase tracking-widest text-zinc-400 font-sans">Test Name</th>
+                          <th className="py-3.5 px-4 sm:px-6 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-right font-sans">Score</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pastExams.length === 0 ? (
+                          <tr>
+                            <td colSpan="2" className="py-12 text-center">
+                              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">No past records found.</p>
+                            </td>
+                          </tr>
+                        ) : (
+                          pastExams.map(exam => {
+                            const userResult = examResults.find(r => r.examId === exam.id);
+                            
+                            let scoreDisplay;
+                            if (userResult) {
+                              if (userResult.maxScore) {
+                                const percent = Math.round((userResult.totalScore / userResult.maxScore) * 100);
+                                scoreDisplay = (
+                                  <span className={`font-mono font-bold text-sm sm:text-base ${userResult.totalScore >= 0 ? 'text-teal-600' : 'text-red-500'}`}>
+                                    {percent > 0 ? '+' : ''}{percent}%
+                                  </span>
+                                );
+                              } else {
+                                scoreDisplay = (
+                                  <span className={`font-mono font-bold text-sm sm:text-base ${userResult.totalScore >= 0 ? 'text-teal-600' : 'text-red-500'}`}>
+                                    {userResult.totalScore > 0 ? '+' : ''}{userResult.totalScore}
+                                  </span>
+                                );
+                              }
+                            } else {
+                              scoreDisplay = (
+                                <span className="bg-red-50 text-red-600 px-2.5 py-1 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider border border-red-100">
+                                  Absent
+                                </span>
+                              );
+                            }
+
+                            return (
+                              <tr key={exam.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/80 transition-colors">
+                                <td className="py-3.5 px-4 sm:px-6 text-[13px] sm:text-sm font-semibold text-zinc-800">
+                                  {exam.title}
+                                </td>
+                                <td className="py-3.5 px-4 sm:px-6 text-right">
+                                  {scoreDisplay}
+                                </td>
+                              </tr>
+                            )
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                </div>
               </div>
             )}
           </>

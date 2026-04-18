@@ -22,6 +22,32 @@ import { getToken } from "firebase/messaging";
 // 🌟 Sab kuch ek hi line mein import karein taaki "Redeclaration" error na aaye
 import { db, auth, messaging } from '../firebase';
 
+
+// 1. Categories ko Firebase se laane ke liye
+export const getAdminCategories = async () => {
+  try {
+    const docRef = doc(db, "adminSettings", "categories");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data().list || [];
+    }
+    return []; // Agar pehli baar hai to khali array
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    return [];
+  }
+};
+
+// 2. Nayi categories ko Firebase me save karne ke liye
+export const saveAdminCategories = async (newCategoriesArray) => {
+  try {
+    const docRef = doc(db, "adminSettings", "categories");
+    await setDoc(docRef, { list: newCategoriesArray });
+  } catch (error) {
+    console.error("Error saving categories:", error);
+  }
+};
+
 // ==========================================
 // 🤖 AUTO-GRAMMAR BOT API (Now using Groq Llama 3)
 // ==========================================

@@ -321,8 +321,10 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
           {activeTab === 'academy' && (
             <div className="animate-fade-in">
               <div className="mb-4 sm:mb-6 px-4 sm:px-0">
-                <h1 className="text-2xl sm:text-3xl text-slate-800">Assessment Editor</h1>
-                <p className="text-xs text-slate-500 mt-1">Create & Manage</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+            <i className="fa-solid fa-file-signature text-teal-600"></i>
+            Exam Editor
+          </h2>
               </div>
               <AdminExamEditor showToast={showToast} />
             </div>
