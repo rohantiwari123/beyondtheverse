@@ -57,6 +57,9 @@ export default function ExamEngine({ showToast }) {
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
 
   const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 Minutes
+  
+  // 🌟 FIX: Prevent showing "already submitted" toast immediately after submission
+  const isInitialLoad = React.useRef(true);
 
   const showAlert = (message) => setModalConfig({ isOpen: true, type: 'alert', message, onConfirm: null });
   const showConfirm = (message, onConfirm) => setModalConfig({ isOpen: true, type: 'confirm', message, onConfirm });
@@ -65,8 +68,8 @@ export default function ExamEngine({ showToast }) {
   useEffect(() => {
     const fetchExamAndVerify = async () => {
       try {
-        // 🌟 MERA UPDATE 2: SECURITY CHECK - Kya user ne exam de diya hai?
-        if (userId) {
+        // 🌟 MERA UPDATE 2: SECURITY CHECK - Kya user ne exam de diya hai? (Only on initial load)
+        if (userId && isInitialLoad.current) {
           const pastResults = await getUserExamResults(userId);
           const alreadyTaken = pastResults.find(r => r.examId === examId);
           
@@ -76,6 +79,8 @@ export default function ExamEngine({ showToast }) {
             return;
           }
         }
+        
+        isInitialLoad.current = false;
 
         // 🌟 Agar nahi diya hai, tabhi paper load karo
         const examData = await getExamById(examId);
@@ -96,7 +101,7 @@ export default function ExamEngine({ showToast }) {
     };
     
     fetchExamAndVerify();
-  }, [examId, userId, navigate, showToast]);
+  }, [examId, userId, navigate]);
 
   // 🌟 NAYA: Auto-Submit Timer Logic
   useEffect(() => {
@@ -185,7 +190,6 @@ export default function ExamEngine({ showToast }) {
 
   const executeSubmit = async () => {
     setIsSubmitting(true);
-    // 🌟 Yahan humne dono scores nikal liye
     const { totalScore, maxScore } = calculateScore(); 
 
     try {
@@ -194,12 +198,15 @@ export default function ExamEngine({ showToast }) {
         examId,
         examTitle: exam.title,
         totalScore: totalScore,
-        maxScore: maxScore, // 🌟 Isko ab DB me save kar rahe hain
-        answers
+        maxScore: maxScore,
+        answers // 🌟 Zaroori: DB me answers save ho rahe hain
       });
 
-      showToast("✅ Assessment successfully submitted and recorded.");
-      navigate('/exam'); 
+      if(showToast) showToast("✅ Assessment successfully submitted and recorded.");
+      
+      // 🌟 MERA UPDATE: Ab dashbaord ki jagah Result page par redirect karo
+      navigate(`/exam/result/${examId}`); 
+
     } catch (error) {
       showAlert("Submission interrupted. Please check your network connection and try again.");
       setIsSubmitting(false);
@@ -264,7 +271,7 @@ export default function ExamEngine({ showToast }) {
               </div>
               
               <div 
-                className="prose prose-slate max-w-none mb-8 text-[15px] md:text-[16px] text-slate-800 verse-thought-serif leading-relaxed"
+                className="prose prose-slate max-w-none mb-8 text-[15px] md:text-[16px] text-slate-800 verse-thought-serif leading-relaxed break-words overflow-hidden"
                 dangerouslySetInnerHTML={{ __html: q.text }}
               />
               
@@ -282,7 +289,7 @@ export default function ExamEngine({ showToast }) {
                       </div>
                       
                       <div 
-                        className={`prose prose-sm w-full transition-colors ${isSelected ? 'text-teal-950 font-medium' : 'text-slate-700'}`} 
+                        className={`prose prose-sm w-full transition-colors break-words overflow-hidden ${isSelected ? 'text-teal-950 font-medium' : 'text-slate-700'}`} 
                         dangerouslySetInnerHTML={{ __html: opt.text }} 
                       />
                     </div>

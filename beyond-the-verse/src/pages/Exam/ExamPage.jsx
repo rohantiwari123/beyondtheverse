@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 import { useAuth } from '../../context/AuthContext';
-import { getAllExams, getUserExamResults, deleteExam } from '../../services/firebaseServices'; 
+import { getAllExams, getUserExamResults, deleteExam, getResultsReleaseStatus } from '../../services/firebaseServices'; 
 import BackButton from '../../components/common/BackButton';
 
 // ==========================================
@@ -120,6 +120,7 @@ export default function ExamPage({ showToast }) {
   const [exams, setExams] = useState([]);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [resultsReleased, setResultsReleased] = useState(false);
   const [now, setNow] = useState(new Date());
   
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
@@ -137,12 +138,17 @@ export default function ExamPage({ showToast }) {
       try {
         const examsData = await getAllExams();
         setExams(examsData);
+        const releaseStatus = await getResultsReleaseStatus();
+        setResultsReleased(releaseStatus);
         if (userId) {
           const resultsData = await getUserExamResults(userId);
           setResults(resultsData);
         }
-      } catch (error) { console.error(error); } 
-      finally { setLoading(false); }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, [userId]);
@@ -221,21 +227,43 @@ export default function ExamPage({ showToast }) {
                       </div>
 
                       {/* RIGHT: EXACT STATUS / ACTION BOX */}
-                      <div className="shrink-0 flex justify-end">
+                      <div className="shrink-0 flex justify-end gap-2">
                         
-                        {/* ACTIVE BUTTON (Clickable) */}
-                        {statusBox.type === 'ACTIVE' ? (
-                          <button 
-                            onClick={() => navigate(`/exam/engine/${exam.id}`)} 
-                            className={`flex items-center justify-center h-8 sm:h-9 px-4 sm:px-5 rounded-lg active:scale-95 ${statusBox.color}`}
-                          >
-                            {statusBox.label}
-                          </button>
+                        {/* COMPLETED: Show Results Button / Locked Notice */}
+                        {statusBox.type === 'COMPLETED' ? (
+                          <>
+                            <div className={`flex items-center justify-center h-8 sm:h-9 px-3 sm:px-4 rounded-lg ${statusBox.color}`}>
+                              {statusBox.label}
+                            </div>
+                            {resultsReleased || isAdmin ? (
+                              <button 
+                                onClick={() => navigate(`/exam/result/${exam.id}`)}
+                                className="flex items-center justify-center h-8 sm:h-9 px-4 sm:px-5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition-all active:scale-95"
+                                title={resultsReleased ? "View detailed results" : "View detailed results (Admin Only)"}
+                              >
+                                <i className="fa-solid fa-eye mr-1.5"></i> View
+                              </button>
+                            ) : (
+                              <div className="flex items-center justify-center h-8 sm:h-9 px-3 sm:px-4 rounded-lg bg-zinc-100 text-zinc-500 border border-zinc-200 text-[11px] font-semibold">
+                                Results Locked
+                              </div>
+                            )}
+                          </>
                         ) : (
-                          /* OTHER STATUSES (Unclickable Div) */
-                          <div className={`flex items-center justify-center h-8 sm:h-9 px-3 sm:px-4 rounded-lg ${statusBox.color}`}>
-                            {statusBox.label}
-                          </div>
+                          /* ACTIVE BUTTON (Clickable) */
+                          statusBox.type === 'ACTIVE' ? (
+                            <button 
+                              onClick={() => navigate(`/exam/engine/${exam.id}`)} 
+                              className={`flex items-center justify-center h-8 sm:h-9 px-4 sm:px-5 rounded-lg active:scale-95 ${statusBox.color}`}
+                            >
+                              {statusBox.label}
+                            </button>
+                          ) : (
+                            /* OTHER STATUSES (Unclickable Div) */
+                            <div className={`flex items-center justify-center h-8 sm:h-9 px-3 sm:px-4 rounded-lg ${statusBox.color}`}>
+                              {statusBox.label}
+                            </div>
+                          )
                         )}
 
                       </div>

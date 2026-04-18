@@ -377,19 +377,39 @@ export const getAllExams = async () => {
 
 export const getUserExamResults = async (userId) => {
   try {
+    // 🌟 FIX: Removed orderBy to avoid composite index requirement
     const q = query(
       collection(db, "exam_results"),
-      where("userId", "==", userId),
-      orderBy("submittedAt", "desc")
+      where("userId", "==", userId)
     );
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ 
+    // 🌟 Client-side sorting as alternative
+    const results = querySnapshot.docs.map(doc => ({ 
       id: doc.id, 
       ...doc.data() 
     }));
+    return results.sort((a, b) => (b.submittedAt?.toMillis?.() || 0) - (a.submittedAt?.toMillis?.() || 0));
   } catch (error) {
     console.error("Error fetching user results: ", error);
-    throw error;
+    return []; // Return empty array on error instead of throwing
+  }
+};
+
+// 🌟 NEW: Get ALL exam results for admin dashboard
+export const getAllExamResults = async () => {
+  try {
+    const q = query(
+      collection(db, "exam_results")
+    );
+    const querySnapshot = await getDocs(q);
+    const results = querySnapshot.docs.map(doc => ({ 
+      id: doc.id, 
+      ...doc.data() 
+    }));
+    return results.sort((a, b) => (b.submittedAt?.toMillis?.() || 0) - (a.submittedAt?.toMillis?.() || 0));
+  } catch (error) {
+    console.error("Error fetching all exam results: ", error);
+    return [];
   }
 };
 
@@ -404,6 +424,31 @@ export const subscribeToTargetAmount = (callback) => {
       callback(docSnap.data().targetAmount);
     }
   });
+};
+
+export const getResultsReleaseStatus = async () => {
+  try {
+    const docRef = doc(db, 'settings', 'config');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data().resultsReleased === true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error fetching results release status:', error);
+    return false;
+  }
+};
+
+export const setResultsReleaseStatus = async (isReleased) => {
+  try {
+    const docRef = doc(db, 'settings', 'config');
+    await setDoc(docRef, { resultsReleased: isReleased }, { merge: true });
+    return true;
+  } catch (error) {
+    console.error('Error updating results release status:', error);
+    throw error;
+  }
 };
 
 export const subscribeToDonations = (callback) => {
@@ -507,6 +552,32 @@ export const updateUserProfileName = async (newName) => {
     throw new Error("No user logged in");
   } catch (error) {
     console.error("Error updating profile:", error);
+    throw error;
+  }
+};
+
+export const updateUserUsername = async (newUsername) => {
+  try {
+    if (!auth.currentUser) throw new Error("No user logged in");
+
+    // 🌟 Check if username is already taken (universal uniqueness)
+    const usernameQuery = query(collection(db, "users"), where("username", "==", newUsername));
+    const usernameSnapshot = await getDocs(usernameQuery);
+
+    // If username exists and it's not the current user's username, reject
+    if (!usernameSnapshot.empty) {
+      const existingUser = usernameSnapshot.docs[0];
+      if (existingUser.id !== auth.currentUser.uid) {
+        throw new Error("Username is already taken. Please choose a different one.");
+      }
+    }
+
+    // Update username in database
+    const userRef = doc(db, "users", auth.currentUser.uid);
+    await updateDoc(userRef, { username: newUsername });
+    return true;
+  } catch (error) {
+    console.error("Error updating username:", error);
     throw error;
   }
 };

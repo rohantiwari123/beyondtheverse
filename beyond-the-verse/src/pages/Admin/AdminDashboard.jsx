@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import AdminExamEditor from '../../components/Exam/AdminExamEditor';
 
 // 🌟 NAYA: Q&A Functions Import
-import { getPendingQuestions, publishQuestionToFAQ, deleteUserQuestion } from '../../services/firebaseServices';
+import { getPendingQuestions, publishQuestionToFAQ, deleteUserQuestion, getAllExamResults, getResultsReleaseStatus, setResultsReleaseStatus } from '../../services/firebaseServices';
 
 // ==========================================
 // 🌟 CUSTOM MODAL (For Safe Actions)
@@ -65,6 +65,12 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
   const [answerInputs, setAnswerInputs] = useState({});
   const [isPublishing, setIsPublishing] = useState(false);
 
+  // 🌟 EXAM RESULTS STATES
+  const [allExamResults, setAllExamResults] = useState([]);
+  const [isFetchingResults, setIsFetchingResults] = useState(false);
+  const [resultsReleased, setResultsReleased] = useState(false);
+  const [isFetchingReleaseStatus, setIsFetchingReleaseStatus] = useState(false);
+
   // Modal State
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
   const showAlert = (message) => setModalConfig({ isOpen: true, type: 'alert', message, onConfirm: null });
@@ -115,6 +121,43 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
     }
   }, [activeTab]);
 
+  // 🌟 NAYA: Fetch All Exam Results
+  useEffect(() => {
+    if (activeTab === 'results') {
+      const fetchResults = async () => {
+        setIsFetchingResults(true);
+        try {
+          const data = await getAllExamResults();
+          setAllExamResults(data);
+        } catch (error) {
+          console.error("Error fetching exam results:", error);
+          showToast("Failed to load exam results.", false);
+        } finally {
+          setIsFetchingResults(false);
+        }
+      };
+      fetchResults();
+    }
+  }, [activeTab, showToast]);
+
+  // 🌟 NAYA: Fetch Result Release Status
+  useEffect(() => {
+    const fetchReleaseStatus = async () => {
+      setIsFetchingReleaseStatus(true);
+      try {
+        const status = await getResultsReleaseStatus();
+        setResultsReleased(status);
+      } catch (error) {
+        console.error('Error loading release status:', error);
+        showToast('Unable to load results release state.', false);
+      } finally {
+        setIsFetchingReleaseStatus(false);
+      }
+    };
+
+    fetchReleaseStatus();
+  }, [showToast]);
+
   // Target Update
   const handleSaveTarget = async () => {
     if (newTarget > 0) {
@@ -124,6 +167,17 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
       } catch (e) {
         showToast("Permission Denied!", false);
       }
+    }
+  };
+
+  // Release Results Toggle
+  const handleToggleResultsRelease = async () => {
+    try {
+      await setResultsReleaseStatus(!resultsReleased);
+      setResultsReleased(prev => !prev);
+      showToast(`Results successfully ${!resultsReleased ? 'released' : 'hidden'}.`);
+    } catch (error) {
+      showToast('Failed to update results release state.', false);
     }
   };
 
@@ -301,6 +355,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
               <div className="flex items-center gap-2">
                 {[
                   { id: 'academy', icon: 'fa-brain', label: 'Assessments' },
+                  { id: 'results', icon: 'fa-chart-column', label: 'Results' },
                   { id: 'dashboard', icon: 'fa-wallet', label: 'Donations' },
                   { id: 'qna', icon: 'fa-clipboard-question', label: 'Q&A Inbox' },
                   { id: 'users', icon: 'fa-users', label: 'Citizens' },
@@ -328,6 +383,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
               <nav className="flex gap-2 py-3 min-w-max">
                 {[
                   { id: 'academy', icon: 'fa-brain', label: 'Assessments' },
+                  { id: 'results', icon: 'fa-chart-column', label: 'Results' },
                   { id: 'dashboard', icon: 'fa-wallet', label: 'Donations' },
                   { id: 'qna', icon: 'fa-clipboard-question', label: 'Q&A' },
                   { id: 'users', icon: 'fa-users', label: 'Citizens' },
@@ -630,6 +686,83 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* TAB: EXAM RESULTS (ADMIN ONLY) */}
+          {activeTab === 'results' && (
+            <div className="animate-fade-in space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2">Exam Results</h1>
+                  <p className="text-sm text-slate-600">View all student exam submissions and performance metrics</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleToggleResultsRelease}
+                    disabled={isFetchingReleaseStatus}
+                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${resultsReleased ? 'bg-rose-600 text-white hover:bg-rose-700' : 'bg-teal-600 text-white hover:bg-teal-700'}`}
+                  >
+                    {isFetchingReleaseStatus ? 'Loading...' : resultsReleased ? 'Hide Results' : 'Release Results'}
+                  </button>
+                  <span className={`text-xs font-medium ${resultsReleased ? 'text-teal-600' : 'text-slate-500'}`}>
+                    {resultsReleased ? 'Students can now view their scores' : 'Results hidden from students'}
+                  </span>
+                </div>
+              </div>
+
+              {isFetchingResults ? (
+                <div className="py-20 flex flex-col items-center justify-center bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl">
+                  <div className="h-8 w-8 border-4 border-slate-200 border-t-teal-600 rounded-full animate-spin mb-4"></div>
+                  <p className="text-sm text-slate-500">Loading exam results...</p>
+                </div>
+              ) : allExamResults.length === 0 ? (
+                <div className="py-20 flex flex-col items-center justify-center bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl">
+                  <i className="fa-solid fa-chart-line text-4xl text-slate-300 mb-3"></i>
+                  <p className="text-sm text-slate-500">No exam results available yet.</p>
+                </div>
+              ) : (
+                <div className="bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                          <th className="px-4 py-3 text-left font-semibold text-slate-700">Student ID</th>
+                          <th className="px-4 py-3 text-left font-semibold text-slate-700">Exam Title</th>
+                          <th className="px-4 py-3 text-left font-semibold text-slate-700">Percentage</th>
+                          <th className="px-4 py-3 text-left font-semibold text-slate-700">Submitted</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {allExamResults.map((result) => {
+                          const percentage = result.maxScore ? Math.round((result.totalScore / result.maxScore) * 100) : 0;
+                          const submittedDate = result.submittedAt ? new Date(result.submittedAt.toMillis?.() || result.submittedAt).toLocaleDateString() : 'N/A';
+                          
+                          return (
+                            <tr key={result.id} className="hover:bg-slate-50 transition-colors">
+                              <td className="px-4 py-3 text-slate-900 font-mono text-xs">{result.userId.slice(0, 8)}</td>
+                              <td className="px-4 py-3 text-slate-900 font-medium">{result.examTitle}</td>
+                              <td className="px-4 py-3">
+                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                                  percentage >= 70 ? 'bg-teal-50 text-teal-700' :
+                                  percentage >= 50 ? 'bg-yellow-50 text-yellow-700' :
+                                  'bg-rose-50 text-rose-700'
+                                }`}>
+                                  {percentage}%
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-slate-600 text-xs">{submittedDate}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
+                    <span><strong>{allExamResults.length}</strong> total submissions</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

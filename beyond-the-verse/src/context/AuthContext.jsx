@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!savedUser);
   const [isAdmin, setIsAdmin] = useState(savedUser?.role === 'admin');
   const [userName, setUserName] = useState(savedUser?.name || ""); 
+  const [userUsername, setUserUsername] = useState(savedUser?.username || "");
   const [isCheckingAuth, setIsCheckingAuth] = useState(!savedUser);
 
   useEffect(() => {
@@ -34,18 +35,21 @@ export const AuthProvider = ({ children }) => {
             if (userDoc.exists()) {
               const role = userDoc.data().role || 'client';
               const realName = userDoc.data().name || user.displayName || ""; 
+              const realUsername = userDoc.data().username || "";
               
               setIsAuthenticated(true);
               setIsAdmin(role === 'admin');
               setUserName(realName); 
+              setUserUsername(realUsername);
               
-              saveLocalUser({ uid: user.uid, role, name: realName });
+              saveLocalUser({ uid: user.uid, role, name: realName, username: realUsername });
             } else {
               const tempName = user.displayName || ""; 
               setIsAuthenticated(true);
               setIsAdmin(false);
               setUserName(tempName);
-              saveLocalUser({ uid: user.uid, role: 'client', name: tempName });
+              setUserUsername("");
+              saveLocalUser({ uid: user.uid, role: 'client', name: tempName, username: "" });
             }
             setIsCheckingAuth(false);
           }, 
@@ -79,10 +83,11 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const login = (role, name) => {
+  const login = (role, name, username) => {
     setIsAuthenticated(true);
     setIsAdmin(role === 'admin');
     if (name) setUserName(name);
+    if (username !== undefined) setUserUsername(username);
   };
 
   const logout = async () => {
@@ -92,13 +97,15 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
     setIsAdmin(false);
     setUserName("");
+    setUserUsername("");
   };
 
   const value = { 
     currentUser, 
     isAuthenticated, 
     isAdmin, 
-    userName, 
+    userName,
+    userUsername, 
     userId: currentUser?.uid || savedUser?.uid, 
     login, 
     logout 
