@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import AdminExamEditor from '../../components/Exam/AdminExamEditor';
 
 // 🌟 NAYA: Q&A Functions Import
-import { getPendingQuestions, publishQuestionToFAQ, deleteUserQuestion, getAllExamResults, getResultsReleaseStatus, setResultsReleaseStatus } from '../../services/firebaseServices';
+import { getPendingQuestions, publishQuestionToFAQ, deleteUserQuestion, getAllExamResults, getResultsReleaseStatus, setResultsReleaseStatus, getUserProfile } from '../../services/firebaseServices';
 
 // ==========================================
 // 🌟 CUSTOM MODAL (For Safe Actions)
@@ -128,7 +128,26 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
         setIsFetchingResults(true);
         try {
           const data = await getAllExamResults();
-          setAllExamResults(data);
+          const missingUserIds = [...new Set(
+            data
+              .filter(result => !result.userName && !result.userUsername)
+              .map(result => result.userId)
+          )];
+
+          const profileMap = {};
+          await Promise.all(missingUserIds.map(async (uid) => {
+            const profile = await getUserProfile(uid);
+            if (profile) {
+              profileMap[uid] = profile;
+            }
+          }));
+
+          const enriched = data.map(result => ({
+            ...result,
+            displayName: result.userName || result.userUsername || profileMap[result.userId]?.name || profileMap[result.userId]?.username || ''
+          }));
+
+          setAllExamResults(enriched);
         } catch (error) {
           console.error("Error fetching exam results:", error);
           showToast("Failed to load exam results.", false);
@@ -727,7 +746,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                     <table className="w-full text-sm">
                       <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
-                          <th className="px-4 py-3 text-left font-semibold text-slate-700">Student ID</th>
+                          <th className="px-4 py-3 text-left font-semibold text-slate-700">Student</th>
                           <th className="px-4 py-3 text-left font-semibold text-slate-700">Exam Title</th>
                           <th className="px-4 py-3 text-left font-semibold text-slate-700">Percentage</th>
                           <th className="px-4 py-3 text-left font-semibold text-slate-700">Submitted</th>
@@ -740,7 +759,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                           
                           return (
                             <tr key={result.id} className="hover:bg-slate-50 transition-colors">
-                              <td className="px-4 py-3 text-slate-900 font-mono text-xs">{result.userId.slice(0, 8)}</td>
+                              <td className="px-4 py-3 text-slate-900 font-medium">{result.displayName || result.userName || result.userUsername || result.userId.slice(0, 8)}</td>
                               <td className="px-4 py-3 text-slate-900 font-medium">{result.examTitle}</td>
                               <td className="px-4 py-3">
                                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${

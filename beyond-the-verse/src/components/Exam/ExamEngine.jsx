@@ -49,7 +49,7 @@ function CustomModal({ config, onClose }) {
 export default function ExamEngine({ showToast }) {
   const { examId } = useParams();
   const navigate = useNavigate();
-  const { userId } = useAuth();
+  const { userId, userName, userUsername } = useAuth();
   
   const [exam, setExam] = useState(null);
   const [answers, setAnswers] = useState({}); 
@@ -195,6 +195,8 @@ export default function ExamEngine({ showToast }) {
     try {
       await submitExamResult({
         userId,
+        userName: userName || userUsername || 'Student',
+        userUsername: userUsername || userName || '',
         examId,
         examTitle: exam.title,
         totalScore: totalScore,
@@ -202,10 +204,9 @@ export default function ExamEngine({ showToast }) {
         answers // 🌟 Zaroori: DB me answers save ho rahe hain
       });
 
-      if(showToast) showToast("✅ Assessment successfully submitted and recorded.");
+      if(showToast) showToast("✅ Your assessment is submitted. Results will be visible once admin releases them.");
       
-      // 🌟 MERA UPDATE: Ab dashbaord ki jagah Result page par redirect karo
-      navigate(`/exam/result/${examId}`); 
+      navigate('/exam');
 
     } catch (error) {
       showAlert("Submission interrupted. Please check your network connection and try again.");

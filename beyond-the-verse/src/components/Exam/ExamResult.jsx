@@ -71,6 +71,13 @@ export default function ExamResult({ showToast }) {
   }
 
   const userAnswers = userResult?.answers || {}; // DB se aayi hui answer sheet
+  const resultLabel = isBlocked
+    ? 'Pending'
+    : userResult?.maxScore
+      ? `${Math.round((userResult.totalScore / userResult.maxScore) * 100)}%`
+      : userResult
+        ? `${userResult.totalScore > 0 ? '+' : ''}${userResult.totalScore}`
+        : '0%';
 
   return (
     <div className="w-full min-h-screen bg-slate-50 pb-20 pt-4 sm:pt-10 selection:bg-teal-100 selection:text-teal-900 font-sans">
@@ -93,10 +100,12 @@ export default function ExamResult({ showToast }) {
           </div>
           
           {/* Score Badge */}
-          <div className="bg-slate-800 border border-slate-700 p-5 rounded-2xl text-center shrink-0 w-full sm:w-auto shadow-inner">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Final Percentage</p>
-            <p className="text-4xl font-black text-teal-400">
-              {userResult?.maxScore ? Math.round((userResult.totalScore / userResult.maxScore) * 100) : 0}%
+          <div className={`border p-5 rounded-2xl text-center shrink-0 w-full sm:w-auto shadow-inner ${isBlocked ? 'bg-yellow-50 border-yellow-200' : 'bg-slate-800 border-slate-700'}`}>
+            <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${isBlocked ? 'text-yellow-700' : 'text-slate-400'}`}>
+              Final Percentage
+            </p>
+            <p className={`text-4xl font-black ${isBlocked ? 'text-yellow-700' : 'text-teal-400'}`}>
+              {resultLabel}
             </p>
           </div>
         </div>

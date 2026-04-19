@@ -5,8 +5,9 @@ import {
   getUserPosts,
   getUserBookmarkedPosts,
   getUserExamResults,
-  getUserProfile, 
-  getAllExams // 🌟 NAYA IMPORT: Absent exams calculate karne ke liye
+  getUserProfile,
+  getAllExams, // 🌟 NAYA IMPORT: Absent exams calculate karne ke liye
+  getResultsReleaseStatus
 } from "../../services/firebaseServices";
 
 // Components
@@ -29,6 +30,7 @@ export default function ProfilePage() {
   const [savedPosts, setSavedPosts] = useState([]);
   const [examResults, setExamResults] = useState([]);
   const [allExams, setAllExams] = useState([]); // 🌟 NAYA STATE
+  const [resultsReleased, setResultsReleased] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -49,14 +51,16 @@ export default function ProfilePage() {
 
         if (isMyProfile) {
           // 🌟 NAYA LOGIC: getAllExams bhi fetch kar rahe hain
-          const [bookmarks, exams, allExamsData] = await Promise.all([
+          const [bookmarks, exams, allExamsData, releaseStatus] = await Promise.all([
             getUserBookmarkedPosts(userId),
             getUserExamResults(userId),
-            getAllExams() 
+            getAllExams(),
+            getResultsReleaseStatus()
           ]);
           setSavedPosts(bookmarks);
           setExamResults(exams);
           setAllExams(allExamsData);
+          setResultsReleased(releaseStatus);
         }
       } catch (error) {
         console.error("Error loading profile data:", error);
@@ -217,16 +221,22 @@ export default function ProfilePage() {
                             
                             let scoreDisplay;
                             if (userResult) {
-                              if (userResult.maxScore) {
+                              if (!resultsReleased) {
+                                scoreDisplay = (
+                                  <span className="bg-yellow-50 text-yellow-700 px-2.5 py-1 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider border border-yellow-100">
+                                    Pending
+                                  </span>
+                                );
+                              } else if (userResult.maxScore) {
                                 const percent = Math.round((userResult.totalScore / userResult.maxScore) * 100);
                                 scoreDisplay = (
-                                  <span className={`font-mono font-bold text-sm sm:text-base ${userResult.totalScore >= 0 ? 'text-teal-600' : 'text-red-500'}`}>
+                                  <span className={`font-mono font-bold text-sm sm:text-base ${userResult.totalScore >= 0 ? 'text-teal-600' : 'text-rose-600'}`}>
                                     {percent > 0 ? '+' : ''}{percent}%
                                   </span>
                                 );
                               } else {
                                 scoreDisplay = (
-                                  <span className={`font-mono font-bold text-sm sm:text-base ${userResult.totalScore >= 0 ? 'text-teal-600' : 'text-red-500'}`}>
+                                  <span className={`font-mono font-bold text-sm sm:text-base ${userResult.totalScore >= 0 ? 'text-teal-600' : 'text-rose-600'}`}>
                                     {userResult.totalScore > 0 ? '+' : ''}{userResult.totalScore}
                                   </span>
                                 );

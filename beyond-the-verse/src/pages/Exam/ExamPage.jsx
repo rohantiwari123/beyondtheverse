@@ -43,10 +43,18 @@ function CustomModal({ config, onClose }) {
 }
 
 // 🌟 MASTER LOGIC: Clean Box Logic with Refined Typography
-const getExamStatusBox = (exam, userResult, currentTime) => {
+const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmin) => {
   
   // 1. COMPLETED: High contrast bold mono text
   if (userResult) {
+    if (!resultsReleased && !isAdmin) {
+      return {
+        type: 'PENDING',
+        label: 'Pending',
+        color: 'bg-yellow-50 text-yellow-800 border border-yellow-200 font-semibold text-[13px] sm:text-sm'
+      };
+    }
+
     let displayScore = "0%";
     if (userResult.maxScore) {
       const percent = Math.round((userResult.totalScore / userResult.maxScore) * 100);
@@ -194,7 +202,7 @@ export default function ExamPage({ showToast }) {
               <div className="divide-y divide-zinc-100">
                 {exams.map((exam) => {
                   const userResult = results.find(r => r.examId === exam.id);
-                  const statusBox = getExamStatusBox(exam, userResult, now);
+                  const statusBox = getExamStatusBox(exam, userResult, now, resultsReleased, isAdmin);
 
                   return (
                     <div key={exam.id} className="flex items-center justify-between py-4 px-4 sm:px-6 hover:bg-zinc-50/80 transition-colors duration-200 group">
@@ -230,12 +238,12 @@ export default function ExamPage({ showToast }) {
                       <div className="shrink-0 flex justify-end gap-2">
                         
                         {/* COMPLETED: Show Results Button / Locked Notice */}
-                        {statusBox.type === 'COMPLETED' ? (
+                                {statusBox.type === 'COMPLETED' || statusBox.type === 'PENDING' ? (
                           <>
                             <div className={`flex items-center justify-center h-8 sm:h-9 px-3 sm:px-4 rounded-lg ${statusBox.color}`}>
                               {statusBox.label}
                             </div>
-                            {resultsReleased || isAdmin ? (
+                            {statusBox.type === 'COMPLETED' ? (
                               <button 
                                 onClick={() => navigate(`/exam/result/${exam.id}`)}
                                 className="flex items-center justify-center h-8 sm:h-9 px-4 sm:px-5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition-all active:scale-95"
@@ -245,7 +253,7 @@ export default function ExamPage({ showToast }) {
                               </button>
                             ) : (
                               <div className="flex items-center justify-center h-8 sm:h-9 px-3 sm:px-4 rounded-lg bg-zinc-100 text-zinc-500 border border-zinc-200 text-[11px] font-semibold">
-                                Results Locked
+                                Results Pending
                               </div>
                             )}
                           </>
