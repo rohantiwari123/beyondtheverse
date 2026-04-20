@@ -1,106 +1,155 @@
 import React, { useState, useEffect } from 'react';
-import { updateUserProfileName, updateUserUsername } from '../../services/firebaseServices';
+import { updateUserProfileName, updateUserUsername, getUserProfile } from '../../services/firebaseServices';
 import { useAuth } from '../../context/AuthContext';
+import { collection, query, where, getDocs } from 'firebase/firestore'; 
+import { db } from '../../firebase';
 
 export default function GeneralSettings() {
-    const { currentUser, userName, login, userUsername } = useAuth(); // login function to update context
+    const { currentUser, userName, login, userUsername, userId } = useAuth();
+    
+    // Form States
     const [name, setName] = useState(userName || '');
     const [username, setUsername] = useState(userUsername || '');
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     
-    // 🌟 Username validation states
-    const [usernameError, setUsernameError] = useState('');
-    const [usernameValid, setUsernameValid] = useState(false);
-    const [usernameTouched, setUsernameTouched] = useState(false);
+    // 🌟 Edit Mode States
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [isEditingUsername, setIsEditingUsername] = useState(false);
 
-    // 🌟 Username validation function
-    const validateUsername = (value) => {
-        const cleanValue = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
-        
-        if (!cleanValue) {
-            setUsernameError('');
-            setUsernameValid(false);
-            return cleanValue;
-        }
-        
-        if (cleanValue.length < 6) {
-            setUsernameError('Username must be at least 6 characters long');
-            setUsernameValid(false);
-            return cleanValue;
-        }
-        
-        if (cleanValue.length > 20) {
-            setUsernameError('Username cannot exceed 20 characters');
-            setUsernameValid(false);
-            return cleanValue;
-        }
-        
-        if (!/^[a-z0-9_]+$/.test(cleanValue)) {
-            setUsernameError('Username can only contain letters, numbers, and underscores');
-            setUsernameValid(false);
-            return cleanValue;
-        }
-        
-        if (cleanValue === userUsername) {
-            setUsernameError('');
-            setUsernameValid(false); // No change needed
-            return cleanValue;
-        }
-        
-        // Valid username
-        setUsernameError('');
-        setUsernameValid(true);
-        return cleanValue;
-    };
+    // 🌟 Lock Timestamps from DB
+    const [lastUpdated, setLastUpdated] = useState({ name: 0, username: 0 });
 
-    // 🌟 Handle username input with real-time validation
-    const handleUsernameChange = (e) => {
-        const inputValue = e.target.value;
-        const validatedValue = validateUsername(inputValue);
-        setUsername(validatedValue);
-        setUsernameTouched(true);
-    };
-
-    // 🌟 Initialize validation on component mount
+    // 1. Fetch timestamps on component mount
     useEffect(() => {
-        if (userUsername) {
-            validateUsername(userUsername);
+        const fetchUserData = async () => {
+            const profile = await getUserProfile(userId);
+            if (profile) {
+                setLastUpdated({
+                    name: profile.lastEditedName || 0,
+                    username: profile.lastEditedUsername || 0
+                });
+            }
+        };
+        fetchUserData();
+    }, [userId]);
+
+    // 🌟 Lock Logic: (30 days = 2592000000 ms)
+    const checkLockStatus = (timestamp) => {
+        const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        const diff = now - timestamp;
+        const isLocked = diff < thirtyDaysInMs;
+        const daysRemaining = Math.ceil((thirtyDaysInMs - diff) / (24 * 60 * 60 * 1000));
+        return { isLocked, daysRemaining };
+    };
+
+    const nameStatus = checkLockStatus(lastUpdated.name);
+    const userStatus = checkLockStatus(lastUpdated.username);
+
+    // 🌟 Username validation states
+    const [liveUsernameError, setLiveUsernameError] = useState('');
+    const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+    const [isUsernameAvailable, setIsUsernameAvailable] = useState(true);
+
+    const userRules = {
+        length: username.length >= 6 && username.length <= 20,
+        format: /^[a-z0-9_]+$/.test(username), 
+        hasNumber: /[0-9]/.test(username), 
+        hasUnderscore: /_/.test(username), 
+    };
+    const isUsernameFormatValid = username.length > 0 && Object.values(userRules).every(Boolean);
+
+    // 🌟 LIVE USERNAME VALIDATOR
+    useEffect(() => {
+        if (!isEditingUsername || username === userUsername) {
+            setLiveUsernameError('');
+            setIsCheckingUsername(false);
+            setIsUsernameAvailable(true);
+            return;
         }
-    }, [userUsername]);
+
+        if (username.trim() === '') {
+            setLiveUsernameError('Username cannot be empty.');
+            setIsUsernameAvailable(false);
+            return;
+        }
+
+        // IMMEDIATE ERRORS
+        let errorFound = '';
+        if (!/^[a-z0-9_]+$/.test(username)) errorFound = "Only letters, numbers, and underscores allowed.";
+        else if (username.length < 6) errorFound = "Too short (min 6 chars).";
+        else if (username.length > 20) errorFound = "Too long (max 20 chars).";
+        else if (!/[0-9]/.test(username)) errorFound = "Must contain at least 1 number.";
+        else if (!/_/.test(username)) errorFound = "Must contain at least 1 underscore.";
+
+        if (errorFound) {
+            setLiveUsernameError(errorFound);
+            setIsUsernameAvailable(false);
+            return;
+        }
+
+        // DB Check
+        setLiveUsernameError('');
+        setIsCheckingUsername(true);
+        setIsUsernameAvailable(null);
+
+        const timeoutId = setTimeout(async () => {
+            try {
+                const q = query(collection(db, 'users'), where('username', '==', username));
+                const querySnapshot = await getDocs(q);
+                if (querySnapshot.empty) {
+                    setIsUsernameAvailable(true); 
+                } else {
+                    setIsUsernameAvailable(false); 
+                    setLiveUsernameError("Oops! Username already taken.");
+                }
+            } catch (error) { console.error(error); } finally { setIsCheckingUsername(false); }
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
+    }, [username, isEditingUsername, userUsername]);
 
     const handleSave = async (e) => {
         e.preventDefault();
-        if (name.trim() === userName && username.trim() === userUsername) return; // Agar kuch change nahi hua toh kuch mat karo
-        
         setIsLoading(true);
         setMessage({ type: '', text: '' });
 
         try {
-            // Update name if changed
-            if (name.trim() !== userName) {
-                await updateUserProfileName(name);
+            // Update Name
+            if (isEditingName && name.trim() !== userName) {
+                await updateUserProfileName(name.trim());
+                setLastUpdated(prev => ({ ...prev, name: Date.now() }));
+                setIsEditingName(false);
             }
             
-            // Update username if changed
-            if (username.trim() !== userUsername) {
+            // Update Username
+            if (isEditingUsername && username !== userUsername) {
                 await updateUserUsername(username);
+                setLastUpdated(prev => ({ ...prev, username: Date.now() }));
+                setIsEditingUsername(false);
             }
             
-            // Context ko naye data ke sath update karo taaki UI turant badal jaye
-            login(currentUser?.role || 'client', name, username); 
-            setMessage({ type: 'success', text: 'Profile updated successfully! ✨' });
+            login(currentUser?.role || 'client', name.trim(), username); 
+            setMessage({ type: 'success', text: 'Profile updated! Locked for 30 days.' });
         } catch (error) {
-            setMessage({ type: 'error', text: error.message || 'Failed to update profile. Please try again.' });
+            setMessage({ type: 'error', text: error.message || 'Update failed.' });
         } finally {
             setIsLoading(false);
         }
     };
 
+    const RuleItem = ({ met, text }) => (
+        <div className="flex items-center gap-1.5">
+            <i className={`fa-solid ${met ? 'fa-circle-check text-teal-500' : 'fa-circle text-slate-200'} text-[10px]`}></i>
+            <span className={`text-[10px] ${met ? 'text-slate-800' : 'text-slate-500'} whitespace-nowrap`}>{text}</span>
+        </div>
+    );
+
     return (
         <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 animate-fade-in">
             <h2 className="text-lg font-bold text-slate-900 mb-1">General Information</h2>
-            <p className="text-sm text-slate-500 mb-6">Update your personal details and how people see you in the Verse.</p>
+            <p className="text-sm text-slate-500 mb-6">Names and Usernames can only be changed once every 30 days.</p>
 
             {message.text && (
                 <div className={`p-3 rounded-xl mb-6 text-sm font-medium flex items-center gap-2 ${message.type === 'success' ? 'bg-teal-50 text-teal-700 border border-teal-100' : 'bg-rose-50 text-rose-700 border border-rose-100'}`}>
@@ -109,95 +158,105 @@ export default function GeneralSettings() {
                 </div>
             )}
 
-            <form onSubmit={handleSave} className="space-y-5 max-w-md">
-                {/* 🌟 READ-ONLY EMAIL */}
+            <form onSubmit={handleSave} className="space-y-6 max-w-md">
+                
+                {/* 🌟 DISPLAY NAME SECTION */}
                 <div>
-                    <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
-                    <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-500 cursor-not-allowed">
-                        <i className="fa-solid fa-envelope text-slate-400"></i>
-                        <span className="text-sm font-medium">{currentUser?.email}</span>
-                        <span className="ml-auto text-[10px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded-md font-bold uppercase">Verified</span>
+                    <div className="flex justify-between items-center mb-2">
+                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Display Name</label>
+                        {!isEditingName && (
+                            <button 
+                                type="button" 
+                                disabled={nameStatus.isLocked}
+                                onClick={() => setIsEditingName(true)}
+                                className={`text-xs font-bold flex items-center gap-1.5 ${nameStatus.isLocked ? 'text-slate-300 cursor-not-allowed' : 'text-teal-600 hover:text-teal-700'}`}
+                            >
+                                <i className={`fa-solid ${nameStatus.isLocked ? 'fa-lock' : 'fa-pen-to-square'}`}></i> 
+                                {nameStatus.isLocked ? `Locked` : 'Edit'}
+                            </button>
+                        )}
                     </div>
+                    <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        disabled={!isEditingName}
+                        className={`w-full px-4 py-3 border rounded-xl text-sm font-medium transition-all outline-none ${isEditingName ? 'bg-white border-teal-500 ring-2 ring-teal-500/10' : 'bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed'}`}
+                    />
+                    {nameStatus.isLocked && (
+                        <p className="mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-tight flex items-center gap-1">
+                            <i className="fa-solid fa-clock"></i> Next change in {nameStatus.daysRemaining} days
+                        </p>
+                    )}
                 </div>
 
-                {/* 🌟 EDITABLE NAME */}
+                {/* 🌟 SMART USERNAME SECTION */}
                 <div>
-                    <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Display Name</label>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i className="fa-solid fa-user text-slate-400"></i>
-                        </div>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                            className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 font-medium focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all outline-none"
-                            placeholder="Your full name"
-                        />
+                    <div className="flex justify-between items-center mb-2">
+                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Username</label>
+                        {!isEditingUsername && (
+                            <button 
+                                type="button" 
+                                disabled={userStatus.isLocked}
+                                onClick={() => setIsEditingUsername(true)}
+                                className={`text-xs font-bold flex items-center gap-1.5 ${userStatus.isLocked ? 'text-slate-300 cursor-not-allowed' : 'text-teal-600 hover:text-teal-700'}`}
+                            >
+                                <i className={`fa-solid ${userStatus.isLocked ? 'fa-lock' : 'fa-pen-to-square'}`}></i> 
+                                {userStatus.isLocked ? `Locked` : 'Edit'}
+                            </button>
+                        )}
                     </div>
-                </div>
-
-                {/* 🌟 EDITABLE USERNAME */}
-                <div>
-                    <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Username</label>
                     <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i className="fa-solid fa-at text-slate-400"></i>
-                        </div>
                         <input
                             type="text"
                             value={username}
-                            onChange={handleUsernameChange}
-                            className={`w-full pl-11 pr-11 py-3 bg-white border rounded-xl text-sm text-slate-900 font-medium focus:ring-2 transition-all outline-none ${
-                                usernameError 
-                                    ? 'border-rose-300 focus:ring-rose-500/20 focus:border-rose-500' 
-                                    : usernameValid 
-                                        ? 'border-teal-300 focus:ring-teal-500/20 focus:border-teal-500'
-                                        : 'border-slate-200 focus:ring-teal-500/20 focus:border-teal-500'
-                            }`}
-                            placeholder="your_unique_username"
-                            minLength="6"
-                            maxLength="20"
+                            onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))}
+                            disabled={!isEditingUsername}
+                            className={`w-full px-4 py-3 border rounded-xl text-sm font-medium transition-all outline-none ${isEditingUsername ? (liveUsernameError ? 'border-rose-400 bg-rose-50/10' : 'border-teal-500 ring-2 ring-teal-500/10') : 'bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed'}`}
                         />
-                        {/* Validation Icon */}
-                        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                            {username && (
-                                <i className={`fa-solid text-sm ${
-                                    usernameError ? 'fa-circle-xmark text-rose-500' :
-                                    usernameValid ? 'fa-circle-check text-teal-500' :
-                                    'fa-circle-info text-slate-400'
-                                }`}></i>
-                            )}
-                        </div>
+                        {isEditingUsername && isCheckingUsername && <i className="fa-solid fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>}
+                        {isEditingUsername && !isCheckingUsername && username !== userUsername && isUsernameAvailable === true && <i className="fa-solid fa-circle-check absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 text-sm"></i>}
                     </div>
-                    
-                    {/* Error/Success Messages */}
-                    {usernameTouched && username && (usernameError || usernameValid) && (
-                        <div className={`mt-2 text-xs font-medium flex items-center gap-1.5 ${
-                            usernameError ? 'text-rose-600' : 'text-teal-600'
-                        }`}>
-                            <i className={`fa-solid ${
-                                usernameError ? 'fa-triangle-exclamation' : 
-                                'fa-circle-check'
-                            }`}></i>
-                            {usernameError || 'Username available!'}
+
+                    {userStatus.isLocked && (
+                        <p className="mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-tight flex items-center gap-1">
+                            <i className="fa-solid fa-clock"></i> Next change in {userStatus.daysRemaining} days
+                        </p>
+                    )}
+
+                    {/* Rule Box (Shows when editing) */}
+                    {isEditingUsername && username !== userUsername && (
+                        <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl transition-all animate-fade-in-up">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1.5">
+                                <RuleItem met={userRules.length} text="6 to 20 characters" />
+                                <RuleItem met={userRules.format && username.length > 0} text="No spaces/special chars" />
+                                <RuleItem met={userRules.hasNumber} text="At least 1 number (0-9)" />
+                                <RuleItem met={userRules.hasUnderscore} text="At least 1 underscore (_)" />
+                            </div>
+                            {liveUsernameError && <p className="mt-2 text-[10px] text-rose-500 font-bold"><i className="fa-solid fa-triangle-exclamation"></i> {liveUsernameError}</p>}
                         </div>
                     )}
-                    
-                    <div className="mt-1 text-[10px] text-slate-400">
-                        Only lowercase letters, numbers, and underscores. 6-20 characters.
-                    </div>
                 </div>
 
                 <div className="pt-4">
-                    <button 
-                        type="submit" 
-                        disabled={isLoading || (name.trim() === userName && username.trim() === userUsername) || usernameError}
-                        className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 min-w-[120px]"
-                    >
-                        {isLoading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : 'Save Changes'}
-                    </button>
+                    {(isEditingName || isEditingUsername) && (
+                        <div className="flex gap-3">
+                            <button 
+                                type="submit" 
+                                disabled={isLoading || (isEditingUsername && (!isUsernameAvailable || !isUsernameFormatValid))}
+                                className="flex-1 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                {isLoading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : 'Save Changes'}
+                            </button>
+                            <button 
+                                type="button" 
+                                onClick={() => { setIsEditingName(false); setIsEditingUsername(false); setName(userName); setUsername(userUsername); }}
+                                className="px-6 py-2.5 bg-slate-100 text-slate-600 text-sm font-bold rounded-xl hover:bg-slate-200"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    )}
                 </div>
             </form>
         </div>

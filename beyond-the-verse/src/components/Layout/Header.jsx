@@ -230,13 +230,13 @@ export default function Header() {
 
                   <Link
                     to="/profile"
-                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-full transition-all border ${
+                    className={`flex items-center gap-2  ${
                       isPathActive('/profile') ? "bg-teal-50 text-teal-700 border-teal-200" : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                     }`}
                   >
                     <i className={`fa-solid fa-circle-user text-sm ${isPathActive('/profile') ? 'text-teal-500' : 'text-slate-400'}`}></i>
                     <span className="text-[11px] xl:text-xs truncate max-w-[50px] xl:max-w-[100px]">
-                      {userName.split(' ')[0]}
+                      
                     </span>
                   </Link>
                 </>

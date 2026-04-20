@@ -48,67 +48,7 @@ export const saveAdminCategories = async (newCategoriesArray) => {
   }
 };
 
-// ==========================================
-// 🤖 AUTO-GRAMMAR BOT API (Now using Groq Llama 3)
-// ==========================================
-export const checkSpellingWithAPI = async (text) => {
-  const API_KEY = import.meta.env.VITE_DICT_API_KEY;
 
-  if (!API_KEY) return [];
-
-  try {
-    // 🌟 Prompt remains EXACTLY the same as your request
-    const prompt = `
-      You are a Professional Linguistic & Grammar Expert. 
-      Your task is to scan the text for EVERY single error, whether it is a long word or a very short word, in both Hindi and English.
-
-      STRICT CORRECTION RULES:
-      1. HINDI (Short Words): Correct 'मै' to 'मैं', 'हु' to 'हूँ', 'क्यु' to 'क्यों', 'हो' to 'हो' (context based), 'मदद' to 'मदद'.
-      2. HINDI (Common Errors): Correct 'बहोत' to 'बहुत', 'सुरू' to 'शुरू', 'जरुरत' to 'ज़रूरत', 'महेनत' to 'मेहनत'.
-      3. ENGLISH: Correct all typos (e.g., 'writting' to 'writing') and basic grammar.
-      4. INPUT STYLE: The text might be mixed (Hinglish), ignore the slang but correct the spellings.
-      
-      OUTPUT FORMAT:
-      - Return ONLY a JSON array of objects with "wrong" and "correct" keys.
-      - Example: [{"wrong": "मै", "correct": "मैं"}, {"wrong": "बहोत", "correct": "बहुत"}]
-      - If the text is 100% correct, return [].
-
-      Text: "${text}"
-    `;
-
-    // 🌟 Fetching from Groq Cloud instead of Gemini
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile", // Using the best versatile model on Groq
-        messages: [
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        response_format: { type: "json_object" } // Force JSON response
-      }),
-    });
-
-    if (!response.ok) return [];
-
-    const data = await response.json();
-    const responseText = data.choices[0].message.content;
-    const result = JSON.parse(responseText);
-    
-    // Extracting the array from JSON (handling various possible key names like 'mistakes', 'errors')
-    return result.mistakes || result.errors || result.corrections || Object.values(result)[0] || [];
-
-  } catch (error) {
-    console.error("Groq Bot Error:", error.message);
-    return []; 
-  }
-};
 
 // ==========================================
 // 📝 1. COMMUNITY & CATEGORIES
@@ -541,12 +481,16 @@ export const deleteUserQuestion = async (questionId) => {
 // ⚙️ 8. USER SETTINGS (Profile & Security) 
 // ==========================================
 
+// Display Name Update with Timestamp
 export const updateUserProfileName = async (newName) => {
   try {
     if (auth.currentUser) {
       await updateProfile(auth.currentUser, { displayName: newName });
       const userRef = doc(db, "users", auth.currentUser.uid);
-      await updateDoc(userRef, { name: newName });
+      await updateDoc(userRef, { 
+        name: newName,
+        lastEditedName: Date.now() // 🌟 Timestamp added
+      });
       return true;
     }
     throw new Error("No user logged in");
@@ -556,25 +500,23 @@ export const updateUserProfileName = async (newName) => {
   }
 };
 
+// Username Update with Timestamp
 export const updateUserUsername = async (newUsername) => {
   try {
     if (!auth.currentUser) throw new Error("No user logged in");
-
-    // 🌟 Check if username is already taken (universal uniqueness)
+    
+    // Check uniqueness
     const usernameQuery = query(collection(db, "users"), where("username", "==", newUsername));
     const usernameSnapshot = await getDocs(usernameQuery);
-
-    // If username exists and it's not the current user's username, reject
-    if (!usernameSnapshot.empty) {
-      const existingUser = usernameSnapshot.docs[0];
-      if (existingUser.id !== auth.currentUser.uid) {
-        throw new Error("Username is already taken. Please choose a different one.");
-      }
+    if (!usernameSnapshot.empty && usernameSnapshot.docs[0].id !== auth.currentUser.uid) {
+      throw new Error("Username is already taken.");
     }
 
-    // Update username in database
     const userRef = doc(db, "users", auth.currentUser.uid);
-    await updateDoc(userRef, { username: newUsername });
+    await updateDoc(userRef, { 
+      username: newUsername,
+      lastEditedUsername: Date.now() // 🌟 Timestamp added
+    });
     return true;
   } catch (error) {
     console.error("Error updating username:", error);
@@ -594,6 +536,8 @@ export const updateUserSecurityPassword = async (newPassword) => {
     throw error;
   }
 };
+
+
 
 // ==========================================
 // 📸 UPLOAD PROFILE PICTURE (Via ImgBB - 100% Free)
