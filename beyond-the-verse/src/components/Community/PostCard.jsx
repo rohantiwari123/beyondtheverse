@@ -13,8 +13,7 @@ import {
   togglePinPost,
   toggleBookmarkPost,
   addPostInteraction,
-  createNotification,
-  checkSpellingWithAPI
+  createNotification
 } from '../../services/firebaseServices';
 
 export default function PostCard({ post, showToast, isSinglePost }) {
