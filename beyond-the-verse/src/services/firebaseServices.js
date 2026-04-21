@@ -889,103 +889,122 @@ export const getUserProfile = async (targetUserId) => {
 };
 
 // ==========================================
-// 🔄 ULTRA DEEP SYNC: POSTS, COMMENTS & REPLIES
+// 🔄 THE ULTIMATE FUTURE-PROOF SYNC ENGINE
 // ==========================================
 export const syncUserDataAcrossPosts = async (userId, newName, newUsername) => {
   try {
-    console.log("🚀 Starting Ultra Deep Sync for:", newName, newUsername);
-    
-    const q = query(collection(db, "posts"));
-    const querySnapshot = await getDocs(q);
+    console.log("🚀 Starting Future-Proof Sync for:", newName, newUsername);
 
     const batches = [];
     let currentBatch = writeBatch(db);
     let operationCount = 0;
-    
-    // Counting variables to see in console
-    let postsUpdatedCount = 0;
-    let commentsUpdatedCount = 0;
+    let totalUpdates = 0;
 
-    querySnapshot.forEach((postDoc) => {
-      const postData = postDoc.data();
-      let needsUpdate = false;
-      let updateData = {};
-
-      // 🌟 CHECK 1: Main Post check
-      if (postData.userId === userId) {
-        updateData.userName = newName;
-        if (newUsername) updateData.userUsername = newUsername; 
-        needsUpdate = true;
-        postsUpdatedCount++;
+    const commitBatchIfNeeded = () => {
+      if (operationCount >= 450) {
+        batches.push(currentBatch.commit());
+        currentBatch = writeBatch(db);
+        operationCount = 0;
       }
+    };
 
-      // 🌟 CHECK 2: Interactions (Comments) & Nested Replies check
-      if (postData.interactions && Array.isArray(postData.interactions)) {
-        let interactionsModified = false;
+    // 🌟 ========================================================
+    // 🔮 THE REGISTRY (भविष्य के लिए):
+    // भविष्य में कोई भी नया फीचर बनाओ, बस उसका नाम यहाँ जोड़ देना!
+    // - searchAll: true (अगर दूसरों की पोस्ट में भी इसके कमेंट्स/डेटा हो सकते हैं)
+    // - searchAll: false (अगर इसमें सिर्फ इसी यूज़र का डेटा होगा - saves Firebase billing)
+    // ========================================================
+    const collectionsToSync = [
+      { name: "posts", searchAll: true, checkNested: "interactions" }, // Main posts & comments
+      { name: "exam_results", searchAll: false },                      // User's exam data
+      { name: "user_questions", searchAll: false },                    // User's FAQs
+      // 🚀 FUTURE EXAMPLES:
+      // { name: "polls", searchAll: false },
+      // { name: "reviews", searchAll: true, checkNested: "replies" } 
+    ];
+
+    // 🌟 ENGINE: Har collection par loop chalao
+    for (const col of collectionsToSync) {
+      
+      // Query Optimization: Agar searchAll false hai, toh sirf is user ka data mangwao (Paisa aur Speed bachegi)
+      const q = col.searchAll 
+        ? query(collection(db, col.name)) 
+        : query(collection(db, col.name), where("userId", "==", userId));
         
-        const updatedInteractions = postData.interactions.map(interaction => {
-          let currentInteraction = { ...interaction };
-          let modifiedThisInteraction = false;
+      const querySnapshot = await getDocs(q);
 
-          // A. Check main comment
-          if (currentInteraction.userId === userId) {
-            currentInteraction.userName = newName;
-            if (newUsername) currentInteraction.userUsername = newUsername;
-            interactionsModified = true;
-            modifiedThisInteraction = true;
-            commentsUpdatedCount++;
-          }
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        let needsUpdate = false;
+        let updateData = {};
 
-          // B. Check nested replies (Agar purane data me replies array hai)
-          if (currentInteraction.replies && Array.isArray(currentInteraction.replies)) {
-            let repliesModified = false;
-            const updatedReplies = currentInteraction.replies.map(reply => {
-              if (reply.userId === userId) {
-                repliesModified = true;
-                commentsUpdatedCount++;
-                return { ...reply, userName: newName, userUsername: newUsername };
-              }
-              return reply;
-            });
-
-            if (repliesModified) {
-              currentInteraction.replies = updatedReplies;
-              interactionsModified = true;
-            }
-          }
-
-          return currentInteraction;
-        });
-
-        if (interactionsModified) {
-          updateData.interactions = updatedInteractions;
+        // 1. Direct Update: Agar document ka original author yehi user hai
+        if (data.userId === userId) {
+          updateData.userName = newName;
+          if (newUsername) updateData.userUsername = newUsername; 
           needsUpdate = true;
         }
-      }
 
-      // 🌟 Commit to Batch if anything changed
-      if (needsUpdate) {
-        currentBatch.update(postDoc.ref, updateData);
-        operationCount++;
+        // 2. Nested Update: Agar kisi aur ki post me is user ne comment/interaction kiya hai
+        if (col.checkNested && data[col.checkNested] && Array.isArray(data[col.checkNested])) {
+          let nestedModified = false;
+          
+          const updatedNestedArray = data[col.checkNested].map(item => {
+            let currentItem = { ...item };
 
-        if (operationCount >= 450) {
-          batches.push(currentBatch.commit());
-          currentBatch = writeBatch(db);
-          operationCount = 0;
+            // Comment update
+            if (currentItem.userId === userId) {
+              currentItem.userName = newName;
+              if (newUsername) currentItem.userUsername = newUsername;
+              nestedModified = true;
+            }
+
+            // Reply update (Agar iske andar bhi 'replies' ka array ho)
+            if (currentItem.replies && Array.isArray(currentItem.replies)) {
+              let repliesModified = false;
+              const updatedReplies = currentItem.replies.map(reply => {
+                if (reply.userId === userId) {
+                  repliesModified = true;
+                  return { ...reply, userName: newName, userUsername: newUsername };
+                }
+                return reply;
+              });
+
+              if (repliesModified) {
+                currentItem.replies = updatedReplies;
+                nestedModified = true;
+              }
+            }
+            return currentItem;
+          });
+
+          if (nestedModified) {
+            updateData[col.checkNested] = updatedNestedArray;
+            needsUpdate = true;
+          }
         }
-      }
-    });
 
+        // 3. Commit to batch if modified
+        if (needsUpdate) {
+          currentBatch.update(docSnap.ref, updateData);
+          operationCount++;
+          totalUpdates++;
+          commitBatchIfNeeded();
+        }
+      });
+    }
+
+    // Final commit bacha hua data
     if (operationCount > 0) {
       batches.push(currentBatch.commit());
     }
 
     await Promise.all(batches);
-    console.log(`✅ Ultra Deep Sync Complete! Updated ${postsUpdatedCount} Posts & ${commentsUpdatedCount} Comments/Replies.`);
+    console.log(`✅ Dynamic Sync Complete! Mapped & updated ${totalUpdates} records across the universe.`);
     return true;
 
   } catch (error) {
-    console.error("❌ Error during Ultra Deep Sync:", error);
+    console.error("❌ Error during Dynamic Sync:", error);
     throw error;
   }
 };
