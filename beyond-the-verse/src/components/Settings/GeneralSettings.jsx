@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { updateUserProfileName, updateUserUsername, getUserProfile } from '../../services/firebaseServices';
 import { useAuth } from '../../context/AuthContext';
 import { collection, query, where, getDocs } from 'firebase/firestore'; 
 import { db } from '../../firebase';
+
+// 🌟 Ek hi baar saare services import kiye hain (Cleaned)
+import { 
+    updateUserProfileName, 
+    updateUserUsername, 
+    getUserProfile, 
+    syncUserDataAcrossPosts 
+} from '../../services/firebaseServices';
 
 export default function GeneralSettings() {
     const { currentUser, userName, login, userUsername, userId } = useAuth();
@@ -112,15 +119,28 @@ export default function GeneralSettings() {
 
     const handleSave = async (e) => {
         e.preventDefault();
+        
+        // Agar kuch change nahi hua toh return kardo
+        if (name.trim() === userName && username === userUsername) return; 
+        
+        // Strict Error block
+        if (username !== userUsername && (!isUsernameFormatValid || !isUsernameAvailable || liveUsernameError)) {
+            return setMessage({ type: 'error', text: 'Please fix username errors before saving.' });
+        }
+        
         setIsLoading(true);
         setMessage({ type: '', text: '' });
 
         try {
+            let isNameChanged = false;
+            let isUsernameChanged = false;
+
             // Update Name
             if (isEditingName && name.trim() !== userName) {
                 await updateUserProfileName(name.trim());
                 setLastUpdated(prev => ({ ...prev, name: Date.now() }));
                 setIsEditingName(false);
+                isNameChanged = true;
             }
             
             // Update Username
@@ -128,12 +148,19 @@ export default function GeneralSettings() {
                 await updateUserUsername(username);
                 setLastUpdated(prev => ({ ...prev, username: Date.now() }));
                 setIsEditingUsername(false);
+                isUsernameChanged = true;
             }
             
+            // 🌟 THE MAGIC: Master Sync for old posts & comments!
+            if (isNameChanged || isUsernameChanged) {
+                await syncUserDataAcrossPosts(userId, name.trim(), username);
+            }
+            
+            // UI Update via Context
             login(currentUser?.role || 'client', name.trim(), username); 
-            setMessage({ type: 'success', text: 'Profile updated! Locked for 30 days.' });
+            setMessage({ type: 'success', text: 'Profile updated! All old posts synced. Locked for 30 days. ✨' });
         } catch (error) {
-            setMessage({ type: 'error', text: error.message || 'Update failed.' });
+            setMessage({ type: 'error', text: error.message || 'Failed to update profile. Please try again.' });
         } finally {
             setIsLoading(false);
         }

@@ -887,3 +887,105 @@ export const getUserProfile = async (targetUserId) => {
     return null;
   }
 };
+
+// ==========================================
+// 🔄 ULTRA DEEP SYNC: POSTS, COMMENTS & REPLIES
+// ==========================================
+export const syncUserDataAcrossPosts = async (userId, newName, newUsername) => {
+  try {
+    console.log("🚀 Starting Ultra Deep Sync for:", newName, newUsername);
+    
+    const q = query(collection(db, "posts"));
+    const querySnapshot = await getDocs(q);
+
+    const batches = [];
+    let currentBatch = writeBatch(db);
+    let operationCount = 0;
+    
+    // Counting variables to see in console
+    let postsUpdatedCount = 0;
+    let commentsUpdatedCount = 0;
+
+    querySnapshot.forEach((postDoc) => {
+      const postData = postDoc.data();
+      let needsUpdate = false;
+      let updateData = {};
+
+      // 🌟 CHECK 1: Main Post check
+      if (postData.userId === userId) {
+        updateData.userName = newName;
+        if (newUsername) updateData.userUsername = newUsername; 
+        needsUpdate = true;
+        postsUpdatedCount++;
+      }
+
+      // 🌟 CHECK 2: Interactions (Comments) & Nested Replies check
+      if (postData.interactions && Array.isArray(postData.interactions)) {
+        let interactionsModified = false;
+        
+        const updatedInteractions = postData.interactions.map(interaction => {
+          let currentInteraction = { ...interaction };
+          let modifiedThisInteraction = false;
+
+          // A. Check main comment
+          if (currentInteraction.userId === userId) {
+            currentInteraction.userName = newName;
+            if (newUsername) currentInteraction.userUsername = newUsername;
+            interactionsModified = true;
+            modifiedThisInteraction = true;
+            commentsUpdatedCount++;
+          }
+
+          // B. Check nested replies (Agar purane data me replies array hai)
+          if (currentInteraction.replies && Array.isArray(currentInteraction.replies)) {
+            let repliesModified = false;
+            const updatedReplies = currentInteraction.replies.map(reply => {
+              if (reply.userId === userId) {
+                repliesModified = true;
+                commentsUpdatedCount++;
+                return { ...reply, userName: newName, userUsername: newUsername };
+              }
+              return reply;
+            });
+
+            if (repliesModified) {
+              currentInteraction.replies = updatedReplies;
+              interactionsModified = true;
+            }
+          }
+
+          return currentInteraction;
+        });
+
+        if (interactionsModified) {
+          updateData.interactions = updatedInteractions;
+          needsUpdate = true;
+        }
+      }
+
+      // 🌟 Commit to Batch if anything changed
+      if (needsUpdate) {
+        currentBatch.update(postDoc.ref, updateData);
+        operationCount++;
+
+        if (operationCount >= 450) {
+          batches.push(currentBatch.commit());
+          currentBatch = writeBatch(db);
+          operationCount = 0;
+        }
+      }
+    });
+
+    if (operationCount > 0) {
+      batches.push(currentBatch.commit());
+    }
+
+    await Promise.all(batches);
+    console.log(`✅ Ultra Deep Sync Complete! Updated ${postsUpdatedCount} Posts & ${commentsUpdatedCount} Comments/Replies.`);
+    return true;
+
+  } catch (error) {
+    console.error("❌ Error during Ultra Deep Sync:", error);
+    throw error;
+  }
+};
