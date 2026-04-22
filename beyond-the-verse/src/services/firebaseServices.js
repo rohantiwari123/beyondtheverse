@@ -916,8 +916,8 @@ export const syncUserDataAcrossPosts = async (userId, newName, newUsername) => {
     // ========================================================
     const collectionsToSync = [
       { name: "posts", searchAll: true, checkNested: "interactions" }, // Main posts & comments
-      { name: "exam_results", searchAll: false },                      // User's exam data
-      { name: "user_questions", searchAll: false },                    // User's FAQs
+      { name: "exam_results", searchAll: true },                      // User's exam data
+      { name: "user_questions", searchAll: true },                    // User's FAQs
       // 🚀 FUTURE EXAMPLES:
       // { name: "polls", searchAll: false },
       // { name: "reviews", searchAll: true, checkNested: "replies" } 
