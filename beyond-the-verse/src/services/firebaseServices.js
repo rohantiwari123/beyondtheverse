@@ -889,7 +889,7 @@ export const getUserProfile = async (targetUserId) => {
 };
 
 // ==========================================
-// 🔄 THE ULTIMATE FUTURE-PROOF SYNC ENGINE
+// 🔄 THE ULTIMATE FUTURE-PROOF SYNC ENGINE (Crash-Proof)
 // ==========================================
 export const syncUserDataAcrossPosts = async (userId, newName, newUsername) => {
   try {
@@ -908,101 +908,96 @@ export const syncUserDataAcrossPosts = async (userId, newName, newUsername) => {
       }
     };
 
-    // 🌟 ========================================================
-    // 🔮 THE REGISTRY (भविष्य के लिए):
-    // ========================================================
+    // 🌟 MAKE SURE EXAM_RESULTS & USER_QUESTIONS ARE "FALSE"
     const collectionsToSync = [
-      // 🟢 Posts public hain, isliye searchAll: true (taaki dusro ki posts me apne comments mil sake)
       { name: "posts", searchAll: true, checkNested: "interactions" }, 
-      
-      // 🔴 Results aur Questions PRIVATE hote hain, isliye inhe searchAll: FALSE rakhna zaroori hai!
-      // Warna Firebase Security Rules tumhe dusro ke results read karne par block kar dega!
-      { name: "exam_results", searchAll: false },                     
-      { name: "user_questions", searchAll: false },                   
+      { name: "exam_results", searchAll: false }, // 👈 ISKO FALSE RAKHNA HAI
+      { name: "user_questions", searchAll: false }, // 👈 ISKO BHI FALSE RAKHNA HAI
     ];
 
-    // 🌟 ENGINE: Har collection par loop chalao
     for (const col of collectionsToSync) {
-      
-      // Query Optimization: Agar searchAll false hai, toh sirf is user ka data mangwao
-      const q = col.searchAll 
-        ? query(collection(db, col.name)) 
-        : query(collection(db, col.name), where("userId", "==", userId));
+      try {
+        console.log(`🔍 Scanning collection: ${col.name}...`);
         
-      const querySnapshot = await getDocs(q);
-
-      querySnapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        let needsUpdate = false;
-        let updateData = {};
-
-        // 1. Direct Update (Safety ke liye userId aur uid dono check kiye hain)
-        if (data.userId === userId || data.uid === userId) {
-          updateData.userName = newName;
-          if (newUsername) updateData.userUsername = newUsername; 
-          needsUpdate = true;
-        }
-
-        // 2. Nested Update: Agar kisi aur ki post me is user ne comment kiya hai
-        if (col.checkNested && data[col.checkNested] && Array.isArray(data[col.checkNested])) {
-          let nestedModified = false;
+        // Query Optimization
+        const q = col.searchAll 
+          ? query(collection(db, col.name)) 
+          : query(collection(db, col.name), where("userId", "==", userId));
           
-          const updatedNestedArray = data[col.checkNested].map(item => {
-            let currentItem = { ...item };
+        const querySnapshot = await getDocs(q);
 
-            // Comment update
-            if (currentItem.userId === userId || currentItem.uid === userId) {
-              currentItem.userName = newName;
-              if (newUsername) currentItem.userUsername = newUsername;
-              nestedModified = true;
-            }
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          let needsUpdate = false;
+          let updateData = {};
 
-            // Reply update (Agar iske andar bhi 'replies' ka array ho)
-            if (currentItem.replies && Array.isArray(currentItem.replies)) {
-              let repliesModified = false;
-              const updatedReplies = currentItem.replies.map(reply => {
-                if (reply.userId === userId || reply.uid === userId) {
-                  repliesModified = true;
-                  return { ...reply, userName: newName, userUsername: newUsername };
-                }
-                return reply;
-              });
-
-              if (repliesModified) {
-                currentItem.replies = updatedReplies;
-                nestedModified = true;
-              }
-            }
-            return currentItem;
-          });
-
-          if (nestedModified) {
-            updateData[col.checkNested] = updatedNestedArray;
+          // 1. Direct Update
+          if (data.userId === userId || data.uid === userId) {
+            updateData.userName = newName;
+            if (newUsername) updateData.userUsername = newUsername; 
             needsUpdate = true;
           }
-        }
 
-        // 3. Commit to batch if modified
-        if (needsUpdate) {
-          currentBatch.update(docSnap.ref, updateData);
-          operationCount++;
-          totalUpdates++;
-          commitBatchIfNeeded();
-        }
-      });
+          // 2. Nested Update (Comments/Replies)
+          if (col.checkNested && data[col.checkNested] && Array.isArray(data[col.checkNested])) {
+            let nestedModified = false;
+            
+            const updatedNestedArray = data[col.checkNested].map(item => {
+              let currentItem = { ...item };
+
+              if (currentItem.userId === userId || currentItem.uid === userId) {
+                currentItem.userName = newName;
+                if (newUsername) currentItem.userUsername = newUsername;
+                nestedModified = true;
+              }
+
+              if (currentItem.replies && Array.isArray(currentItem.replies)) {
+                let repliesModified = false;
+                const updatedReplies = currentItem.replies.map(reply => {
+                  if (reply.userId === userId || reply.uid === userId) {
+                    repliesModified = true;
+                    return { ...reply, userName: newName, userUsername: newUsername };
+                  }
+                  return reply;
+                });
+
+                if (repliesModified) {
+                  currentItem.replies = updatedReplies;
+                  nestedModified = true;
+                }
+              }
+              return currentItem;
+            });
+
+            if (nestedModified) {
+              updateData[col.checkNested] = updatedNestedArray;
+              needsUpdate = true;
+            }
+          }
+
+          if (needsUpdate) {
+            currentBatch.update(docSnap.ref, updateData);
+            operationCount++;
+            totalUpdates++;
+            commitBatchIfNeeded();
+          }
+        });
+      } catch (colError) {
+        // 🛑 Agar kisi ek folder me error aaya, toh crash nahi hoga, balki console me dikhega
+        console.error(`❌ Permissions Error on collection [${col.name}]:`, colError.message);
+      }
     }
 
-    // Final commit bacha hua data
     if (operationCount > 0) {
       batches.push(currentBatch.commit());
     }
 
     await Promise.all(batches);
-    console.log(`✅ Dynamic Sync Complete! Mapped & updated ${totalUpdates} records across the universe.`);
+    console.log(`✅ Dynamic Sync Complete! Successfully updated ${totalUpdates} records.`);
     return true;
 
   } catch (error) {
-    console.error("❌ Error during Dynamic Sync:", error);
+    console.error("❌ Critical Error during Dynamic Sync:", error);
     throw error;
   }
 };
