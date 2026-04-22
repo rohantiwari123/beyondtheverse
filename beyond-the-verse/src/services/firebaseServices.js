@@ -910,23 +910,21 @@ export const syncUserDataAcrossPosts = async (userId, newName, newUsername) => {
 
     // 🌟 ========================================================
     // 🔮 THE REGISTRY (भविष्य के लिए):
-    // भविष्य में कोई भी नया फीचर बनाओ, बस उसका नाम यहाँ जोड़ देना!
-    // - searchAll: true (अगर दूसरों की पोस्ट में भी इसके कमेंट्स/डेटा हो सकते हैं)
-    // - searchAll: false (अगर इसमें सिर्फ इसी यूज़र का डेटा होगा - saves Firebase billing)
     // ========================================================
     const collectionsToSync = [
-      { name: "posts", searchAll: true, checkNested: "interactions" }, // Main posts & comments
-      { name: "exam_results", searchAll: true },                      // User's exam data
-      { name: "user_questions", searchAll: true },                    // User's FAQs
-      // 🚀 FUTURE EXAMPLES:
-      // { name: "polls", searchAll: false },
-      // { name: "reviews", searchAll: true, checkNested: "replies" } 
+      // 🟢 Posts public hain, isliye searchAll: true (taaki dusro ki posts me apne comments mil sake)
+      { name: "posts", searchAll: true, checkNested: "interactions" }, 
+      
+      // 🔴 Results aur Questions PRIVATE hote hain, isliye inhe searchAll: FALSE rakhna zaroori hai!
+      // Warna Firebase Security Rules tumhe dusro ke results read karne par block kar dega!
+      { name: "exam_results", searchAll: false },                     
+      { name: "user_questions", searchAll: false },                   
     ];
 
     // 🌟 ENGINE: Har collection par loop chalao
     for (const col of collectionsToSync) {
       
-      // Query Optimization: Agar searchAll false hai, toh sirf is user ka data mangwao (Paisa aur Speed bachegi)
+      // Query Optimization: Agar searchAll false hai, toh sirf is user ka data mangwao
       const q = col.searchAll 
         ? query(collection(db, col.name)) 
         : query(collection(db, col.name), where("userId", "==", userId));
@@ -938,14 +936,14 @@ export const syncUserDataAcrossPosts = async (userId, newName, newUsername) => {
         let needsUpdate = false;
         let updateData = {};
 
-        // 1. Direct Update: Agar document ka original author yehi user hai
-        if (data.userId === userId) {
+        // 1. Direct Update (Safety ke liye userId aur uid dono check kiye hain)
+        if (data.userId === userId || data.uid === userId) {
           updateData.userName = newName;
           if (newUsername) updateData.userUsername = newUsername; 
           needsUpdate = true;
         }
 
-        // 2. Nested Update: Agar kisi aur ki post me is user ne comment/interaction kiya hai
+        // 2. Nested Update: Agar kisi aur ki post me is user ne comment kiya hai
         if (col.checkNested && data[col.checkNested] && Array.isArray(data[col.checkNested])) {
           let nestedModified = false;
           
@@ -953,7 +951,7 @@ export const syncUserDataAcrossPosts = async (userId, newName, newUsername) => {
             let currentItem = { ...item };
 
             // Comment update
-            if (currentItem.userId === userId) {
+            if (currentItem.userId === userId || currentItem.uid === userId) {
               currentItem.userName = newName;
               if (newUsername) currentItem.userUsername = newUsername;
               nestedModified = true;
@@ -963,7 +961,7 @@ export const syncUserDataAcrossPosts = async (userId, newName, newUsername) => {
             if (currentItem.replies && Array.isArray(currentItem.replies)) {
               let repliesModified = false;
               const updatedReplies = currentItem.replies.map(reply => {
-                if (reply.userId === userId) {
+                if (reply.userId === userId || reply.uid === userId) {
                   repliesModified = true;
                   return { ...reply, userName: newName, userUsername: newUsername };
                 }
