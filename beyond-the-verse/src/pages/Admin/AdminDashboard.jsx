@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
-import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy, onSnapshot, getDocs } from 'firebase/firestore';
+// 🌟 FIX: 'where' import add kiya gaya hai
+import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy, onSnapshot, getDocs, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import AdminExamEditor from '../../components/Exam/AdminExamEditor';
 
-// 🌟 NAYA: Q&A Functions Import
-import { getPendingQuestions, publishQuestionToFAQ, deleteUserQuestion, getAllExamResults, getResultsReleaseStatus, setResultsReleaseStatus, getUserProfile } from '../../services/firebaseServices';
+import { publishQuestionToFAQ, deleteUserQuestion, getResultsReleaseStatus, setResultsReleaseStatus, getUserProfile } from '../../services/firebaseServices';
 
 // ==========================================
 // 🌟 CUSTOM MODAL (For Safe Actions)
@@ -81,7 +81,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
     return <Navigate to="/" />;
   }
 
-  // Fetch Subjects
+  // Fetch Subjects (Real-time)
   useEffect(() => {
     const q = query(collection(db, "subjects"), orderBy("timestamp", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -90,76 +90,76 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
     return () => unsubscribe();
   }, []);
 
-  // Fetch Users
+  // 🌟 FIX: Fetch Users (Real-time)
   useEffect(() => {
     if (activeTab === 'users') {
-      const fetchUsers = async () => {
-        setIsFetchingUsers(true);
-        try {
-          const q = query(collection(db, "users"));
-          const snapshot = await getDocs(q);
-          setUsersList(snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() })));
-        } catch (error) {
-          console.error("Error fetching users:", error);
-          showToast("Failed to load users.", false);
-        } finally {
-          setIsFetchingUsers(false);
-        }
-      };
-      fetchUsers();
+      setIsFetchingUsers(true);
+      const q = query(collection(db, "users"));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        setUsersList(snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() })));
+        setIsFetchingUsers(false);
+      }, (error) => {
+        console.error("Error fetching users:", error);
+        showToast("Failed to load users.", false);
+        setIsFetchingUsers(false);
+      });
+      return () => unsubscribe();
     }
   }, [activeTab, showToast]);
 
-  // 🌟 Fetch Pending Questions
+  // 🌟 FIX: Fetch Pending Questions (Real-time)
   useEffect(() => {
     if (activeTab === 'qna') {
-      const fetchQnA = async () => {
-        const data = await getPendingQuestions();
-        setPendingQuestions(data);
-      };
-      fetchQnA();
+      const q = query(collection(db, "user_questions"), where("status", "==", "pending"));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const questions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setPendingQuestions(questions.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0)));
+      });
+      return () => unsubscribe();
     }
   }, [activeTab]);
 
-  // 🌟 NAYA: Fetch All Exam Results
+  // 🌟 FIX: Fetch All Exam Results (Real-time)
   useEffect(() => {
     if (activeTab === 'results') {
-      const fetchResults = async () => {
-        setIsFetchingResults(true);
-        try {
-          const data = await getAllExamResults();
-          const missingUserIds = [...new Set(
-            data
-              .filter(result => !result.userName && !result.userUsername)
-              .map(result => result.userId)
-          )];
+      setIsFetchingResults(true);
+      const q = query(collection(db, "exam_results"));
+      
+      const unsubscribe = onSnapshot(q, async (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        const missingUserIds = [...new Set(
+          data
+            .filter(result => !result.userName && !result.userUsername)
+            .map(result => result.userId)
+        )];
 
-          const profileMap = {};
-          await Promise.all(missingUserIds.map(async (uid) => {
-            const profile = await getUserProfile(uid);
-            if (profile) {
-              profileMap[uid] = profile;
-            }
-          }));
+        const profileMap = {};
+        await Promise.all(missingUserIds.map(async (uid) => {
+          const profile = await getUserProfile(uid);
+          if (profile) {
+            profileMap[uid] = profile;
+          }
+        }));
 
-          const enriched = data.map(result => ({
-            ...result,
-            displayName: result.userName || result.userUsername || profileMap[result.userId]?.name || profileMap[result.userId]?.username || ''
-          }));
+        const enriched = data.map(result => ({
+          ...result,
+          displayName: result.userName || result.userUsername || profileMap[result.userId]?.name || profileMap[result.userId]?.username || ''
+        })).sort((a, b) => (b.submittedAt?.toMillis?.() || 0) - (a.submittedAt?.toMillis?.() || 0));
 
-          setAllExamResults(enriched);
-        } catch (error) {
-          console.error("Error fetching exam results:", error);
-          showToast("Failed to load exam results.", false);
-        } finally {
-          setIsFetchingResults(false);
-        }
-      };
-      fetchResults();
+        setAllExamResults(enriched);
+        setIsFetchingResults(false);
+      }, (error) => {
+        console.error("Error fetching exam results:", error);
+        showToast("Failed to load exam results.", false);
+        setIsFetchingResults(false);
+      });
+
+      return () => unsubscribe();
     }
   }, [activeTab, showToast]);
 
-  // 🌟 NAYA: Fetch Result Release Status
+  // Fetch Result Release Status
   useEffect(() => {
     const fetchReleaseStatus = async () => {
       setIsFetchingReleaseStatus(true);
@@ -168,14 +168,13 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
         setResultsReleased(status);
       } catch (error) {
         console.error('Error loading release status:', error);
-        showToast('Unable to load results release state.', false);
       } finally {
         setIsFetchingReleaseStatus(false);
       }
     };
 
     fetchReleaseStatus();
-  }, [showToast]);
+  }, []);
 
   // Target Update
   const handleSaveTarget = async () => {
