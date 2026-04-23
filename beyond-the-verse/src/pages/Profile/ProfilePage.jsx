@@ -23,13 +23,13 @@ export default function ProfilePage() {
   const targetUserId = isMyProfile ? userId : id;
 
   const [activeTab, setActiveTab] = useState("posts");
-  const [publicUserData, setPublicUserData] = useState(null); 
+  const [profileData, setProfileData] = useState(null); 
 
   // Data States
   const [myPosts, setMyPosts] = useState([]);
   const [savedPosts, setSavedPosts] = useState([]);
   const [examResults, setExamResults] = useState([]);
-  const [allExams, setAllExams] = useState([]); // 🌟 NAYA STATE
+  const [allExams, setAllExams] = useState([]); 
   const [resultsReleased, setResultsReleased] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -39,18 +39,13 @@ export default function ProfilePage() {
     const fetchProfileData = async () => {
       setIsLoading(true);
       try {
-        if (!isMyProfile) {
-          const pData = await getUserProfile(targetUserId);
-          setPublicUserData(pData);
-        } else {
-          setPublicUserData(null);
-        }
+        const pData = await getUserProfile(targetUserId);
+        setProfileData(pData);
 
         const posts = await getUserPosts(targetUserId);
         setMyPosts(posts);
 
         if (isMyProfile) {
-          // 🌟 NAYA LOGIC: getAllExams bhi fetch kar rahe hain
           const [bookmarks, exams, allExamsData, releaseStatus] = await Promise.all([
             getUserBookmarkedPosts(userId),
             getUserExamResults(userId),
@@ -82,7 +77,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (!isMyProfile && !isLoading && !publicUserData) {
+  if (!isMyProfile && !isLoading && !profileData) {
     return (
       <div className="text-center py-20 text-zinc-500 animate-fade-in">
         <h2 className="text-2xl font-bold mb-2 text-zinc-900">Explorer Not Found</h2>
@@ -112,7 +107,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="px-4 sm:px-6 lg:px-8">
-        <ProfileHeader publicUser={publicUserData} isMyProfile={isMyProfile} />      
+        <ProfileHeader profileData={profileData} isMyProfile={isMyProfile} />      
       </div>
 
       {/* PROFILE TABS */}
@@ -149,7 +144,7 @@ export default function ProfilePage() {
       <div className="min-h-[300px]">
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
-            <div className="h-6 w-6 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin"></div>
+            <div className="h-6 w-6 border-2 border-slate-200 border-t-slate-900 rounded-full animate-spin"></div>
           </div>
         ) : (
           <>
@@ -157,11 +152,14 @@ export default function ProfilePage() {
             {activeTab === "posts" && (
               <div className="flex flex-col gap-3 sm:gap-6 sm:px-6 lg:px-8 animate-fade-in-up">
                 {myPosts.length === 0 ? (
-                  <div className="text-center py-16 bg-white border border-zinc-200 sm:rounded-2xl mx-0 sm:mx-0 border-x-0 sm:border-x">
-                    <i className="fa-solid fa-feather-pointed text-4xl text-zinc-300 mb-3"></i>
-                    <h3 className="text-zinc-500 font-medium text-sm">
+                  <div className="text-center py-16 bg-white border border-slate-200 sm:rounded-3xl mx-0 sm:mx-0 border-x-0 sm:border-x shadow-sm">
+                    <div className="w-16 h-16 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                      <i className="fa-solid fa-feather-pointed text-2xl"></i>
+                    </div>
+                    <h3 className="text-slate-600 font-bold text-base">
                       {isMyProfile ? "You haven't shared any thoughts yet." : "No thoughts shared yet."}
                     </h3>
+                    <p className="text-slate-400 text-sm mt-1">When you share a thought, it will appear here.</p>
                   </div>
                 ) : (
                   myPosts.map((post) => (
@@ -175,11 +173,14 @@ export default function ProfilePage() {
             {isMyProfile && activeTab === "saved" && (
               <div className="flex flex-col gap-3 sm:gap-6 sm:px-6 lg:px-8 animate-fade-in-up">
                 {savedPosts.length === 0 ? (
-                  <div className="text-center py-16 bg-white border border-zinc-200 sm:rounded-2xl mx-0 sm:mx-0 border-x-0 sm:border-x">
-                    <i className="fa-regular fa-bookmark text-4xl text-zinc-300 mb-3"></i>
-                    <h3 className="text-zinc-500 font-medium text-sm">
+                  <div className="text-center py-16 bg-white border border-slate-200 sm:rounded-3xl mx-0 sm:mx-0 border-x-0 sm:border-x shadow-sm">
+                    <div className="w-16 h-16 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                      <i className="fa-regular fa-bookmark text-2xl"></i>
+                    </div>
+                    <h3 className="text-slate-600 font-bold text-base">
                       No saved posts in your vault.
                     </h3>
+                    <p className="text-slate-400 text-sm mt-1">Bookmark posts to read them later.</p>
                   </div>
                 ) : (
                   savedPosts.map((post) => (
@@ -192,27 +193,27 @@ export default function ProfilePage() {
             {/* 🌟 NEW VAULT TAB (Premium Minimalist Table) */}
             {isMyProfile && activeTab === "exams" && (
               <div className="px-0 sm:px-6 lg:px-8 animate-fade-in-up">
-                <div className="bg-white border-y sm:border border-zinc-200 sm:rounded-2xl flex flex-col overflow-hidden">
+                <div className="bg-white border-y sm:border border-slate-200 sm:rounded-3xl flex flex-col overflow-hidden shadow-sm">
                   
-                  <div className="p-4 sm:p-5 border-b border-zinc-200 flex items-center justify-between bg-zinc-50/50">
-                    <h3 className="text-[11px] sm:text-xs font-bold uppercase tracking-widest text-zinc-700 flex items-center gap-2">
-                      <i className="fa-solid fa-file-lines text-teal-600 text-sm"></i> Assessment Records
+                  <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-white">
+                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 flex items-center gap-2">
+                      <i className="fa-solid fa-file-lines text-teal-600 text-lg"></i> Assessment Records
                     </h3>
                   </div>
                   
                   <div className="overflow-x-auto no-scrollbar">
                     <table className="w-full text-left border-collapse min-w-[300px]">
                       <thead>
-                        <tr className="border-b border-zinc-100 bg-white">
-                          <th className="py-3.5 px-4 sm:px-6 text-[10px] font-bold uppercase tracking-widest text-zinc-400 font-sans">Test Name</th>
-                          <th className="py-3.5 px-4 sm:px-6 text-[10px] font-bold uppercase tracking-widest text-zinc-400 text-right font-sans">Score</th>
+                        <tr className="border-b border-slate-100 bg-slate-50/50">
+                          <th className="py-4 px-5 sm:px-6 text-[10px] font-black uppercase tracking-widest text-slate-400 font-sans">Test Name</th>
+                          <th className="py-4 px-5 sm:px-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right font-sans">Score</th>
                         </tr>
                       </thead>
                       <tbody>
                         {pastExams.length === 0 ? (
                           <tr>
-                            <td colSpan="2" className="py-12 text-center">
-                              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">No past records found.</p>
+                            <td colSpan="2" className="py-16 text-center">
+                              <p className="text-sm font-semibold text-slate-400 uppercase tracking-widest">No past records found.</p>
                             </td>
                           </tr>
                         ) : (
@@ -223,38 +224,38 @@ export default function ProfilePage() {
                             if (userResult) {
                               if (!resultsReleased) {
                                 scoreDisplay = (
-                                  <span className="bg-yellow-50 text-yellow-700 px-2.5 py-1 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider border border-yellow-100">
+                                  <span className="bg-amber-50 text-amber-700 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-amber-100">
                                     Pending
                                   </span>
                                 );
                               } else if (userResult.maxScore) {
                                 const percent = Math.round((userResult.totalScore / userResult.maxScore) * 100);
                                 scoreDisplay = (
-                                  <span className={`font-mono font-bold text-sm sm:text-base ${userResult.totalScore >= 0 ? 'text-teal-600' : 'text-rose-600'}`}>
+                                  <span className={`font-mono font-black text-sm sm:text-base ${userResult.totalScore >= 0 ? 'text-teal-600' : 'text-rose-600'}`}>
                                     {percent > 0 ? '+' : ''}{percent}%
                                   </span>
                                 );
                               } else {
                                 scoreDisplay = (
-                                  <span className={`font-mono font-bold text-sm sm:text-base ${userResult.totalScore >= 0 ? 'text-teal-600' : 'text-rose-600'}`}>
+                                  <span className={`font-mono font-black text-sm sm:text-base ${userResult.totalScore >= 0 ? 'text-teal-600' : 'text-rose-600'}`}>
                                     {userResult.totalScore > 0 ? '+' : ''}{userResult.totalScore}
                                   </span>
                                 );
                               }
                             } else {
                               scoreDisplay = (
-                                <span className="bg-red-50 text-red-600 px-2.5 py-1 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider border border-red-100">
+                                <span className="bg-rose-50 text-rose-600 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-rose-100">
                                   Absent
                                 </span>
                               );
                             }
 
                             return (
-                              <tr key={exam.id} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/80 transition-colors">
-                                <td className="py-3.5 px-4 sm:px-6 text-[13px] sm:text-sm font-semibold text-zinc-800">
+                              <tr key={exam.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/80 transition-colors">
+                                <td className="py-4 px-5 sm:px-6 text-sm font-bold text-slate-700">
                                   {exam.title}
                                 </td>
-                                <td className="py-3.5 px-4 sm:px-6 text-right">
+                                <td className="py-4 px-5 sm:px-6 text-right">
                                   {scoreDisplay}
                                 </td>
                               </tr>

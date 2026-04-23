@@ -97,7 +97,7 @@ export default function SecuritySettings() {
                             className={`w-full pl-11 pr-10 py-3 bg-white border rounded-xl text-sm text-slate-900 font-medium transition-all outline-none ${
                                 livePasswordError 
                                 ? 'border-rose-400 focus:ring-2 focus:ring-rose-500/20 bg-rose-50/30' 
-                                : 'border-slate-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500'
+                                : 'border-slate-200 focus:border-teal-500'
                             }`}
                             placeholder="Enter new password"
                         />
@@ -146,7 +146,7 @@ export default function SecuritySettings() {
                             className={`w-full pl-11 pr-10 py-3 bg-white border rounded-xl text-sm text-slate-900 font-medium transition-all outline-none ${
                                 confirmError 
                                 ? 'border-rose-400 focus:ring-2 focus:ring-rose-500/20 bg-rose-50/30' 
-                                : 'border-slate-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500'
+                                : 'border-slate-200 focus:border-teal-500'
                             }`}
                             placeholder="Confirm your password"
                         />

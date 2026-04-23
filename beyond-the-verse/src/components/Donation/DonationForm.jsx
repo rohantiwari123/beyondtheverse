@@ -103,71 +103,73 @@ export default function DonationForm({ onInitiate }) {
       {/* 🌟 INPUT FIELDS SECTION */}
       <div className="space-y-4 sm:space-y-5">
         
-        {/* Name Input */}
-        <div className="relative group">
-          <i className={`fa-solid fa-user absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 transition-colors ${errors.name ? 'text-rose-400' : 'text-slate-400 group-focus-within:text-teal-600'}`}></i>
-          <input
-            type="text"
-            placeholder="Full Name *"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              if(errors.name) setErrors({...errors, name: null});
-            }}
-            className={`w-full pl-11 sm:pl-12 pr-4 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl outline-none transition-all text-sm sm:text-base text-slate-800 placeholder:text-slate-400 border-2 ${
-              errors.name 
-                ? 'bg-rose-50/50 border-rose-300 focus:border-rose-400 focus:ring-4 focus:ring-rose-500/10' 
-                : 'bg-slate-50 border-slate-100 hover:border-slate-200 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 shadow-inner'
-            }`}
-          />
-          {errors.name && (
-            <p className="absolute -bottom-5 left-2 text-[9px] sm:text-[10px] text-rose-500 flex items-center gap-1 animate-fade-in-up">
-              <i className="fa-solid fa-circle-exclamation"></i> {errors.name}
-            </p>
-          )}
-        </div>
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
+          {/* Name Input */}
+          <div className="relative group flex-1">
+            <i className={`fa-solid fa-user absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 transition-colors ${errors.name ? 'text-rose-500' : 'text-zinc-400 group-focus-within:text-teal-600'}`}></i>
+            <input
+              type="text"
+              placeholder="Full Name *"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                if(errors.name) setErrors({...errors, name: null});
+              }}
+              className={`w-full pl-11 sm:pl-12 pr-4 py-3.5 sm:py-4 rounded-xl outline-none transition-all text-sm sm:text-base text-zinc-900 placeholder:text-zinc-400 border bg-zinc-50 focus:bg-white focus:ring-1 ${
+                errors.name 
+                  ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500 bg-rose-50/50' 
+                  : 'border-zinc-200 focus:border-teal-500 focus:ring-teal-500'
+              }`}
+            />
+            {errors.name && (
+              <p className="absolute -bottom-5 left-2 text-[9px] sm:text-[10px] text-rose-500 flex items-center gap-1 animate-fade-in-up">
+                <i className="fa-solid fa-circle-exclamation"></i> {errors.name}
+              </p>
+            )}
+          </div>
 
-        {/* Phone Input */}
-        <div className="relative group mt-6 sm:mt-8">
-          <i className={`fa-brands fa-whatsapp absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-lg transition-colors ${errors.phone ? 'text-rose-400' : 'text-slate-400 group-focus-within:text-teal-600'}`}></i>
-          <input
-            type="tel"
-            placeholder="WhatsApp Number *"
-            value={phone}
-            onChange={(e) => {
-              setPhone(e.target.value.replace(/\D/g, '').slice(0, 10));
-              if(errors.phone) setErrors({...errors, phone: null});
-            }}
-            className={`w-full pl-11 sm:pl-12 pr-4 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl outline-none transition-all text-sm sm:text-base text-slate-800 placeholder:text-slate-400 border-2 ${
-              errors.phone 
-                ? 'bg-rose-50/50 border-rose-300 focus:border-rose-400 focus:ring-4 focus:ring-rose-500/10' 
-                : 'bg-slate-50 border-slate-100 hover:border-slate-200 focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 shadow-inner'
-            }`}
-          />
-          {errors.phone && (
-            <p className="absolute -bottom-5 left-2 text-[9px] sm:text-[10px] text-rose-500 flex items-center gap-1 animate-fade-in-up">
-              <i className="fa-solid fa-circle-exclamation"></i> {errors.phone}
-            </p>
-          )}
+          {/* Phone Input */}
+          <div className="relative group flex-1">
+            <i className={`fa-brands fa-whatsapp absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-lg transition-colors ${errors.phone ? 'text-rose-500' : 'text-zinc-400 group-focus-within:text-teal-600'}`}></i>
+            <input
+              type="tel"
+              placeholder="WhatsApp Number *"
+              value={phone}
+              onChange={(e) => {
+                setPhone(e.target.value.replace(/\D/g, '').slice(0, 10));
+                if(errors.phone) setErrors({...errors, phone: null});
+              }}
+              className={`w-full pl-11 sm:pl-12 pr-4 py-3.5 sm:py-4 rounded-xl outline-none transition-all text-sm sm:text-base text-zinc-900 placeholder:text-zinc-400 border bg-zinc-50 focus:bg-white focus:ring-1 ${
+                errors.phone 
+                  ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500 bg-rose-50/50' 
+                  : 'border-zinc-200 focus:border-teal-500 focus:ring-teal-500'
+              }`}
+            />
+            {errors.phone && (
+              <p className="absolute -bottom-5 left-2 text-[9px] sm:text-[10px] text-rose-500 flex items-center gap-1 animate-fade-in-up">
+                <i className="fa-solid fa-circle-exclamation"></i> {errors.phone}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Message Textarea */}
-        <div className="relative group mt-6 sm:mt-8">
-          <i className="fa-solid fa-message absolute left-4 sm:left-5 top-4 sm:top-5 text-slate-400 transition-colors group-focus-within:text-teal-600"></i>
+        <div className="relative group">
+          <i className="fa-solid fa-message absolute left-4 sm:left-5 top-4 sm:top-5 text-zinc-400 transition-colors group-focus-within:text-teal-600"></i>
           <textarea
             placeholder="Leave a message of support... (Optional)"
             rows="2"
             maxLength="100"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full pl-11 sm:pl-12 pr-4 py-3.5 sm:py-4 bg-slate-50 border-2 border-slate-100 hover:border-slate-200 rounded-xl sm:rounded-2xl outline-none focus:bg-white focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all text-sm sm:text-base text-slate-800 placeholder:text-slate-400 resize-none shadow-inner"
+            className="w-full pl-11 sm:pl-12 pr-4 py-3.5 sm:py-4 rounded-xl outline-none transition-all text-sm sm:text-base text-zinc-900 placeholder:text-zinc-400 border bg-zinc-50 focus:bg-white focus:ring-1 border-zinc-200 focus:border-teal-500 focus:ring-teal-500 resize-none"
           ></textarea>
         </div>
       </div>
 
       {/* 🌟 AMOUNT SELECTION AREA */}
-      <div className="pt-4 sm:pt-6 border-t border-slate-100 mt-6 sm:mt-8">
-        <label className="block text-[10px] sm:text-xs text-slate-500 mb-3 ml-2">
+      <div className="pt-4 sm:pt-6 border-t border-zinc-100 mt-6 sm:mt-8">
+        <label className="block text-[10px] sm:text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3 ml-2">
           Select Amount (₹) *
         </label>
         
@@ -181,10 +183,10 @@ export default function DonationForm({ onInitiate }) {
                 setAmount(preset);
                 if(errors.amount) setErrors({...errors, amount: null});
               }}
-              className={`flex-1 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base transition-all active:scale-95 ${
+              className={`flex-1 py-3 sm:py-4 rounded-xl text-sm sm:text-base font-bold transition-all active:scale-95 border ${
                 Number(amount) === preset
-                  ? "bg-teal-600 text-white shadow-lg shadow-teal-500/30 scale-[1.02] border-2 border-teal-600"
-                  : "bg-white text-slate-600 border-2 border-slate-100 hover:bg-slate-50 hover:border-teal-300"
+                  ? "bg-teal-600 text-white border-teal-600"
+                  : "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50"
               }`}
             >
               ₹{preset}
@@ -194,7 +196,7 @@ export default function DonationForm({ onInitiate }) {
 
         {/* Custom Amount Input */}
         <div className="relative group">
-          <span className={`absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-lg sm:text-xl transition-colors ${errors.amount ? 'text-rose-500' : 'text-slate-400 group-focus-within:text-teal-600'}`}>₹</span>
+          <span className={`absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-lg sm:text-xl font-bold transition-colors ${errors.amount ? 'text-rose-500' : 'text-zinc-400 group-focus-within:text-teal-600'}`}>₹</span>
           <input
             type="number"
             value={amount}
@@ -202,12 +204,10 @@ export default function DonationForm({ onInitiate }) {
               setAmount(e.target.value);
               if(errors.amount) setErrors({...errors, amount: null});
             }}
-            className={`w-full pl-9 sm:pl-11 pr-4 py-4 sm:py-5 rounded-xl sm:rounded-2xl outline-none transition-all text-xl sm:text-2xl lg:text-3xl text-slate-800 border-2 shadow-inner ${
+            className={`w-full pl-9 sm:pl-11 pr-4 py-4 sm:py-5 rounded-xl outline-none transition-all text-xl sm:text-2xl lg:text-3xl font-bold text-zinc-900 border bg-zinc-50 focus:bg-white focus:ring-1 ${
               errors.amount
-                ? 'bg-rose-50/50 border-rose-300 focus:border-rose-400 focus:ring-4 focus:ring-rose-500/10'
-                : isScholarship 
-                  ? 'bg-emerald-50/50 border-emerald-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10' 
-                  : 'bg-teal-50/30 border-teal-100 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 focus:bg-white'
+                ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500 bg-rose-50/50'
+                : 'border-zinc-200 focus:border-teal-500 focus:ring-teal-500'
             }`}
           />
           
@@ -217,7 +217,7 @@ export default function DonationForm({ onInitiate }) {
               <i className="fa-solid fa-circle-exclamation"></i> {errors.amount}
             </p>
           ) : (
-            <p className="absolute -bottom-6 left-2 text-[9px] sm:text-[10px] text-slate-400 flex items-center gap-1.5 opacity-80">
+            <p className="absolute -bottom-6 left-2 text-[9px] sm:text-[10px] text-zinc-400 flex items-center gap-1.5 font-medium">
               <i className="fa-solid fa-shield-halved text-teal-500"></i> Minimum limit: ₹{minAmount}
             </p>
           )}
@@ -228,7 +228,7 @@ export default function DonationForm({ onInitiate }) {
       <div className="pt-6 sm:pt-8">
         <button
           type="submit"
-          className="w-full bg-slate-900 text-white text-sm sm:text-base py-4 sm:py-5 rounded-xl sm:rounded-2xl shadow-xl shadow-slate-900/20 hover:bg-black transition-all hover:-translate-y-1 hover:shadow-2xl active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-3"
+          className="w-full bg-zinc-900 text-white font-semibold text-sm sm:text-base py-4 sm:py-5 rounded-xl hover:bg-zinc-800 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
         >
           Generate QR to Donate <i className="fa-solid fa-qrcode text-lg sm:text-xl"></i>
         </button>

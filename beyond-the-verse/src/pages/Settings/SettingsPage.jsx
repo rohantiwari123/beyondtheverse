@@ -60,7 +60,7 @@ export default function SettingsPage() {
 
                         <button 
                             onClick={() => setActiveTab('danger')}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap mt-0 md:mt-4 ${activeTab === 'danger' ? 'bg-rose-50 text-rose-700 border border-rose-100 shadow-sm' : 'text-rose-400 hover:bg-rose-50 border border-transparent'}`}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap mt-0 md:mt-4 ${activeTab === 'danger' ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'text-rose-400 hover:bg-rose-50 border border-transparent'}`}
                         >
                             <i className="fa-solid fa-triangle-exclamation w-5 text-center"></i> Danger Zone
                         </button>

@@ -135,27 +135,16 @@ export default function ExamResult({ showToast }) {
               q.correctOptionIds.every(id => selectedOptionIds.includes(id));
 
             return (
-              <div key={q.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+              <div key={q.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
                 
                 {/* Question Header Status Bar */}
-                <div className={`px-5 py-3 border-b flex justify-between items-center ${
-                  !isAttempted ? 'bg-slate-100 border-slate-200' :
-                  isCorrectlyAnswered ? 'bg-teal-50 border-teal-100' : 'bg-rose-50 border-rose-100'
-                }`}>
+                <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                   <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
                     Question {index + 1}
                   </span>
                   
-                  {!isAttempted ? (
+                  {!isAttempted && (
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-white border border-slate-200 px-2.5 py-1 rounded">Unattempted</span>
-                  ) : isCorrectlyAnswered ? (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 bg-white border border-teal-200 px-2.5 py-1 rounded flex items-center gap-1.5">
-                      <i className="fa-solid fa-check"></i> Correct
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 bg-white border border-rose-200 px-2.5 py-1 rounded flex items-center gap-1.5">
-                      <i className="fa-solid fa-xmark"></i> Incorrect
-                    </span>
                   )}
                 </div>
 
@@ -168,32 +157,38 @@ export default function ExamResult({ showToast }) {
 
                   {/* Options List */}
                   <div className="space-y-3">
-                    {q.options.map((opt) => {
+                    {q.options.map((opt, optIndex) => {
                       const isCorrectOption = q.correctOptionIds.includes(opt.id);
-                      const isSelectedByUser = selectedOptionIds.includes(opt.id);
+                      const optionLetter = String.fromCharCode(65 + optIndex); // A, B, C, D...
 
-                      // Style Logic
-                      let optionStyle = "border-slate-200 bg-white text-slate-600"; 
-                      let icon = null;
+                      let optionStyle = "";
+                      let badge = null;
 
-                      if (isCorrectOption && isSelectedByUser) {
-                        optionStyle = "border-teal-500 bg-teal-50 text-teal-900 ring-1 ring-teal-500/20";
-                        icon = <i className="fa-solid fa-circle-check text-teal-600 text-lg"></i>;
-                      } else if (!isCorrectOption && isSelectedByUser) {
-                        optionStyle = "border-rose-400 bg-rose-50 text-rose-900 ring-1 ring-rose-400/20";
-                        icon = <i className="fa-solid fa-circle-xmark text-rose-500 text-lg"></i>;
-                      } else if (isCorrectOption && !isSelectedByUser) {
-                        optionStyle = "border-teal-400 border-dashed bg-teal-50/40 text-teal-800";
-                        icon = <i className="fa-solid fa-arrow-right text-teal-500 text-sm"></i>;
+                      if (isCorrectOption) {
+                        optionStyle = "border-teal-500 bg-teal-50 text-teal-900";
+                        badge = (
+                          <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-teal-100 border border-teal-200 flex items-center justify-center shrink-0">
+                            <i className="fa-solid fa-check text-teal-600 text-sm sm:text-base"></i>
+                          </div>
+                        );
+                      } else {
+                        optionStyle = "border-rose-400 bg-rose-50 text-rose-900";
+                        badge = (
+                          <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-rose-100 border border-rose-200 flex items-center justify-center shrink-0">
+                            <i className="fa-solid fa-xmark text-rose-600 text-sm sm:text-base"></i>
+                          </div>
+                        );
                       }
 
                       return (
                         <div 
                           key={opt.id} 
-                          className={`relative p-3 sm:p-4 rounded-xl border flex items-start sm:items-center gap-4 transition-all ${optionStyle}`}
+                          className={`relative p-3 sm:p-4 rounded-xl border flex items-start sm:items-center gap-3 sm:gap-4 transition-all ${optionStyle}`}
                         >
-                          <div className="w-6 mt-1 sm:mt-0 shrink-0 flex justify-center">
-                            {icon || <div className="h-4 w-4 rounded-full border-2 border-slate-300"></div>}
+                          <div className={`h-7 w-7 sm:h-8 sm:w-8 rounded-lg flex items-center justify-center text-xs sm:text-sm font-black shrink-0 ${
+                            isCorrectOption ? 'bg-teal-200 text-teal-800' : 'bg-rose-200 text-rose-800'
+                          }`}>
+                            {optionLetter}
                           </div>
 
                           <div 
@@ -201,20 +196,41 @@ export default function ExamResult({ showToast }) {
                             dangerouslySetInnerHTML={{ __html: opt.text }}
                           />
 
-                          {isCorrectOption && !isSelectedByUser && (
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-teal-700 bg-teal-100 border border-teal-200 px-2 py-1 rounded shrink-0">
-                              Correct Answer
-                            </span>
-                          )}
-                          {!isCorrectOption && isSelectedByUser && (
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-rose-600 bg-rose-100 border border-rose-200 px-2 py-1 rounded shrink-0">
-                              Your Answer
-                            </span>
-                          )}
+                          {badge}
                         </div>
                       );
                     })}
                   </div>
+
+                  {/* Summary Box */}
+                  <div className="mt-6 p-4 sm:p-5 bg-slate-50 rounded-xl flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 justify-between border border-slate-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">You Selected:</span>
+                      <span className={`text-base sm:text-lg font-black ${
+                        !isAttempted ? 'text-slate-400' : isCorrectlyAnswered ? 'text-teal-600' : 'text-rose-500'
+                      }`}>
+                        {(() => {
+                          const selectedLetters = q.options
+                            .map((o, i) => selectedOptionIds.includes(o.id) ? String.fromCharCode(65 + i) : null)
+                            .filter(Boolean);
+                          return selectedLetters.length > 0 ? selectedLetters.join(', ') : 'None (Unattempted)';
+                        })()}
+                      </span>
+                    </div>
+                    <div className="hidden sm:block h-8 w-px bg-slate-200 shrink-0"></div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 sm:justify-end">
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Correct Answer:</span>
+                      <span className="text-base sm:text-lg font-black text-teal-600">
+                        {(() => {
+                          return q.options
+                            .map((o, i) => q.correctOptionIds.includes(o.id) ? String.fromCharCode(65 + i) : null)
+                            .filter(Boolean)
+                            .join(', ');
+                        })()}
+                      </span>
+                    </div>
+                  </div>
+
                 </div>
 
               </div>

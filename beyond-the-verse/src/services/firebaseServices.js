@@ -482,6 +482,19 @@ export const deleteUserQuestion = async (questionId) => {
 // ==========================================
 
 // Display Name Update with Timestamp
+// Update other profile details (bio, location, social links)
+export const updateUserProfileDetails = async (details) => {
+  try {
+    if (!auth.currentUser) throw new Error("No user logged in");
+    const userRef = doc(db, "users", auth.currentUser.uid);
+    await updateDoc(userRef, details);
+    return true;
+  } catch (error) {
+    console.error("Error updating profile details:", error);
+    throw error;
+  }
+};
+
 export const updateUserProfileName = async (newName) => {
   try {
     if (auth.currentUser) {
@@ -891,9 +904,9 @@ export const getUserProfile = async (targetUserId) => {
 // ==========================================
 // 🔄 THE ULTIMATE FUTURE-PROOF SYNC ENGINE (Crash-Proof)
 // ==========================================
-export const syncUserDataAcrossPosts = async (userId, newName, newUsername) => {
+export const syncUserDataAcrossPosts = async (userId, newName, newUsername, newPhotoURL) => {
   try {
-    console.log("🚀 Starting Future-Proof Sync for:", newName, newUsername);
+    console.log("🚀 Starting Future-Proof Sync for:", newName, newUsername, newPhotoURL);
 
     const batches = [];
     let currentBatch = writeBatch(db);
@@ -933,8 +946,9 @@ export const syncUserDataAcrossPosts = async (userId, newName, newUsername) => {
 
           // 1. Direct Update
           if (data.userId === userId || data.uid === userId) {
-            updateData.userName = newName;
+            if (newName) updateData.userName = newName;
             if (newUsername) updateData.userUsername = newUsername; 
+            if (newPhotoURL !== undefined) updateData.photoURL = newPhotoURL;
             needsUpdate = true;
           }
 
@@ -946,8 +960,9 @@ export const syncUserDataAcrossPosts = async (userId, newName, newUsername) => {
               let currentItem = { ...item };
 
               if (currentItem.userId === userId || currentItem.uid === userId) {
-                currentItem.userName = newName;
+                if (newName) currentItem.userName = newName;
                 if (newUsername) currentItem.userUsername = newUsername;
+                if (newPhotoURL !== undefined) currentItem.photoURL = newPhotoURL;
                 nestedModified = true;
               }
 
@@ -956,7 +971,12 @@ export const syncUserDataAcrossPosts = async (userId, newName, newUsername) => {
                 const updatedReplies = currentItem.replies.map(reply => {
                   if (reply.userId === userId || reply.uid === userId) {
                     repliesModified = true;
-                    return { ...reply, userName: newName, userUsername: newUsername };
+                    return { 
+                      ...reply, 
+                      ...(newName && {userName: newName}), 
+                      ...(newUsername && {userUsername: newUsername}),
+                      ...(newPhotoURL !== undefined && {photoURL: newPhotoURL})
+                    };
                   }
                   return reply;
                 });

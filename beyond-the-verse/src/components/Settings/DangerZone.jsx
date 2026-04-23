@@ -72,7 +72,7 @@ export default function DangerZone() {
                         <button 
                             onClick={handleDeleteAccount}
                             disabled={isLoading}
-                            className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-rose-500/20 w-[110px] flex justify-center"
+                            className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all w-[110px] flex justify-center"
                         >
                             {isLoading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : 'Yes, Delete'}
                         </button>

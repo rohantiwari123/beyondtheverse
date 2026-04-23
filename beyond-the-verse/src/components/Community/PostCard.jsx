@@ -59,9 +59,9 @@ export default function PostCard({ post, showToast, isSinglePost }) {
 
   const getTextSizeClass = (text) => {
     const len = text.length;
-    if (len < 80) return "text-[1.5rem] sm:text-[2rem] md:text-[2.5rem] lg:text-[2.75rem]";
-    if (len < 250) return "text-[1.15rem] sm:text-[1.4rem] md:text-[1.6rem] lg:text-[1.75rem]";
-    return "text-[1rem] sm:text-[1.1rem] md:text-[1.2rem] lg:text-[1.25rem]";
+    if (len < 80) return "text-2xl sm:text-3xl md:text-4xl font-medium leading-tight";
+    if (len < 250) return "text-lg sm:text-xl md:text-2xl leading-snug";
+    return "text-base sm:text-lg md:text-xl leading-relaxed";
   };
 
   const handleEditSubmit = async () => {
@@ -173,9 +173,10 @@ export default function PostCard({ post, showToast, isSinglePost }) {
 
   const bgClass = isAdminPost ? "bg-amber-50/50" : "bg-white";
   const borderClass = isAdminPost ? "border-amber-200" : "border-slate-100 sm:border-slate-200";
+  const pinnedClass = post.isPinned ? "bg-teal-50/30 border-teal-200" : "";
 
   return (
-    <div className={`w-full border-y sm:border sm:rounded-2xl md:rounded-[2.5rem] lg:rounded-[3rem] mb-0 sm:mb-6 md:mb-8 pt-5 pb-4 sm:pt-8 sm:pb-6 px-4 sm:px-8 lg:px-10 transition-all duration-500 relative ${bgClass} ${borderClass} ${post.isPinned ? 'ring-2 ring-teal-500/10' : ''}`}>
+    <div className={`w-full border-y sm:border sm:rounded-2xl md:rounded-[2.5rem] lg:rounded-[3rem] mb-0 sm:mb-6 md:mb-8 pt-5 pb-4 sm:pt-8 sm:pb-6 px-4 sm:px-8 lg:px-10 transition-all duration-500 relative ${bgClass} ${borderClass} ${pinnedClass}`}>
 
       <div className="flex items-start justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3 sm:gap-4">
@@ -201,13 +202,13 @@ export default function PostCard({ post, showToast, isSinglePost }) {
                 </h4>
               </Link>
               {isAdminPost && (
-                <span className="bg-amber-100 text-amber-700 text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded border border-amber-200">
+                <span className="bg-amber-100 text-amber-700 text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded border border-amber-200">
                   Admin
                 </span>
               )}
-              {post.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-[10px] sm:text-xs"></i>}
+              {post.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-xs sm:text-sm"></i>}
             </div>
-            <span className="text-[10px] sm:text-xs text-slate-400">
+            <span className="text-xs sm:text-sm text-slate-500">
               {post.category} <span className="mx-1 opacity-30">•</span> {formatDateTime(post.createdAt)}
             </span>
           </div>
@@ -218,7 +219,7 @@ export default function PostCard({ post, showToast, isSinglePost }) {
             <i className="fa-solid fa-ellipsis-vertical sm:text-lg"></i>
           </button>
           {showMenu && (
-            <div className="absolute right-0 top-10 bg-white border border-slate-200 rounded-xl w-36 py-1.5 z-30 shadow-xl animate-fade-in">
+            <div className="absolute right-0 top-10 bg-white border border-slate-200 rounded-xl w-36 py-1.5 z-30 animate-fade-in">
               {isAdmin && (
                 <button onClick={handlePin} className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50">
                   {post.isPinned ? 'Unpin' : 'Pin Post'}
@@ -256,14 +257,16 @@ export default function PostCard({ post, showToast, isSinglePost }) {
               autoFocus
             />
             <div className="flex justify-end gap-2 px-1">
-              <button onClick={() => { setIsEditing(false); setEditText(post.text); }} className="text-[10px] sm:text-xs text-slate-400 px-4 py-2 hover:bg-slate-100 rounded-lg">Cancel</button>
-              <button onClick={handleEditSubmit} disabled={!editText.trim() || isSavingEdit} className="bg-slate-900 text-white text-[10px] sm:text-xs px-6 py-2.5 rounded-lg disabled:opacity-30">Save Change</button>
+              <button onClick={() => { setIsEditing(false); setEditText(post.text); }} className="text-xs sm:text-sm font-medium text-slate-500 px-4 py-2 hover:bg-slate-100 rounded-lg">Cancel</button>
+              <button onClick={handleEditSubmit} disabled={!editText.trim() || isSavingEdit} className="bg-slate-900 text-white font-medium text-xs sm:text-sm px-6 py-2.5 rounded-lg disabled:opacity-30">Save Change</button>
             </div>
           </div>
         ) : (
-          <p className={`text-slate-900 whitespace-pre-wrap text-justify break-words transition-all ${getTextSizeClass(post.text)}`}>
-            {post.text}
-          </p>
+          <div className="max-h-[60vh] md:max-h-[500px] overflow-y-auto pr-3 -mr-3">
+            <p className={`text-slate-900 whitespace-pre-wrap text-justify break-words transition-all ${getTextSizeClass(post.text)}`}>
+              {post.text}
+            </p>
+          </div>
         )}
       </div>
 
@@ -312,15 +315,15 @@ export default function PostCard({ post, showToast, isSinglePost }) {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder={`Why do you ${activeGate} this thought? State your logic...`}
-              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 text-sm sm:text-base text-slate-800 placeholder:text-slate-300 focus:border-slate-900 focus:bg-white outline-none transition-all h-32 sm:h-40 resize-none shadow-inner"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white outline-none transition-all h-32 sm:h-40 resize-none"
               autoFocus
             />
             <div className="flex justify-end items-center mt-3 gap-2">
-              <button onClick={() => { setActiveGate(null); setReason(""); }} className="px-4 py-2 text-[10px] text-slate-400 hover:bg-slate-100 rounded-lg transition-all">Cancel</button>
+              <button onClick={() => { setActiveGate(null); setReason(""); }} className="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-lg transition-all">Cancel</button>
               <button
                 onClick={handleSubmitReason}
                 disabled={!reason.trim() || isSubmitting}
-                className="bg-slate-900 text-white px-6 py-2 rounded-lg text-[10px] disabled:opacity-20 shadow-lg shadow-slate-900/10 active:scale-95 transition-all"
+                className="bg-slate-900 text-white px-6 py-2 rounded-lg text-xs font-medium disabled:opacity-20 active:scale-95 transition-all"
               >
                 {isSubmitting ? "..." : "Post Reflection"}
               </button>
@@ -333,10 +336,10 @@ export default function PostCard({ post, showToast, isSinglePost }) {
         <div className={`mt-6 pt-4 border-t ${isAdminPost ? 'border-amber-100' : 'border-slate-50'}`}>
           <button
             onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 text-[9px] sm:text-[10px] text-slate-400 hover:text-slate-900 transition-all"
+            className="flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-500 hover:text-slate-900 transition-all"
           >
             {showComments ? 'Hide Reflections' : `View ${topLevelInteractions.length} Reflections`}
-            <i className={`fa-solid fa-chevron-${showComments ? 'up' : 'down'} text-[8px]`}></i>
+            <i className={`fa-solid fa-chevron-${showComments ? 'up' : 'down'} text-[10px] sm:text-xs`}></i>
           </button>
         </div>
       )}
@@ -352,9 +355,9 @@ export default function PostCard({ post, showToast, isSinglePost }) {
       ================================================ */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] animate-fade-in-up border border-slate-100 text-center">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full animate-fade-in-up border border-slate-200 text-center">
 
-            <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-5 mx-auto border-4 border-white shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-5 mx-auto">
               <i className="fa-solid fa-trash-can text-2xl"></i>
             </div>
 
@@ -372,7 +375,7 @@ export default function PostCard({ post, showToast, isSinglePost }) {
               </button>
               <button
                 onClick={executeDelete}
-                className="flex-1 px-4 py-3 rounded-xl text-xs sm:text-sm text-white bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-500/20 active:scale-95 transition-all"
+                className="flex-1 px-4 py-3 rounded-xl text-xs sm:text-sm text-white bg-rose-500 hover:bg-rose-600 active:scale-95 transition-all"
               >
                 Yes, Delete
               </button>

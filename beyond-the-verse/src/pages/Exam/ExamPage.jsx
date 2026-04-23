@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getAllExams, getUserExamResults, deleteExam, getResultsReleaseStatus } from '../../services/firebaseServices'; 
 import BackButton from '../../components/common/BackButton';
+import LoginOverlay from '../../components/common/LoginOverlay';
 
 // ==========================================
 // 🌟 CUSTOM MODAL (Ultra Flat & Minimal)
@@ -122,7 +123,7 @@ const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmi
 // 🌟 MAIN PAGE COMPONENT
 // ==========================================
 export default function ExamPage({ showToast }) {
-  const { userId, isAdmin } = useAuth();
+  const { userId, isAdmin, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
   const [exams, setExams] = useState([]);
@@ -172,17 +173,47 @@ export default function ExamPage({ showToast }) {
   };
 
   return (
-    <div className="w-full min-h-screen bg-zinc-50 pb-24 pt-4 sm:pt-10 selection:bg-zinc-200 selection:text-zinc-900 font-sans">
+    <div className="w-full min-h-screen bg-zinc-50 pb-24 pt-4 sm:pt-10 selection:bg-zinc-200 selection:text-zinc-900 font-sans relative">
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
 
+      {!isAuthenticated && (
+        <LoginOverlay 
+          icon="fa-solid fa-file-signature" 
+          title="Join the Verse" 
+          description="Log in to access your assessments, track your progress, and verify your knowledge." 
+        />
+      )}
+
       {/* Main Wrapper */}
-      <div className="max-w-3xl mx-auto px-0 sm:px-6 lg:px-8 animate-fade-in">
+      <div className={`max-w-3xl mx-auto px-0 sm:px-6 lg:px-8 animate-fade-in transition-all duration-300 ${!isAuthenticated ? "pointer-events-none opacity-30 select-none" : ""}`}>
         
         {/* HEADER */}
         <div className="px-4 sm:px-0 mb-6 sm:mb-8">
           <div className="mb-4 sm:mb-6"><BackButton label="Back" /></div>
           <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 tracking-tight mb-1.5">Assessments</h1>
           <p className="text-[13px] sm:text-sm font-medium text-zinc-500">Manage your schedules and track your performance.</p>
+        </div>
+
+        {/* RULES BANNER */}
+        <div className="mx-4 sm:mx-0 mb-6 sm:mb-8 bg-zinc-100 text-zinc-600 p-5 sm:p-6 rounded-2xl border border-zinc-200">
+          <div className="flex items-center gap-3 mb-3 text-zinc-800">
+            <i className="fa-solid fa-scale-balanced text-lg"></i>
+            <h3 className="text-base sm:text-lg font-bold tracking-tight">Assessment Rules & Marking Scheme</h3>
+          </div>
+          <ul className="space-y-2.5 text-[13px] sm:text-sm font-medium leading-relaxed">
+            <li className="flex items-start gap-2.5">
+              <span className="text-teal-600 mt-0.5"><i className="fa-solid fa-circle-check text-[10px]"></i></span>
+              <span><strong className="text-teal-700 font-semibold">+1 Mark</strong> for every correct option you select.</span>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="text-rose-500 mt-0.5"><i className="fa-solid fa-circle-xmark text-[10px]"></i></span>
+              <span><strong className="text-rose-600 font-semibold">-1 Mark (Penalty)</strong> for selecting an incorrect option or missing a correct option.</span>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="text-amber-500 mt-0.5"><i className="fa-solid fa-triangle-exclamation text-[10px]"></i></span>
+              <span><strong className="text-amber-600 font-semibold">-1 Mark (Penalty)</strong> if a question is left completely unattempted (blank).</span>
+            </li>
+          </ul>
         </div>
 
         {/* 🌟 SINGLE LIST CONTAINER */}

@@ -4,16 +4,21 @@ import { uploadProfilePicture } from '../../services/firebaseServices';
 import UserAvatar from '../common/UserAvatar'; // 🌟 Naya Import
 
 // 🌟 FIX: isMyProfile prop add kiya (Default true) taaki loading me flicker na ho
-export default function ProfileHeader({ publicUser, isMyProfile = true }) {
+export default function ProfileHeader({ profileData, isMyProfile = true }) {
     const { userName, isAdmin, currentUser } = useAuth();
     
     // 🌟 LOGIC: Ab hume pata hai ye dusre ki profile hai ya apni
-    const isPublicProfile = !isMyProfile || !!publicUser;
+    const isPublicProfile = !isMyProfile || !!profileData;
 
-    const displayPhotoURL = isMyProfile ? currentUser?.photoURL : publicUser?.profilePic;
-    const displayUserName = isMyProfile ? userName : publicUser?.name;
+    const displayPhotoURL = isMyProfile ? currentUser?.photoURL : profileData?.profilePic;
+    const displayUserName = isMyProfile ? userName : profileData?.name;
     const displayEmail = isMyProfile ? currentUser?.email : "Explorer of the Verse";
-    const displayIsAdmin = isMyProfile ? isAdmin : (publicUser?.role === 'admin');
+    const displayIsAdmin = isMyProfile ? isAdmin : (profileData?.role === 'admin');
+
+    const bio = profileData?.bio;
+    const location = profileData?.location;
+    const website = profileData?.website;
+    const twitter = profileData?.twitter;
 
     // 🌟 DP States
     const [imagePreview, setImagePreview] = useState(displayPhotoURL || null);
@@ -52,9 +57,9 @@ export default function ProfileHeader({ publicUser, isMyProfile = true }) {
     };
 
     return (
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 flex flex-col sm:flex-row items-center sm:items-start gap-6 animate-fade-in relative overflow-hidden shadow-sm">
+        <div className="bg-white rounded-[2rem] border border-slate-100 p-6 sm:p-10 flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 animate-fade-in relative overflow-hidden">
             {/* Decorative background blur */}
-            <div className="absolute -top-24 -right-24 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl"></div>
+            <div className="absolute -top-32 -right-32 w-72 h-72 bg-teal-50/50 rounded-full blur-3xl pointer-events-none"></div>
 
             {/* 📸 Avatar Wrapper */}
             <div className="relative shrink-0 group rounded-full">
@@ -107,13 +112,34 @@ export default function ProfileHeader({ publicUser, isMyProfile = true }) {
                 </h1>
                 <p className="text-slate-500 text-sm mt-1">{displayEmail}</p>
 
-                <div className="mt-4 flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[11px] font-medium text-slate-600 uppercase tracking-wide">
+                {bio && (
+                    <p className="text-slate-600 text-sm mt-3 leading-relaxed max-w-lg mx-auto sm:mx-0">
+                        {bio}
+                    </p>
+                )}
+
+                <div className="mt-5 flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+                    <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-50 border border-slate-100/80 text-[11px] font-bold text-slate-600 tracking-wide">
                         <i className="fa-solid fa-rocket text-teal-500"></i> Explorer of the Verse
                     </span>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[11px] font-medium text-slate-600 uppercase tracking-wide">
-                        <i className="fa-solid fa-shield-check text-emerald-500"></i> Verified
-                    </span>
+                    
+                    {location && (
+                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-50 border border-slate-100/80 text-[11px] font-bold text-slate-600 tracking-wide">
+                            <i className="fa-solid fa-location-dot text-slate-400"></i> {location}
+                        </span>
+                    )}
+
+                    {website && (
+                        <a href={website.startsWith('http') ? website : `https://${website}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-50/50 border border-blue-100/50 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors tracking-wide">
+                            <i className="fa-solid fa-link"></i> Website
+                        </a>
+                    )}
+
+                    {twitter && (
+                        <a href={`https://twitter.com/${twitter}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-sky-50/50 border border-sky-100/50 text-[11px] font-bold text-sky-600 hover:text-sky-700 hover:bg-sky-50 transition-colors tracking-wide">
+                            <i className="fa-brands fa-twitter"></i> @{twitter}
+                        </a>
+                    )}
                 </div>
             </div>
         </div>
