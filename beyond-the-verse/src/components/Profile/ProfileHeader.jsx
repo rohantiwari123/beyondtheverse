@@ -5,15 +5,27 @@ import UserAvatar from '../common/UserAvatar'; // 🌟 Naya Import
 
 // 🌟 FIX: isMyProfile prop add kiya (Default true) taaki loading me flicker na ho
 export default function ProfileHeader({ profileData, isMyProfile = true }) {
-    const { userName, isAdmin, currentUser } = useAuth();
+    const { userName, userUsername, isAdmin, currentUser } = useAuth();
     
     // 🌟 LOGIC: Ab hume pata hai ye dusre ki profile hai ya apni
     const isPublicProfile = !isMyProfile || !!profileData;
 
     const displayPhotoURL = isMyProfile ? currentUser?.photoURL : profileData?.profilePic;
     const displayUserName = isMyProfile ? userName : profileData?.name;
-    const displayEmail = isMyProfile ? currentUser?.email : "Explorer of the Verse";
     const displayIsAdmin = isMyProfile ? isAdmin : (profileData?.role === 'admin');
+
+    // 🌟 LOGIC: Privacy Settings (Email, Bio, Location, Socials)
+    const privacy = profileData?.privacySettings || {};
+    const showEmail = isMyProfile || privacy.showEmail === true; // Email by default public se hidden rahega
+    const showBio = isMyProfile || privacy.showBio !== false;    // Bio default dikhega unless hidden
+    const showLocation = isMyProfile || privacy.showLocation !== false; 
+    const showSocials = isMyProfile || privacy.showSocials !== false; 
+
+    const displayEmail = isMyProfile ? currentUser?.email : (showEmail && profileData?.email ? profileData.email : "Private User");
+
+    // 🌟 LOGIC: Username nikalna aur agar na ho toh name se fallback banana
+    const rawUsername = isMyProfile ? userUsername : profileData?.username;
+    const displayUserUsername = rawUsername || (displayUserName || "user").toLowerCase().replace(/[^a-z0-9]/g, '');
 
     const bio = profileData?.bio;
     const location = profileData?.location;
@@ -110,9 +122,10 @@ export default function ProfileHeader({ profileData, isMyProfile = true }) {
                     {displayUserName || "Explorer"}
                     {displayIsAdmin && <span className="bg-amber-100 text-amber-700 text-[10px] uppercase px-2 py-0.5 rounded-md border border-amber-200 tracking-wider">Admin</span>}
                 </h1>
-                <p className="text-slate-500 text-sm mt-1">{displayEmail}</p>
+            <p className="text-teal-600 font-medium text-sm sm:text-base mt-1 mb-0.5">@{displayUserUsername}</p>
+            <p className="text-slate-500 text-xs sm:text-sm">{displayEmail}</p>
 
-                {bio && (
+                {showBio && bio && (
                     <p className="text-slate-600 text-sm mt-3 leading-relaxed max-w-lg mx-auto sm:mx-0">
                         {bio}
                     </p>
@@ -123,19 +136,19 @@ export default function ProfileHeader({ profileData, isMyProfile = true }) {
                         <i className="fa-solid fa-rocket text-teal-500"></i> Explorer of the Verse
                     </span>
                     
-                    {location && (
+                    {showLocation && location && (
                         <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-50 border border-slate-100/80 text-[11px] font-bold text-slate-600 tracking-wide">
                             <i className="fa-solid fa-location-dot text-slate-400"></i> {location}
                         </span>
                     )}
 
-                    {website && (
+                    {showSocials && website && (
                         <a href={website.startsWith('http') ? website : `https://${website}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-50/50 border border-blue-100/50 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors tracking-wide">
                             <i className="fa-solid fa-link"></i> Website
                         </a>
                     )}
 
-                    {twitter && (
+                    {showSocials && twitter && (
                         <a href={`https://twitter.com/${twitter}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-sky-50/50 border border-sky-100/50 text-[11px] font-bold text-sky-600 hover:text-sky-700 hover:bg-sky-50 transition-colors tracking-wide">
                             <i className="fa-brands fa-twitter"></i> @{twitter}
                         </a>

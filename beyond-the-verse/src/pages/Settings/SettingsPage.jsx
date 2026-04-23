@@ -7,6 +7,7 @@ import SecuritySettings from '../../components/Settings/SecuritySettings';
 import NotificationSettings from '../../components/Settings/NotificationSettings'; // 🌟 Naya Import
 import DangerZone from '../../components/Settings/DangerZone'; // 🌟 Naya Import
 import BackButton from '../../components/common/BackButton';
+import PrivacySettings from '../../components/Settings/PrivacySettings';
 
 export default function SettingsPage() {
     const { currentUser } = useAuth();
@@ -64,12 +65,19 @@ export default function SettingsPage() {
                         >
                             <i className="fa-solid fa-triangle-exclamation w-5 text-center"></i> Danger Zone
                         </button>
+                        <button 
+                            onClick={() => setActiveTab('privacy')}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'privacy' ? 'bg-teal-50 text-teal-700 border border-teal-100 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent'}`}
+                        >
+                            <i className="fa-solid fa-shield-halved w-5 text-center"></i> Privacy
+                        </button>
                     </nav>
                 </aside>
 
                 {/* 🌟 DYNAMIC CONTENT AREA */}
                 <main className="flex-1 min-w-0">
                     {activeTab === 'general' && <GeneralSettings />}
+                    {activeTab === 'privacy' && <PrivacySettings />}
                     {activeTab === 'security' && <SecuritySettings />}
                     {activeTab === 'notifications' && <NotificationSettings />}
                     {activeTab === 'danger' && <DangerZone />}

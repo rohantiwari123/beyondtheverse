@@ -10,11 +10,12 @@ import {
   deleteCommentInteraction,
   editCommentInteraction,
   togglePinComment,
-  addCommentReply
+  addCommentReply,
+  getUserProfile
 } from '../../services/firebaseServices';
 
 function InteractionNode({ interaction, allInteractions, post, showToast, isMainComment }) {
-  const { isAuthenticated, isAdmin, userId, userName, currentUser } = useAuth();
+  const { isAuthenticated, isAdmin, userId, userName, userUsername, currentUser } = useAuth();
 
   const [isReplying, setIsReplying] = useState(false);
   const [replyType, setReplyType] = useState('support');
@@ -29,6 +30,28 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
 
   // 🌟 PRO FRONTEND TRICK
   const currentDisplayName = isOwner ? userName : interaction.userName;
+
+  // 🌟 FIX: Old comments par bhi username dikhane ke liye dynamic fetch aur fallback
+  const [fetchedUsername, setFetchedUsername] = useState(interaction.userUsername || "");
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!isOwner && !interaction.userUsername && interaction.userId) {
+      getUserProfile(interaction.userId).then(profile => {
+        if (isMounted && profile && profile.username) {
+          setFetchedUsername(profile.username);
+        }
+      }).catch(() => {});
+    }
+    return () => { isMounted = false; };
+  }, [isOwner, interaction.userUsername, interaction.userId]);
+
+  const fallbackUsername = (interaction.userName || "user").toLowerCase().replace(/[^a-z0-9]/g, '');
+  const ownerFallback = (userName || "user").toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  const currentDisplayUsername = isOwner 
+    ? (userUsername || ownerFallback) 
+    : (interaction.userUsername || fetchedUsername || fallbackUsername);
 
   const targetId = interaction.id || interaction.timestamp;
   const gates = interaction.commentGates || { support: [], counter: [], doubt: [] };
@@ -102,6 +125,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
         parentId: targetId,
         userId,
         userName: userName || "Explorer",
+        userUsername: userUsername || "",
         photoURL: currentUser?.photoURL || null,
         type: replyType,
         text: currentReplyText,
@@ -160,32 +184,42 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
         </Link>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-0.5 relative">
-            <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-start justify-between mb-0.5 relative">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2 flex-wrap">
 
-              {/* 🌟 FIX: Naam par Link lagaya */}
-              <Link to={`/profile/${interaction.userId}`}>
-                <span className={`${isMainComment ? 'text-sm sm:text-base' : 'text-xs sm:text-sm'} transition-colors ${nameColorClass}`}>
-                  {currentDisplayName}
+                {/* 🌟 FIX: Naam par Link lagaya */}
+                <Link to={`/profile/${interaction.userId}`}>
+                  <span className={`${isMainComment ? 'text-sm sm:text-base font-semibold' : 'text-xs sm:text-sm font-semibold'} transition-colors ${nameColorClass}`}>
+                    {currentDisplayName}
+                  </span>
+                </Link>
+
+                {isAdminBadge ? (
+                  <span className="bg-amber-100 text-amber-700 text-[10px] sm:text-xs font-medium uppercase px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-200 tracking-wide">
+                    ADMIN
+                  </span>
+                ) : null}
+
+                {interaction.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-xs sm:text-sm"></i>}
+
+                <span className={`text-[10px] sm:text-xs font-medium uppercase flex items-center gap-1.5 ${config.color} ${config.bg} border ${config.border} px-2 py-0.5 rounded-md`}>
+                  <i className={config.icon}></i> {config.label}
                 </span>
-              </Link>
 
-              {isAdminBadge ? (
-                <span className="bg-amber-100 text-amber-700 text-[10px] sm:text-xs font-medium uppercase px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-200 tracking-wide">
-                  ADMIN
+                <span className="text-[10px] sm:text-xs text-slate-500 whitespace-nowrap">
+                  • {formatDateTime(interaction.timestamp)}
+                  {interaction.isEdited && <span className="ml-1 italic opacity-70">(Edited)</span>}
                 </span>
-              ) : null}
-
-              {interaction.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-xs sm:text-sm"></i>}
-
-              <span className={`text-[10px] sm:text-xs font-medium uppercase flex items-center gap-1.5 ${config.color} ${config.bg} border ${config.border} px-2 py-0.5 rounded-md`}>
-                <i className={config.icon}></i> {config.label}
-              </span>
-
-              <span className="text-[10px] sm:text-xs text-slate-500 whitespace-nowrap">
-                • {formatDateTime(interaction.timestamp)}
-                {interaction.isEdited && <span className="ml-1 italic opacity-70">(Edited)</span>}
-              </span>
+              </div>
+              
+              {currentDisplayUsername && (
+                <Link to={`/profile/${interaction.userId}`} className="w-max -mt-0.5 mb-1">
+                  <span className="text-[10px] sm:text-xs text-teal-600 hover:underline font-medium">
+                    @{currentDisplayUsername}
+                  </span>
+                </Link>
+              )}
             </div>
 
             <button onClick={() => setShowMenu(!showMenu)} className="text-slate-400 hover:text-slate-900 p-1 -mr-1 transition-colors relative z-10">

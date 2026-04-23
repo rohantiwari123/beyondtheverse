@@ -13,11 +13,12 @@ import {
   togglePinPost,
   toggleBookmarkPost,
   addPostInteraction,
-  createNotification
+  createNotification,
+  getUserProfile
 } from '../../services/firebaseServices';
 
 export default function PostCard({ post, showToast, isSinglePost }) {
-  const { isAuthenticated, userId, userName, isAdmin, currentUser } = useAuth();
+  const { isAuthenticated, userId, userName, userUsername, isAdmin, currentUser } = useAuth();
 
   const [activeGate, setActiveGate] = useState(null);
   const [reason, setReason] = useState("");
@@ -46,6 +47,28 @@ export default function PostCard({ post, showToast, isSinglePost }) {
 
   // 🌟 PRO FRONTEND TRICK
   const currentDisplayName = isOwner ? userName : post.userName;
+
+  // 🌟 FIX: Old posts par bhi username dikhane ke liye dynamic fetch aur fallback
+  const [fetchedUsername, setFetchedUsername] = useState(post.userUsername || "");
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!isOwner && !post.userUsername && post.userId) {
+      getUserProfile(post.userId).then(profile => {
+        if (isMounted && profile && profile.username) {
+          setFetchedUsername(profile.username);
+        }
+      }).catch(() => {});
+    }
+    return () => { isMounted = false; };
+  }, [isOwner, post.userUsername, post.userId]);
+
+  const fallbackUsername = (post.userName || "user").toLowerCase().replace(/[^a-z0-9]/g, '');
+  const ownerFallback = (userName || "user").toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  const currentDisplayUsername = isOwner 
+    ? (userUsername || ownerFallback) 
+    : (post.userUsername || fetchedUsername || fallbackUsername);
 
   useEffect(() => {
     if (isOwner && isAdmin && !isAdminPost) {
@@ -129,6 +152,7 @@ export default function PostCard({ post, showToast, isSinglePost }) {
         id: interactionId,
         userId,
         userName: userName || "Explorer",
+        userUsername: userUsername || "",
         photoURL: currentUser?.photoURL || null,
         type: activeGate,
         text: currentReasonText,
@@ -197,7 +221,7 @@ export default function PostCard({ post, showToast, isSinglePost }) {
             <div className="flex items-center gap-2 flex-wrap">
               {/* 🌟 FIX: Naam par Link lagaya (Hover effect ke sath) */}
               <Link to={`/profile/${post.userId}`}>
-                <h4 className={`text-sm sm:text-base lg:text-lg truncate hover:underline transition-colors ${isAdminPost ? 'text-amber-900 hover:text-amber-700' : 'text-slate-900 hover:text-teal-700'}`}>
+                <h4 className={`text-sm sm:text-base lg:text-lg font-semibold truncate hover:underline transition-colors ${isAdminPost ? 'text-amber-900 hover:text-amber-700' : 'text-slate-900 hover:text-teal-700'}`}>
                   {currentDisplayName}
                 </h4>
               </Link>
@@ -208,6 +232,13 @@ export default function PostCard({ post, showToast, isSinglePost }) {
               )}
               {post.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-xs sm:text-sm"></i>}
             </div>
+            {currentDisplayUsername && (
+              <Link to={`/profile/${post.userId}`} className="w-max -mt-0.5 mb-0.5">
+                <span className="text-xs sm:text-sm text-teal-600 hover:underline font-medium">
+                  @{currentDisplayUsername}
+                </span>
+              </Link>
+            )}
             <span className="text-xs sm:text-sm text-slate-500">
               {post.category} <span className="mx-1 opacity-30">•</span> {formatDateTime(post.createdAt)}
             </span>

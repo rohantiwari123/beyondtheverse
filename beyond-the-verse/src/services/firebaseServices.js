@@ -845,6 +845,19 @@ export const updateUserPreferences = async (userId, prefs) => {
   }
 };
 
+// ==========================================
+// 🔒 PRIVACY SETTINGS
+// ==========================================
+export const updateUserPrivacySettings = async (userId, privacySettings) => {
+  try {
+    await updateDoc(doc(db, "users", userId), { privacySettings });
+    return true;
+  } catch (error) {
+    console.error("Error updating privacy settings:", error);
+    throw error;
+  }
+};
+
 export const deleteUserAccount = async (userId) => {
   try {
     const user = auth.currentUser;
