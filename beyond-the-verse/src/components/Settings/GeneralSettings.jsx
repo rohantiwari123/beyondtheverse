@@ -13,6 +13,34 @@ import {
     uploadProfilePicture
 } from '../../services/firebaseServices';
 
+// ==========================================
+// 🎨 REUSABLE UI DESIGN VARIABLES
+// ==========================================
+const UI = {
+    card: "bg-white rounded-2xl border border-slate-200 relative overflow-hidden",
+    sectionHeader: "text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2",
+    label: "block text-xs font-bold text-slate-700 mb-2",
+    inputBase: "w-full px-4 py-3 border rounded-xl text-sm font-medium transition-all outline-none",
+    inputActive: "bg-white border-teal-500",
+    inputError: "bg-rose-50 border-rose-400 text-rose-900",
+    inputDisabled: "bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed",
+    editBtnBase: "text-[10px] font-bold flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-colors",
+    editBtnActive: "text-teal-700 bg-teal-50 hover:bg-teal-100",
+    editBtnDisabled: "text-slate-400 bg-slate-50 cursor-not-allowed",
+    lockText: "mt-2 text-[11px] text-slate-400 font-semibold flex items-center gap-1.5"
+};
+
+// 🛠️ Helper functions for dynamic classes
+const getInputClass = (isEditing, hasError = false) => {
+    if (!isEditing) return `${UI.inputBase} ${UI.inputDisabled}`;
+    if (hasError) return `${UI.inputBase} ${UI.inputError}`;
+    return `${UI.inputBase} ${UI.inputActive}`;
+};
+
+const getEditBtnClass = (isLocked) => {
+    return `${UI.editBtnBase} ${isLocked ? UI.editBtnDisabled : UI.editBtnActive}`;
+};
+
 export default function GeneralSettings() {
     const { currentUser, userName, login, userUsername, userId } = useAuth();
     
@@ -62,7 +90,7 @@ export default function GeneralSettings() {
         fetchUserData();
     }, [userId]);
 
-    // Lock Logic: (30 days = 2592000000 ms)
+    // Lock Logic
     const checkLockStatus = (timestamp) => {
         const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
         const now = Date.now();
@@ -219,149 +247,145 @@ export default function GeneralSettings() {
     );
 
     return (
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 animate-fade-in relative overflow-hidden">
-            {/* Decorative Background */}
-            <div className="absolute -top-32 -right-32 w-72 h-72 bg-teal-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
-
-            <div className="relative z-10">
-                <h2 className="text-xl font-black text-slate-900 mb-2">General Information</h2>
-                <p className="text-sm text-slate-500 mb-8">Manage your personal details and how you appear to others.</p>
-
-                {message.text && (
-                    <div className={`p-4 rounded-2xl mb-8 text-sm font-medium flex items-center gap-3 ${message.type === 'success' ? 'bg-teal-50 text-teal-800 border border-teal-100' : 'bg-rose-50 text-rose-800 border border-rose-100'}`}>
-                        <i className={`fa-solid text-lg ${message.type === 'success' ? 'fa-circle-check text-teal-500' : 'fa-circle-exclamation text-rose-500'}`}></i>
-                        {message.text}
-                    </div>
-                )}
-
-                {/* 🌟 Avatar Section */}
-                <div className="flex items-center gap-6 mb-10 p-6 bg-slate-50 border border-slate-100 rounded-2xl">
-                    <div className="relative shrink-0">
-                        <UserAvatar 
-                            userId={userId}
-                            showCurrentUser={true}
-                            size="lg" 
-                        />
-                        {isUploadingDP && (
-                            <div className="absolute inset-0 bg-white/80 rounded-full flex items-center justify-center">
-                                <i className="fa-solid fa-spinner fa-spin text-teal-500 text-xl"></i>
-                            </div>
-                        )}
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-bold text-slate-800 mb-1">Profile Picture</h3>
-                        <p className="text-xs text-slate-500 mb-3">Upload a new avatar to personalize your profile.</p>
-                        <label className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors active:scale-95">
-                            <i className="fa-solid fa-cloud-arrow-up text-slate-400"></i>
-                            {isUploadingDP ? "Uploading..." : "Upload Image"}
-                            <input 
-                                type="file" 
-                                accept="image/*" 
-                                className="hidden" 
-                                onChange={handleImageChange} 
-                                disabled={isUploadingDP}
-                            />
-                        </label>
-                    </div>
+        <div className="w-full max-w-4xl animate-fade-in space-y-6 pt-2">
+            
+            {message.text && (
+                <div className={`p-4 rounded-xl text-sm font-medium flex items-center gap-3 animate-fade-in-up ${message.type === 'success' ? 'bg-teal-50 text-teal-800 border border-teal-100' : 'bg-rose-50 text-rose-800 border border-rose-100'}`}>
+                    <i className={`fa-solid text-lg ${message.type === 'success' ? 'fa-circle-check text-teal-500' : 'fa-circle-exclamation text-rose-500'}`}></i>
+                    {message.text}
                 </div>
+            )}
 
-                <form onSubmit={handleSave} className="space-y-8 max-w-xl">
+            {/* 🌟 Avatar Section Card */}
+            <div className={`${UI.card} p-5 md:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6`}>
+                <div className="relative shrink-0 group">
+                    <div className="rounded-full overflow-hidden border-4 border-white">
+                        <UserAvatar userId={userId} showCurrentUser={true} size="lg" />
+                    </div>
+                    {isUploadingDP && (
+                        <div className="absolute inset-0 bg-white/80 rounded-full flex items-center justify-center z-10">
+                            <i className="fa-solid fa-spinner fa-spin text-teal-500 text-xl"></i>
+                        </div>
+                    )}
+                </div>
+                <div className="text-center sm:text-left flex-1">
+                    <h3 className="text-base font-bold text-slate-900 mb-1">Profile Picture</h3>
+                    <p className="text-sm text-slate-500 mb-4 max-w-md">Upload a new avatar to personalize your profile. We recommend a square image for best results.</p>
+                    <label className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 hover:border-slate-300 cursor-pointer transition-all active:scale-95">
+                        <i className="fa-solid fa-cloud-arrow-up text-slate-400"></i>
+                        {isUploadingDP ? "Uploading..." : "Upload New Image"}
+                        <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} disabled={isUploadingDP} />
+                    </label>
+                </div>
+            </div>
+
+            {/* 🌟 Main Form Card */}
+            <div className={`${UI.card} p-5 md:p-8`}>
+                {/* Subtle Decorative Background */}
+                <div className="absolute -top-40 -right-40 w-96 h-96 bg-teal-50 rounded-full blur-3xl opacity-40 pointer-events-none"></div>
+
+                <form onSubmit={handleSave} className="relative z-10 space-y-8">
                     
-                    {/* 🌟 Identity Section */}
+                    {/* 🟢 Core Identity Section */}
                     <div className="space-y-6">
-                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 pb-2">
-                            <i className="fa-solid fa-id-card"></i> Core Identity
-                        </h3>
-
-                        {/* DISPLAY NAME */}
-                        <div>
-                            <div className="flex justify-between items-center mb-2">
-                                <label className="text-xs font-bold text-slate-700">Display Name</label>
-                                {!isEditingName && (
-                                    <button 
-                                        type="button" 
-                                        disabled={nameStatus.isLocked}
-                                        onClick={() => setIsEditingName(true)}
-                                        className={`text-[11px] font-bold flex items-center gap-1.5 px-3 py-1 rounded-lg transition-colors ${nameStatus.isLocked ? 'text-slate-400 bg-slate-50 cursor-not-allowed' : 'text-teal-700 bg-teal-50 hover:bg-teal-100'}`}
-                                    >
-                                        <i className={`fa-solid ${nameStatus.isLocked ? 'fa-lock' : 'fa-pen'}`}></i> 
-                                        {nameStatus.isLocked ? `Locked` : 'Edit'}
-                                    </button>
-                                )}
-                            </div>
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                disabled={!isEditingName}
-                                className={`w-full px-4 py-3 border rounded-xl text-sm font-medium transition-all outline-none ${isEditingName ? 'bg-white border-teal-500' : 'bg-slate-50 border-slate-100 text-slate-500 cursor-not-allowed'}`}
-                            />
-                            {nameStatus.isLocked && (
-                                <p className="mt-2 text-[11px] text-slate-400 font-semibold flex items-center gap-1.5">
-                                    <i className="fa-solid fa-clock text-slate-300"></i> Locked for {nameStatus.daysRemaining} more days
-                                </p>
-                            )}
+                        <div className="flex justify-between items-end border-b border-slate-100 pb-3">
+                            <h3 className={UI.sectionHeader}>
+                                <i className="fa-solid fa-id-card"></i> Core Identity
+                            </h3>
                         </div>
 
-                        {/* USERNAME */}
-                        <div>
-                            <div className="flex justify-between items-center mb-2">
-                                <label className="text-xs font-bold text-slate-700">Username</label>
-                                {!isEditingUsername && (
-                                    <button 
-                                        type="button" 
-                                        disabled={userStatus.isLocked}
-                                        onClick={() => setIsEditingUsername(true)}
-                                        className={`text-[11px] font-bold flex items-center gap-1.5 px-3 py-1 rounded-lg transition-colors ${userStatus.isLocked ? 'text-slate-400 bg-slate-50 cursor-not-allowed' : 'text-teal-700 bg-teal-50 hover:bg-teal-100'}`}
-                                    >
-                                        <i className={`fa-solid ${userStatus.isLocked ? 'fa-lock' : 'fa-pen'}`}></i> 
-                                        {userStatus.isLocked ? `Locked` : 'Edit'}
-                                    </button>
-                                )}
-                            </div>
-                            <div className="relative">
+                        {/* Grid for Name and Username */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* DISPLAY NAME */}
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className={UI.label}>Display Name</label>
+                                    {!isEditingName && (
+                                        <button 
+                                            type="button" 
+                                            disabled={nameStatus.isLocked}
+                                            onClick={() => setIsEditingName(true)}
+                                            className={getEditBtnClass(nameStatus.isLocked)}
+                                        >
+                                            <i className={`fa-solid ${nameStatus.isLocked ? 'fa-lock' : 'fa-pen'}`}></i> 
+                                            {nameStatus.isLocked ? `Locked` : 'Edit'}
+                                        </button>
+                                    )}
+                                </div>
                                 <input
                                     type="text"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))}
-                                    disabled={!isEditingUsername}
-                                    className={`w-full px-4 py-3 border rounded-xl text-sm font-medium transition-all outline-none ${isEditingUsername ? (liveUsernameError ? 'border-rose-400 bg-rose-50 text-rose-900' : 'bg-white border-teal-500') : 'bg-slate-50 border-slate-100 text-slate-500 cursor-not-allowed'}`}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    disabled={!isEditingName}
+                                    className={getInputClass(isEditingName)}
                                 />
-                                {isEditingUsername && isCheckingUsername && <i className="fa-solid fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>}
-                                {isEditingUsername && !isCheckingUsername && username !== userUsername && isUsernameAvailable === true && <i className="fa-solid fa-circle-check absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 text-sm"></i>}
+                                {nameStatus.isLocked && (
+                                    <p className={UI.lockText}>
+                                        <i className="fa-solid fa-clock text-slate-300"></i> Changeable in {nameStatus.daysRemaining} days
+                                    </p>
+                                )}
                             </div>
 
-                            {userStatus.isLocked && (
-                                <p className="mt-2 text-[11px] text-slate-400 font-semibold flex items-center gap-1.5">
-                                    <i className="fa-solid fa-clock text-slate-300"></i> Locked for {userStatus.daysRemaining} more days
-                                </p>
-                            )}
-
-                            {isEditingUsername && username !== userUsername && (
-                                <div className="mt-3 p-4 bg-slate-50 border border-slate-200 rounded-xl transition-all animate-fade-in">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2.5">
-                                        <RuleItem met={userRules.length} text="6 to 20 characters" />
-                                        <RuleItem met={userRules.format && username.length > 0} text="No spaces/special chars" />
-                                        <RuleItem met={userRules.hasNumber} text="At least 1 number (0-9)" />
-                                        <RuleItem met={userRules.hasUnderscore} text="At least 1 underscore (_)" />
-                                    </div>
-                                    {liveUsernameError && <p className="mt-3 text-[11px] text-rose-600 font-bold flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation"></i> {liveUsernameError}</p>}
+                            {/* USERNAME */}
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className={UI.label}>Username</label>
+                                    {!isEditingUsername && (
+                                        <button 
+                                            type="button" 
+                                            disabled={userStatus.isLocked}
+                                            onClick={() => setIsEditingUsername(true)}
+                                            className={getEditBtnClass(userStatus.isLocked)}
+                                        >
+                                            <i className={`fa-solid ${userStatus.isLocked ? 'fa-lock' : 'fa-pen'}`}></i> 
+                                            {userStatus.isLocked ? `Locked` : 'Edit'}
+                                        </button>
+                                    )}
                                 </div>
-                            )}
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))}
+                                        disabled={!isEditingUsername}
+                                        className={getInputClass(isEditingUsername, liveUsernameError)}
+                                    />
+                                    {isEditingUsername && isCheckingUsername && <i className="fa-solid fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>}
+                                    {isEditingUsername && !isCheckingUsername && username !== userUsername && isUsernameAvailable === true && <i className="fa-solid fa-circle-check absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 text-sm"></i>}
+                                </div>
+
+                                {userStatus.isLocked && (
+                                    <p className={UI.lockText}>
+                                        <i className="fa-solid fa-clock text-slate-300"></i> Changeable in {userStatus.daysRemaining} days
+                                    </p>
+                                )}
+
+                                {isEditingUsername && username !== userUsername && (
+                                    <div className="mt-3 p-4 bg-slate-50 border border-slate-200 rounded-xl transition-all animate-fade-in">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2.5">
+                                            <RuleItem met={userRules.length} text="6 to 20 characters" />
+                                            <RuleItem met={userRules.format && username.length > 0} text="No spaces/special chars" />
+                                            <RuleItem met={userRules.hasNumber} text="At least 1 number (0-9)" />
+                                            <RuleItem met={userRules.hasUnderscore} text="At least 1 underscore (_)" />
+                                        </div>
+                                        {liveUsernameError && <p className="mt-3 text-[11px] text-rose-600 font-bold flex items-center gap-1.5"><i className="fa-solid fa-circle-exclamation"></i> {liveUsernameError}</p>}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
-                    {/* 🌟 Public Profile Section */}
-                    <div className="space-y-5 pt-4">
-                        <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    {/* 🟢 Public Profile Section */}
+                    <div className="space-y-6 pt-2">
+                        <div className="flex justify-between items-end border-b border-slate-100 pb-3">
+                            <h3 className={UI.sectionHeader}>
                                 <i className="fa-solid fa-globe"></i> Public Details
                             </h3>
                             {!isEditingDetails && (
                                 <button 
                                     type="button" 
                                     onClick={() => setIsEditingDetails(true)}
-                                    className="text-[11px] font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1 rounded-lg transition-colors flex items-center gap-1.5"
+                                    className={UI.editBtnBase + " " + UI.editBtnActive}
                                 >
                                     <i className="fa-solid fa-pen"></i> Edit Details
                                 </button>
@@ -369,61 +393,69 @@ export default function GeneralSettings() {
                         </div>
                         
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1.5">Biography</label>
+                            <label className={UI.label}>Biography</label>
                             <textarea
                                 value={bio}
                                 onChange={(e) => setBio(e.target.value)}
                                 disabled={!isEditingDetails}
                                 rows="3"
-                                placeholder="Tell the Verse about yourself..."
-                                className={`w-full px-4 py-3 border rounded-xl text-sm font-medium transition-all outline-none resize-none ${isEditingDetails ? 'bg-white border-teal-500' : 'bg-slate-50 border-slate-100 text-slate-500 cursor-not-allowed'}`}
+                                placeholder="From consuming facts to embodying the inquiry. A space for pure observation and conscious thought."
+                                className={`${getInputClass(isEditingDetails)} resize-none`}
                             />
+                            <p className="mt-1.5 text-[10px] text-slate-400 font-medium text-right">{bio.length}/150</p>
                         </div>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        {/* Grid for Location, Website, Twitter */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-1.5"><i className="fa-solid fa-location-dot text-slate-400 mr-1"></i> Location</label>
+                                <label className={UI.label}>
+                                    <i className="fa-solid fa-location-dot text-slate-400 mr-1.5"></i> Location
+                                </label>
                                 <input
                                     type="text"
                                     value={location}
                                     onChange={(e) => setLocation(e.target.value)}
                                     disabled={!isEditingDetails}
                                     placeholder="e.g. Earth, Milky Way"
-                                    className={`w-full px-4 py-3 border rounded-xl text-sm font-medium transition-all outline-none ${isEditingDetails ? 'bg-white border-teal-500' : 'bg-slate-50 border-slate-100 text-slate-500 cursor-not-allowed'}`}
+                                    className={getInputClass(isEditingDetails)}
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-1.5"><i className="fa-solid fa-link text-slate-400 mr-1"></i> Website</label>
+                                <label className={UI.label}>
+                                    <i className="fa-solid fa-link text-slate-400 mr-1.5"></i> Website
+                                </label>
                                 <input
                                     type="url"
                                     value={website}
                                     onChange={(e) => setWebsite(e.target.value)}
                                     disabled={!isEditingDetails}
                                     placeholder="https://"
-                                    className={`w-full px-4 py-3 border rounded-xl text-sm font-medium transition-all outline-none ${isEditingDetails ? 'bg-white border-teal-500' : 'bg-slate-50 border-slate-100 text-slate-500 cursor-not-allowed'}`}
+                                    className={getInputClass(isEditingDetails)}
                                 />
                             </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1.5"><i className="fa-brands fa-twitter text-sky-500 mr-1"></i> Twitter</label>
-                            <div className="relative flex items-center">
-                                <span className={`absolute left-4 text-sm font-bold ${isEditingDetails ? 'text-slate-400' : 'text-slate-300'}`}>@</span>
-                                <input
-                                    type="text"
-                                    value={twitter}
-                                    onChange={(e) => setTwitter(e.target.value.replace('@', ''))}
-                                    disabled={!isEditingDetails}
-                                    placeholder="username"
-                                    className={`w-full pl-8 pr-4 py-3 border rounded-xl text-sm font-medium transition-all outline-none ${isEditingDetails ? 'bg-white border-teal-500' : 'bg-slate-50 border-slate-100 text-slate-500 cursor-not-allowed'}`}
-                                />
+                            <div className="md:col-span-2 lg:col-span-1">
+                                <label className={UI.label}>
+                                    <i className="fa-brands fa-twitter text-sky-500 mr-1.5"></i> Twitter
+                                </label>
+                                <div className="relative flex items-center">
+                                    <span className={`absolute left-4 text-sm font-bold ${isEditingDetails ? 'text-slate-400' : 'text-slate-300'}`}>@</span>
+                                    <input
+                                        type="text"
+                                        value={twitter}
+                                        onChange={(e) => setTwitter(e.target.value.replace('@', ''))}
+                                        disabled={!isEditingDetails}
+                                        placeholder="username"
+                                        // 🌟 Special case for Twitter input because of the "@" symbol padding
+                                        className={`${getInputClass(isEditingDetails)} !pl-8`} 
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* 🌟 Action Buttons */}
                     {(isEditingName || isEditingUsername || isEditingDetails) && (
-                        <div className="pt-6 border-t border-slate-100 flex gap-4 animate-fade-in-up">
+                        <div className="pt-6 mt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-4 animate-fade-in-up">
                             <button 
                                 type="submit" 
                                 disabled={isLoading || (isEditingUsername && (!isUsernameAvailable || !isUsernameFormatValid))}
@@ -444,7 +476,7 @@ export default function GeneralSettings() {
                                     setWebsite(originalDetails.website);
                                     setTwitter(originalDetails.twitter);
                                 }}
-                                className="px-6 py-3.5 bg-slate-100 text-slate-600 text-sm font-bold rounded-xl hover:bg-slate-200 transition-colors active:scale-[0.98]"
+                                className="px-8 py-3.5 bg-white border border-slate-200 text-slate-600 text-sm font-bold rounded-xl hover:bg-slate-50 hover:text-slate-800 transition-colors active:scale-[0.98]"
                             >
                                 Cancel
                             </button>

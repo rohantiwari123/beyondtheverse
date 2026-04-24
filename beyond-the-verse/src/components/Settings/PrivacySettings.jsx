@@ -31,17 +31,16 @@ export default function PrivacySettings() {
     try {
       await updateUserPrivacySettings(userId, privacy);
       alert("Privacy visibility updated! 🔒");
-    } catch (error) {
+    } catch (err) {
       alert("Failed to save settings.");
     }
     setIsSaving(false);
   };
 
   return (
-    <div className="p-6 bg-white rounded-[2rem] border border-slate-100 w-full mt-6 animate-fade-in-up">
-      <h2 className="text-xl font-bold mb-5 text-slate-800 flex items-center gap-2">
-        <i className="fa-solid fa-shield-halved text-teal-500"></i> Profile Visibility
-      </h2>
+    <div className="bg-white rounded-2xl border border-slate-200 p-5 md:p-8 animate-fade-in">
+      <h2 className="text-lg font-bold text-slate-900 mb-1">Profile Visibility</h2>
+      <p className="text-sm text-slate-500 mb-6">Control what information is visible to others on your public profile.</p>
       
       <div className="space-y-3">
         {[
@@ -50,17 +49,17 @@ export default function PrivacySettings() {
           { key: 'showLocation', label: 'Show Location' },
           { key: 'showSocials', label: 'Show Social Links' }
         ].map(({ key, label }) => (
-          <div key={key} className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
+          <div key={key} className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-100 transition-colors hover:bg-slate-50">
             <span className="text-sm font-medium text-slate-700">{label}</span>
-            <button onClick={() => handleToggle(key)} className={`w-11 h-6 rounded-full flex items-center px-1 transition-colors ${privacy[key] ? 'bg-teal-500' : 'bg-slate-300'}`}>
+            <button onClick={() => handleToggle(key)} className={`w-11 h-6 rounded-full flex items-center px-1 transition-colors focus:outline-none ${privacy[key] ? 'bg-teal-500' : 'bg-slate-200'}`}>
               <div className={`w-4 h-4 bg-white rounded-full transition-transform ${privacy[key] ? 'translate-x-5' : 'translate-x-0'}`}></div>
             </button>
           </div>
         ))}
       </div>
 
-      <button onClick={saveSettings} disabled={isSaving} className="mt-5 w-full bg-slate-900 text-white font-medium text-sm px-4 py-3 rounded-xl transition-all active:scale-95 hover:bg-slate-800 disabled:opacity-50 flex items-center justify-center gap-2">
-        {isSaving ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-check"></i>}
+      <button onClick={saveSettings} disabled={isSaving} className="mt-6 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 min-w-[160px] disabled:opacity-50">
+        {isSaving ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-check"></i>}
         {isSaving ? "Saving..." : "Save Preferences"}
       </button>
     </div>

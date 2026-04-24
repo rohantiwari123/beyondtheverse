@@ -62,7 +62,7 @@ export default function NotificationSettings() {
     if (isFetching) return <div className="p-8 text-center text-slate-400 animate-pulse">Loading preferences...</div>;
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 animate-fade-in">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 md:p-8 animate-fade-in">
             <h2 className="text-lg font-bold text-slate-900 mb-1">Notification Preferences</h2>
             <p className="text-sm text-slate-500 mb-6">Choose what updates you want to hear about in the Verse.</p>
 

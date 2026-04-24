@@ -30,7 +30,7 @@ export default function DangerZone() {
     };
 
     return (
-        <div className="bg-white rounded-2xl border border-rose-200 p-6 sm:p-8 animate-fade-in relative overflow-hidden">
+        <div className="bg-white rounded-2xl border border-rose-200 p-5 md:p-8 animate-fade-in relative overflow-hidden">
             <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full bg-rose-500 blur-3xl opacity-10"></div>
 
             <h2 className="text-lg font-bold text-rose-600 mb-1 flex items-center gap-2">
