@@ -185,8 +185,12 @@ export default function CommunityPage({ showToast }) {
               <div className="h-8 w-8 border-4 border-slate-200 border-t-slate-500 rounded-full animate-spin mb-4"></div>
               <span className="text-[10px] text-slate-400">Loading Feed</span>
             </div>
+          ) : posts.filter(post => post.category === category).length === 0 ? (
+            <div className="py-20 flex flex-col items-center justify-center text-slate-400">
+              <span className="text-[12px] text-slate-400">No posts in this category yet. Be the first to post!</span>
+            </div>
           ) : (
-            posts.map((post) => (
+            posts.filter(post => post.category === category).map((post) => (
               <div key={post.id} className="border-slate-200 overflow-hidden w-full">
                 <PostCard post={post} showToast={showToast} />
               </div>

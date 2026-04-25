@@ -218,30 +218,34 @@ export default function PostCard({ post, showToast, isSinglePost }) {
           </Link>
 
           <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* 🌟 FIX: Naam par Link lagaya (Hover effect ke sath) */}
+            <div className="flex items-baseline gap-1.5 sm:gap-2 flex-wrap">
               <Link to={`/profile/${post.userId}`}>
-                <h4 className={`text-sm sm:text-base lg:text-lg font-semibold truncate hover:underline transition-colors ${isAdminPost ? 'text-amber-900 hover:text-amber-700' : 'text-slate-900 hover:text-teal-700'}`}>
+                <h4 className={`text-base sm:text-lg font-bold truncate hover:underline transition-colors ${isAdminPost ? 'text-amber-900 hover:text-amber-700' : 'text-slate-900 hover:text-teal-700'}`}>
                   {currentDisplayName}
                 </h4>
               </Link>
+              {currentDisplayUsername && (
+                <Link to={`/profile/${post.userId}`} className="shrink-0">
+                  <span className="text-xs sm:text-sm text-slate-500 hover:text-teal-600 hover:underline">
+                    @{currentDisplayUsername}
+                  </span>
+                </Link>
+              )}
+              <span className="text-slate-300 text-xs sm:text-sm hidden sm:inline">•</span>
+              <span className="text-xs sm:text-sm text-slate-500 whitespace-nowrap">{formatDateTime(post.createdAt)}</span>
+            </div>
+            
+            <div className="flex items-center gap-1.5 sm:gap-2 mt-1 flex-wrap">
+              <span className="font-medium text-[10px] sm:text-xs text-slate-600 bg-slate-100/80 border border-slate-200 px-2 py-0.5 rounded-md">
+                {post.category}
+              </span>
               {isAdminPost && (
-                <span className="bg-amber-100 text-amber-700 text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded border border-amber-200">
+                <span className="bg-amber-50 text-amber-700 text-[10px] sm:text-xs font-semibold uppercase px-1.5 py-0.5 rounded-md border border-amber-200 tracking-wide">
                   Admin
                 </span>
               )}
-              {post.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-xs sm:text-sm"></i>}
+              {post.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-[10px] sm:text-xs ml-0.5"></i>}
             </div>
-            {currentDisplayUsername && (
-              <Link to={`/profile/${post.userId}`} className="w-max -mt-0.5 mb-0.5">
-                <span className="text-xs sm:text-sm text-teal-600 hover:underline font-medium">
-                  @{currentDisplayUsername}
-                </span>
-              </Link>
-            )}
-            <span className="text-xs sm:text-sm text-slate-500">
-              {post.category} <span className="mx-1 opacity-30">•</span> {formatDateTime(post.createdAt)}
-            </span>
           </div>
         </div>
 
@@ -294,7 +298,7 @@ export default function PostCard({ post, showToast, isSinglePost }) {
           </div>
         ) : (
           <div className="max-h-[60vh] md:max-h-[500px] overflow-y-auto pr-3 -mr-3">
-            <p className={`text-slate-900 whitespace-pre-wrap text-justify break-words transition-all ${getTextSizeClass(post.text)}`}>
+            <p className={`text-slate-900 whitespace-pre-wrap text-justify break-words break-all transition-all ${getTextSizeClass(post.text)}`}>
               {post.text}
             </p>
           </div>

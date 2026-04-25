@@ -5,6 +5,7 @@ import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy, onSnapshot,
 import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import AdminExamEditor from '../../components/Exam/AdminExamEditor';
+import AdminFrameworkManager from '../../components/Admin/AdminFrameworkManager';
 
 import { publishQuestionToFAQ, deleteUserQuestion, getResultsReleaseStatus, setResultsReleaseStatus, getUserProfile } from '../../services/firebaseServices';
 
@@ -53,10 +54,6 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
   const [scholarshipAmount, setScholarshipAmount] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
 
-  const [newSubject, setNewSubject] = useState("");
-  const [subjectsList, setSubjectsList] = useState([]);
-  const [isFetchingDef, setIsFetchingDef] = useState(false);
-
   const [usersList, setUsersList] = useState([]);
   const [isFetchingUsers, setIsFetchingUsers] = useState(false);
 
@@ -80,15 +77,6 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
   if (!isAdmin) {
     return <Navigate to="/" />;
   }
-
-  // Fetch Subjects (Real-time)
-  useEffect(() => {
-    const q = query(collection(db, "subjects"), orderBy("timestamp", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setSubjectsList(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    });
-    return () => unsubscribe();
-  }, []);
 
   // 🌟 FIX: Fetch Users (Real-time)
   useEffect(() => {
@@ -237,69 +225,6 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
     }
   };
 
-  // Add Subject (Wikipedia Fetch)
-  const handleAddSubject = async () => {
-    if (!newSubject.trim()) {
-      showToast("Please enter a subject name.", false);
-      return;
-    }
-
-    setIsFetchingDef(true);
-    let definition = "";
-    let term = newSubject.trim();
-
-    const getWikiDef = async (searchWord) => {
-      try {
-        const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchWord)}&utf8=&format=json&origin=*`;
-        const searchRes = await fetch(searchUrl);
-        const searchData = await searchRes.json();
-
-        if (searchData.query && searchData.query.search.length > 0) {
-          const exactTitle = searchData.query.search[0].title;
-          const summaryUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&redirects=1&titles=${encodeURIComponent(exactTitle)}&format=json&origin=*`;
-          const summaryRes = await fetch(summaryUrl);
-          const summaryData = await summaryRes.json();
-
-          const pages = summaryData.query.pages;
-          const pageId = Object.keys(pages)[0];
-
-          if (pageId !== "-1" && pages[pageId].extract) {
-            return pages[pageId].extract.replace(/\n/g, ' ').trim();
-          }
-        }
-        return null;
-      } catch (error) {
-        return null;
-      }
-    };
-
-    try {
-      definition = await getWikiDef(term);
-      if (!definition) definition = `${term} is a significant field of study. (Definition unavailable).`;
-
-      await addDoc(collection(db, "subjects"), { name: term, definition: definition, timestamp: Date.now() });
-      showToast(`Subject Added: ${term}`);
-      setNewSubject("");
-    } catch (err) {
-      showToast("Error saving subject.", false);
-    } finally {
-      setIsFetchingDef(false);
-    }
-  };
-
-  // Delete Subject (Custom Modal)
-  const handleDeleteSubject = (id, name) => {
-    showConfirm(`Are you sure you want to remove '${name}' from the subjects list?`, async () => {
-      try {
-        await deleteDoc(doc(db, "subjects", id));
-        showToast("Subject removed.");
-      } catch (err) {
-        showToast("Error deleting subject.", false);
-      }
-    });
-  };
-
-  // Export CSV (Custom Alert)
   const handleExportCsv = () => {
     if (donations.length === 0) return showAlert("No donation records available to export.");
 
@@ -788,68 +713,10 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
           {activeTab === 'subjects' && (
             <div className="animate-fade-in space-y-6">
               <div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2">Learning Subjects</h1>
-                <p className="text-sm text-slate-600">Manage and organize course materials</p>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2">Knowledge Framework</h1>
+                <p className="text-sm text-slate-600">Manage the philosophical scales and subjects</p>
               </div>
-
-              <div className="bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl p-5 sm:p-6 lg:p-8">
-                <p className="text-xs sm:text-sm text-slate-600 mb-4">Enter a topic and the system will fetch its definition automatically from Wikipedia.</p>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <input 
-                    type="text" 
-                    placeholder="Type subject (e.g. Quantum Physics)" 
-                    value={newSubject} 
-                    onChange={(e) => setNewSubject(e.target.value)} 
-                    className="flex-1 border border-slate-300 bg-white rounded-lg py-3 px-4 text-sm text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition-all"
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddSubject()}
-                  />
-                  <button 
-                    onClick={handleAddSubject} 
-                    disabled={isFetchingDef} 
-                    className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 active:scale-95 text-white px-6 sm:px-8 py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {isFetchingDef ? (
-                      <>
-                        <i className="fa-solid fa-spinner fa-spin"></i>
-                        <span className="hidden sm:inline">Fetching...</span>
-                      </>
-                    ) : (
-                      <>
-                        <i className="fa-solid fa-plus"></i>
-                        Add Subject
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {subjectsList.length === 0 ? (
-                  <div className="col-span-full text-center py-12 bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl">
-                    <i className="fa-solid fa-book text-4xl text-slate-300 mb-3 block"></i>
-                    <p className="text-sm text-slate-500">No subjects added yet. Start by adding one.</p>
-                  </div>
-                ) : (
-                  subjectsList.map(sub => (
-                    <div 
-                      key={sub.id} 
-                      className="bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl p-5 sm:p-6 hover:border-teal-300 hover:shadow-md transition-all group flex flex-col"
-                    >
-                      <div className="flex justify-between items-start gap-3 mb-3">
-                        <h5 className="text-sm sm:text-base font-semibold text-slate-900 flex-1">{sub.name}</h5>
-                        <button 
-                          onClick={() => handleDeleteSubject(sub.id, sub.name)}
-                          className="h-9 w-9 bg-white border border-slate-200 text-slate-400 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-500 rounded-lg flex items-center justify-center transition-all shrink-0 opacity-0 group-hover:opacity-100"
-                          title="Delete"
-                        >
-                          <i className="fa-solid fa-trash-can text-sm"></i>
-                        </button>
-                      </div>
-                      <p className="text-xs sm:text-sm text-slate-600 line-clamp-4 flex-1 leading-relaxed">{sub.definition}</p>
-                    </div>
-                  ))
-                )}
-              </div>
+              <AdminFrameworkManager showToast={showToast} />
             </div>
           )}
 

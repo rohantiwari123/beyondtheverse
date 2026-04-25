@@ -16,6 +16,7 @@ const LoginPage = lazy(() => import('./pages/Auth/LoginPage'));
 const HomePage = lazy(() => import('./pages/Home/HomePage'));
 const DonationPage = lazy(() => import('./pages/Donation/DonationPage'));
 const AboutPage = lazy(() => import('./pages/About/AboutPage'));
+const FrameworkPage = lazy(() => import('./pages/Framework/FrameworkPage'));
 const ProfilePage = lazy(() => import('./pages/Profile/ProfilePage')); 
 const SinglePostPage = lazy(() => import('./pages/Community/SinglePostPage'));
 const CommunityPage = lazy(() => import('./pages/Community/CommunityPage'));
@@ -98,8 +99,8 @@ export default function App() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/donate" element={<DonationPage showToast={showToast} onBack={() => navigate('/')} />} />
             <Route path="/community" element={<CommunityPage showToast={showToast} />} />
-          
-            <Route path="/post/:postId" element={<SinglePostPage showToast={showToast} />} /> 
+            <Route path="/framework" element={<FrameworkPage showToast={showToast} />} />
+            <Route path="/post/:postId" element={<SinglePostPage showToast={showToast} />} />  
             
             {/* Exam Routes */}
             <Route path="/exam" element={<ExamPage showToast={showToast} />} />

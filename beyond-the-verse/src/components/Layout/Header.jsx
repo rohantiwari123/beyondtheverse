@@ -24,6 +24,7 @@ export default function Header() {
     { name: 'Library', path: '/library', icon: 'fa-box-archive' },
     { name: 'Assessments', path: '/exam', icon: 'fa-file-signature' },
     { name: 'Community', path: '/community', icon: 'fa-users' },
+    { name: 'Framework', path: '/framework', icon: 'fa-network-wired' },
     { name: 'About', path: '/about', icon: 'fa-circle-info' },
     { name: 'Donate', path: '/donate', icon: 'fa-hand-holding-heart' }
   ];

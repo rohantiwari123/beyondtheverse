@@ -165,7 +165,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
       {!isMainComment && parentInteraction && (
         <div className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 mb-2 pl-12">
           <i className="fa-solid fa-reply rotate-180"></i>
-          To <Link to={`/profile/${parentInteraction.userId}`} className="text-teal-700 hover:underline">@{parentInteraction.userId === userId ? userName : parentInteraction.userName}</Link>
+          Replying to <Link to={`/profile/${parentInteraction.userId}`} className="text-teal-700 hover:underline">@{parentInteraction.userUsername || parentInteraction.userName?.toLowerCase().replace(/[^a-z0-9]/g, '')}</Link>
         </div>
       )}
 
@@ -185,41 +185,38 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between mb-0.5 relative">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2 flex-wrap">
-
-                {/* 🌟 FIX: Naam par Link lagaya */}
+            <div className="flex flex-col mb-1.5">
+              <div className="flex items-baseline gap-1.5 sm:gap-2 flex-wrap">
                 <Link to={`/profile/${interaction.userId}`}>
-                  <span className={`${isMainComment ? 'text-sm sm:text-base font-semibold' : 'text-xs sm:text-sm font-semibold'} transition-colors ${nameColorClass}`}>
+                  <span className={`${isMainComment ? 'text-sm sm:text-base font-bold' : 'text-[13px] sm:text-sm font-bold'} transition-colors ${nameColorClass}`}>
                     {currentDisplayName}
                   </span>
                 </Link>
-
-                {isAdminBadge ? (
-                  <span className="bg-amber-100 text-amber-700 text-[10px] sm:text-xs font-medium uppercase px-1.5 py-0.5 rounded flex items-center gap-1 border border-amber-200 tracking-wide">
-                    ADMIN
-                  </span>
-                ) : null}
-
-                {interaction.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-xs sm:text-sm"></i>}
-
-                <span className={`text-[10px] sm:text-xs font-medium uppercase flex items-center gap-1.5 ${config.color} ${config.bg} border ${config.border} px-2 py-0.5 rounded-md`}>
-                  <i className={config.icon}></i> {config.label}
-                </span>
-
+                {currentDisplayUsername && (
+                  <Link to={`/profile/${interaction.userId}`} className="shrink-0">
+                    <span className="text-[11px] sm:text-xs text-slate-500 hover:text-teal-600 hover:underline">
+                      @{currentDisplayUsername}
+                    </span>
+                  </Link>
+                )}
+                <span className="text-slate-300 text-[10px] sm:text-xs hidden sm:inline">•</span>
                 <span className="text-[10px] sm:text-xs text-slate-500 whitespace-nowrap">
-                  • {formatDateTime(interaction.timestamp)}
+                  {formatDateTime(interaction.timestamp)}
                   {interaction.isEdited && <span className="ml-1 italic opacity-70">(Edited)</span>}
                 </span>
               </div>
-              
-              {currentDisplayUsername && (
-                <Link to={`/profile/${interaction.userId}`} className="w-max -mt-0.5 mb-1">
-                  <span className="text-[10px] sm:text-xs text-teal-600 hover:underline font-medium">
-                    @{currentDisplayUsername}
+
+              <div className="flex items-center gap-1.5 flex-wrap mt-0.5 sm:mt-1">
+                <span className={`text-[9px] sm:text-[10px] font-semibold uppercase flex items-center gap-1 ${config.color} ${config.bg} border ${config.border} px-1.5 py-0.5 rounded-md tracking-wide`}>
+                  <i className={config.icon}></i> {config.label}
+                </span>
+                {isAdminBadge ? (
+                  <span className="bg-amber-50 text-amber-700 text-[9px] sm:text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-md border border-amber-200 tracking-wide">
+                    ADMIN
                   </span>
-                </Link>
-              )}
+                ) : null}
+                {interaction.isPinned && <i className="fa-solid fa-thumbtack text-teal-500 text-[10px] sm:text-xs ml-0.5"></i>}
+              </div>
             </div>
 
             <button onClick={() => setShowMenu(!showMenu)} className="text-slate-400 hover:text-slate-900 p-1 -mr-1 transition-colors relative z-10">
@@ -258,7 +255,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
               </div>
             </div>
           ) : (
-            <p className={`text-slate-700 whitespace-pre-wrap text-justify break-words ${isMainComment ? 'text-sm sm:text-base mt-1' : 'text-xs sm:text-sm mt-0.5'} mb-1`}>
+            <p className={`text-slate-700 whitespace-pre-wrap text-justify break-words break-all ${isMainComment ? 'text-sm sm:text-base mt-1' : 'text-xs sm:text-sm mt-0.5'} mb-1`}>
               {formatMessage(interaction.text)}
             </p>
           )}
@@ -286,7 +283,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
                   e.target.style.height = 'auto';
                   e.target.style.height = e.target.scrollHeight + 'px';
                 }}
-                placeholder="Add your reply..."
+                placeholder={`Replying to @${currentDisplayUsername}...`}
                 className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-slate-400 outline-none resize-none overflow-hidden mb-2"
                 rows="2" autoFocus
               />
