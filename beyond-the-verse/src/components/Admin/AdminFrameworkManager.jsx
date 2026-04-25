@@ -6,7 +6,7 @@ export default function AdminFrameworkManager({ showToast }) {
   const [scales, setScales] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Form states for Scale
+  // Form states for Category (Database me abhi bhi 'scale' hi rahega taaki code break na ho)
   const [editingScaleId, setEditingScaleId] = useState(null);
   const [scaleForm, setScaleForm] = useState({ title: '', description: '', orderNumber: '' });
 
@@ -19,20 +19,19 @@ export default function AdminFrameworkManager({ showToast }) {
     const q = query(collection(db, 'framework_scales'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // Sort in JS to prevent Firebase indexing/assertion errors
       data.sort((a, b) => (a.orderNumber || 0) - (b.orderNumber || 0));
       setScales(data);
       setIsLoading(false);
     }, (error) => {
-      console.error("Error fetching framework scales:", error);
-      showToast("Failed to load framework data.", false);
+      console.error("Error fetching framework data:", error);
+      showToast("Failed to load data.", false);
       setIsLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  // --- Scale Handlers ---
+  // --- Category (Scale) Handlers ---
   const handleSaveScale = async () => {
     if (!scaleForm.title || !scaleForm.orderNumber) {
       showToast("Title and Order Number are required.", false);
@@ -48,29 +47,29 @@ export default function AdminFrameworkManager({ showToast }) {
 
       if (editingScaleId) {
         await updateDoc(doc(db, 'framework_scales', editingScaleId), payload);
-        showToast("Scale updated successfully.");
+        showToast("Category updated successfully.");
       } else {
         payload.subjects = [];
         await addDoc(collection(db, 'framework_scales'), payload);
-        showToast("Scale added successfully.");
+        showToast("Category added successfully.");
       }
 
       setEditingScaleId(null);
       setScaleForm({ title: '', description: '', orderNumber: '' });
     } catch (error) {
-      console.error("Error saving scale:", error);
-      showToast("Error saving scale.", false);
+      console.error("Error saving category:", error);
+      showToast("Error saving category.", false);
     }
   };
 
   const handleDeleteScale = async (scaleId) => {
-    if (window.confirm("Are you sure you want to delete this scale?")) {
+    if (window.confirm("Are you sure you want to delete this entire category?")) {
       try {
         await deleteDoc(doc(db, 'framework_scales', scaleId));
-        showToast("Scale deleted.");
+        showToast("Category deleted.");
       } catch (error) {
-        console.error("Error deleting scale:", error);
-        showToast("Error deleting scale.", false);
+        console.error("Error deleting category:", error);
+        showToast("Error deleting category.", false);
       }
     }
   };
@@ -120,7 +119,7 @@ export default function AdminFrameworkManager({ showToast }) {
 
   const handleSaveSubject = async () => {
     if (!subjectForm.subjectName || !subjectForm.mappingRationale) {
-      showToast("Subject Name and Rationale are required.", false);
+      showToast("Subject Name and Explanation are required.", false);
       return;
     }
 
@@ -178,22 +177,22 @@ export default function AdminFrameworkManager({ showToast }) {
 
   return (
     <div className="space-y-8">
-      {/* Add / Edit Scale Form */}
+      {/* Add / Edit Category Form */}
       <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-slate-800 mb-4">{editingScaleId ? 'Edit Scale' : 'Add New Scale'}</h2>
+        <h2 className="text-xl font-bold text-slate-800 mb-4">{editingScaleId ? 'Edit Category' : 'Add New Category'}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Scale Title (e.g. 01. The Physical Fabric)</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Category Title (e.g. Chapter 1: The Physical World)</label>
             <input 
               type="text" 
               value={scaleForm.title} 
               onChange={e => setScaleForm({...scaleForm, title: e.target.value})} 
               className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-200 outline-none"
-              placeholder="Scale Title"
+              placeholder="Category Title"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Order Number</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Display Order (Number)</label>
             <input 
               type="number" 
               value={scaleForm.orderNumber} 
@@ -204,17 +203,17 @@ export default function AdminFrameworkManager({ showToast }) {
           </div>
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Short Description</label>
           <textarea 
             value={scaleForm.description} 
             onChange={e => setScaleForm({...scaleForm, description: e.target.value})} 
             className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-200 outline-none h-24"
-            placeholder="Scale Description"
+            placeholder="What is this category about?"
           />
         </div>
         <div className="flex gap-3">
           <button onClick={handleSaveScale} className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors">
-            {editingScaleId ? 'Update Scale' : 'Add Scale'}
+            {editingScaleId ? 'Update Category' : 'Add Category'}
           </button>
           {editingScaleId && (
             <button onClick={cancelEditScale} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-5 py-2 rounded-lg text-sm font-medium transition-colors">
@@ -224,7 +223,7 @@ export default function AdminFrameworkManager({ showToast }) {
         </div>
       </div>
 
-      {/* Scales List */}
+      {/* Categories List */}
       <div className="space-y-6">
         {scales.map(scale => (
           <div key={scale.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
@@ -275,7 +274,7 @@ export default function AdminFrameworkManager({ showToast }) {
                   </div>
                 ))}
                 {(!scale.subjects || scale.subjects.length === 0) && (
-                  <p className="text-sm text-slate-400 italic">No subjects added to this scale yet.</p>
+                  <p className="text-sm text-slate-400 italic">No subjects added to this category yet.</p>
                 )}
               </div>
             </div>
@@ -307,20 +306,20 @@ export default function AdminFrameworkManager({ showToast }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Mapping Rationale</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Detailed Explanation (Philosophy)</label>
                 <textarea 
                   value={subjectForm.mappingRationale} 
                   onChange={e => setSubjectForm({...subjectForm, mappingRationale: e.target.value})} 
                   className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-200 outline-none h-24"
-                  placeholder="Explain how this subject fits..."
+                  placeholder="Explain how this subject fits into the Beyond the Verse concept..."
                 />
               </div>
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-slate-700">Inquiry Nodes</label>
+                  <label className="block text-sm font-medium text-slate-700">Key Questions / Topics to Explore</label>
                   <button onClick={handleAddInquiryNode} className="text-teal-600 text-sm font-medium hover:text-teal-700 flex items-center gap-1">
-                    <i className="fa-solid fa-plus text-xs"></i> Add Node
+                    <i className="fa-solid fa-plus text-xs"></i> Add Question
                   </button>
                 </div>
                 <div className="space-y-3">
@@ -331,7 +330,7 @@ export default function AdminFrameworkManager({ showToast }) {
                         value={node} 
                         onChange={e => handleInquiryNodeChange(index, e.target.value)} 
                         className="flex-1 border border-slate-300 rounded-lg p-2 text-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-200 outline-none"
-                        placeholder={`Inquiry Node ${index + 1}`}
+                        placeholder={`Question or Topic ${index + 1}`}
                       />
                       <button onClick={() => handleRemoveInquiryNode(index)} className="text-rose-500 hover:bg-rose-50 px-3 rounded-lg border border-transparent transition-colors">
                         <i className="fa-solid fa-trash-can"></i>
