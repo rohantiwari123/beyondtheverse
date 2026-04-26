@@ -88,7 +88,7 @@ export default function App() {
       )}
 
       {/* Main Content Area */}
-      <main className={`relative z-10 w-full ${isStandardLayout ? 'max-w-7xl mx-auto' : ''}`}>
+      <main className={`relative z-10 w-full`}>
         {/* 🌟 PRO FIX 3: Suspense Wrapper 🌟 */}
         {/* Routes को Suspense के अंदर रखना ज़रूरी है ताकि Lazy loading काम कर सके */}
         <Suspense fallback={<PageLoader />}>

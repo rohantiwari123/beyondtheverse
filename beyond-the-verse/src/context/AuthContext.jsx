@@ -19,6 +19,7 @@ export const AuthProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(savedUser?.role === 'admin');
   const [userName, setUserName] = useState(savedUser?.name || ""); 
   const [userUsername, setUserUsername] = useState(savedUser?.username || "");
+  const [userProfilePic, setUserProfilePic] = useState(savedUser?.profilePic || "");
   const [isCheckingAuth, setIsCheckingAuth] = useState(!savedUser);
 
   useEffect(() => {
@@ -36,20 +37,24 @@ export const AuthProvider = ({ children }) => {
               const role = userDoc.data().role || 'client';
               const realName = userDoc.data().name || user.displayName || ""; 
               const realUsername = userDoc.data().username || "";
+              const realProfilePic = userDoc.data().profilePic || user.photoURL || "";
               
               setIsAuthenticated(true);
               setIsAdmin(role === 'admin');
               setUserName(realName); 
               setUserUsername(realUsername);
+              setUserProfilePic(realProfilePic);
               
-              saveLocalUser({ uid: user.uid, role, name: realName, username: realUsername });
+              saveLocalUser({ uid: user.uid, role, name: realName, username: realUsername, profilePic: realProfilePic });
             } else {
               const tempName = user.displayName || ""; 
+              const tempProfilePic = user.photoURL || "";
               setIsAuthenticated(true);
               setIsAdmin(false);
               setUserName(tempName);
               setUserUsername("");
-              saveLocalUser({ uid: user.uid, role: 'client', name: tempName, username: "" });
+              setUserProfilePic(tempProfilePic);
+              saveLocalUser({ uid: user.uid, role: 'client', name: tempName, username: "", profilePic: tempProfilePic });
             }
             setIsCheckingAuth(false);
           }, 
@@ -58,6 +63,7 @@ export const AuthProvider = ({ children }) => {
             // Fallback agar network chala jaye
             setIsAuthenticated(true); 
             setUserName(user.displayName || getLocalUser()?.name || "");
+            setUserProfilePic(user.photoURL || getLocalUser()?.profilePic || "");
             setIsCheckingAuth(false);
           }
         );
@@ -69,6 +75,7 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(false);
         setIsAdmin(false);
         setUserName("");
+        setUserProfilePic("");
         setIsCheckingAuth(false);
         
         // 🧹 Memory Leak roko: Agar user logout ho jaye toh Firestore ko sun-na band karo
@@ -83,11 +90,12 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const login = (role, name, username) => {
+  const login = (role, name, username, profilePic) => {
     setIsAuthenticated(true);
     setIsAdmin(role === 'admin');
     if (name) setUserName(name);
     if (username !== undefined) setUserUsername(username);
+    if (profilePic !== undefined) setUserProfilePic(profilePic);
   };
 
   const logout = async () => {
@@ -98,6 +106,7 @@ export const AuthProvider = ({ children }) => {
     setIsAdmin(false);
     setUserName("");
     setUserUsername("");
+    setUserProfilePic("");
   };
 
   const value = { 
@@ -106,6 +115,7 @@ export const AuthProvider = ({ children }) => {
     isAdmin, 
     userName,
     userUsername, 
+    userProfilePic,
     userId: currentUser?.uid || savedUser?.uid, 
     login, 
     logout 

@@ -8,7 +8,7 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, isAdmin, userName, userId, logout } = useAuth();
+  const { isAuthenticated, isAdmin, userName, userProfilePic, userId, logout } = useAuth();
 
   // Notification States
   const [notifications, setNotifications] = useState([]);
@@ -73,7 +73,7 @@ export default function Header() {
   return (
     <>
       <header className="bg-white/95 backdrop-blur-xl fixed top-0 left-0 right-0 z-40 border-b border-slate-200 w-full overflow-visible">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center">
+        <div className="w-full px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center">
 
           {/* 1. LEFT ZONE: TYPOGRAPHIC LOGO */}
           <div className="flex items-center justify-start min-w-max lg:w-1/4">
@@ -231,14 +231,20 @@ export default function Header() {
 
                   <Link
                     to="/profile"
-                    className={`flex items-center gap-2  ${
-                      isPathActive('/profile') ? "bg-teal-50 text-teal-700 border-teal-200" : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                    className={`flex items-center justify-center w-8 h-8 xl:w-9 xl:h-9 rounded-full transition-all border ${
+                      isPathActive('/profile') ? "bg-teal-50 text-teal-700 border-teal-200" : "border-transparent hover:bg-slate-100"
                     }`}
+                    title="Profile"
                   >
-                    <i className={`fa-solid fa-circle-user text-sm ${isPathActive('/profile') ? 'text-teal-500' : 'text-slate-400'}`}></i>
-                    <span className="text-[11px] xl:text-xs truncate max-w-[50px] xl:max-w-[100px]">
-                      
-                    </span>
+                    {userProfilePic ? (
+                      <img src={userProfilePic} alt="Profile" className="w-full h-full rounded-full object-cover border border-slate-200" />
+                    ) : (
+                      <div className={`w-full h-full rounded-full flex items-center justify-center text-[11px] xl:text-xs font-bold ${
+                        isPathActive('/profile') ? 'bg-teal-500 text-white' : 'bg-slate-200 text-slate-600'
+                      }`}>
+                        {userName?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                   </Link>
                 </>
               )}
@@ -330,10 +336,14 @@ export default function Header() {
               isPathActive('/profile') || isPathActive('/settings') ? 'bg-white border-teal-200 shadow-sm' : 'bg-white border-slate-200'
             }`}>
               <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 flex-1 overflow-hidden px-1">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 border ${
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 border overflow-hidden ${
                   isPathActive('/profile') ? 'bg-teal-500 text-white border-teal-600' : 'bg-slate-100 text-slate-600 border-slate-200'
                 }`}>
-                  {userName?.charAt(0).toUpperCase()}
+                  {userProfilePic ? (
+                    <img src={userProfilePic} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    userName?.charAt(0).toUpperCase()
+                  )}
                 </div>
                 <div className="overflow-hidden flex-1">
                   <p className={`text-[9px] uppercase ${isPathActive('/profile') ? 'text-teal-600' : 'text-slate-400'}`}>Profile</p>
