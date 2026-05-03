@@ -233,7 +233,7 @@ export default function ExamEngine({ showToast }) {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 animate-fade-in pt-4 sm:pt-0">
+      <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 animate-fade-in pt-4 sm:pt-0">
         
         {/* Back Button (Safe Exit) */}
         <div className="px-4 sm:px-0">
@@ -305,7 +305,7 @@ export default function ExamEngine({ showToast }) {
 
       {/* 3. SOLID FIXED FOOTER */}
       <div className="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-200 p-4 sm:p-5 z-50 shadow-[0_-4px_20px_-15px_rgba(0,0,0,0.1)]">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="max-w-3xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-[11px] sm:text-xs text-slate-500 text-center sm:text-left flex items-center gap-2">
             <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
               <i className="fa-solid fa-lock text-[10px]"></i>

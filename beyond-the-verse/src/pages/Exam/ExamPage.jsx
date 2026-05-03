@@ -45,7 +45,14 @@ function CustomModal({ config, onClose }) {
 
 // 🌟 MASTER LOGIC: Clean Box Logic with Refined Typography
 const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmin) => {
-  
+  if (exam.isDraft) {
+    return {
+      type: 'DRAFT',
+      label: 'Draft',
+      color: 'bg-rose-50 text-rose-600 border border-rose-200 font-semibold text-[13px] sm:text-sm'
+    };
+  }
+
   // 1. COMPLETED: High contrast bold mono text
   if (userResult) {
     if (!resultsReleased && !isAdmin) {
@@ -146,7 +153,9 @@ export default function ExamPage({ showToast }) {
       setLoading(true);
       try {
         const examsData = await getAllExams();
-        setExams(examsData);
+        // Filter out draft exams for non-admins
+        const filteredExams = isAdmin ? examsData : examsData.filter(exam => !exam.isDraft);
+        setExams(filteredExams);
         const releaseStatus = await getResultsReleaseStatus();
         setResultsReleased(releaseStatus);
         if (userId) {
@@ -185,7 +194,8 @@ export default function ExamPage({ showToast }) {
       )}
 
       {/* Main Wrapper */}
-      <div className={`max-w-3xl mx-auto px-0 sm:px-6 lg:px-8 animate-fade-in transition-all duration-300 ${!isAuthenticated ? "pointer-events-none opacity-30 select-none" : ""}`}>
+      <div className={`w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in transition-all duration-300 ${!isAuthenticated ? "pointer-events-none opacity-30 select-none" : ""}`}>
+        <div className="w-full max-w-3xl mx-auto">
         
         {/* HEADER */}
         <div className="px-4 sm:px-0 mb-6 sm:mb-8">
@@ -246,6 +256,11 @@ export default function ExamPage({ showToast }) {
                           <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate">
                             {exam.category || 'General'}
                           </span>
+                          {exam.isDraft && (
+                            <span className="text-[10px] font-bold text-rose-600 uppercase tracking-widest bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">
+                              DRAFT
+                            </span>
+                          )}
                           {isAdmin && (
                             <button onClick={() => handleDeleteExam(exam.id, exam.title)} className="text-zinc-300 hover:text-red-500 transition-colors duration-200 ml-1">
                               <i className="fa-solid fa-trash-can text-[11px]"></i>
@@ -316,6 +331,7 @@ export default function ExamPage({ showToast }) {
           )}
         </div>
 
+        </div>
       </div>
     </div>
   );

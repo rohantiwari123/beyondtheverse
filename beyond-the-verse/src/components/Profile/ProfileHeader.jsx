@@ -49,7 +49,7 @@ export default function ProfileHeader({ profileData, isMyProfile = true }) {
         if (!file) return;
 
         if (!file.type.startsWith("image/")) {
-            alert("Please upload an image file!");
+            showAlert("Please upload an image file!", "warning");
             return;
         }
 
@@ -62,7 +62,7 @@ export default function ProfileHeader({ profileData, isMyProfile = true }) {
             setImagePreview(newPhotoURL);
         } catch (error) {
             console.error(error);
-            alert("Failed to update profile picture. Please try again.");
+            showAlert("Failed to update profile picture. Please try again.", "error");
         } finally {
             setIsUploading(false);
         }

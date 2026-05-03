@@ -32,43 +32,45 @@ export default function HomePage({ onNavigateToDonate }) {
 
       {/* 🌟 SECTION 1: HERO */}
       {/* 'h-screen' और 'snap-start' से यह carousel की तरह काम करेगा */}
-      <section className="relative w-full h-screen flex flex-col justify-center items-center text-center px-4 sm:px-8 z-10 snap-start shrink-0">
+      <section className="relative w-full h-screen flex flex-col justify-center items-center px-4 sm:px-8 z-10 snap-start shrink-0">
         
         <HeroBackground />
 
-        {/* Welcome Text */}
-        <div className="animate-fade-up px-6 py-2 bg-white/60 backdrop-blur-md border border-slate-200/80 rounded-full text-[10px] sm:text-xs font-bold text-teal-700 uppercase tracking-[0.3em] mb-8 shadow-sm relative z-20">
-          Welcome to BTVerse
+        <div className="max-w-4xl mx-auto text-center flex flex-col items-center justify-center">
+          {/* Welcome Text */}
+          <div className="animate-fade-up px-6 py-2 bg-white/60 backdrop-blur-md border border-slate-200/80 rounded-full text-[10px] sm:text-xs font-bold text-teal-700 uppercase tracking-[0.3em] mb-8 shadow-sm relative z-20">
+            Welcome to BTVerse
+          </div>
+          
+          {/* Logo Structure */}
+          <h1 className="animate-fade-up delay-100 flex flex-col items-center justify-center gap-1 sm:gap-2 select-none relative z-20">
+            <span className="text-6xl sm:text-8xl lg:text-[8rem] text-slate-900 font-cabinet font-black tracking-tighter leading-[0.9]">
+              Beyond
+            </span>
+            <span className="text-4xl sm:text-6xl lg:text-[5rem] lowercase text-slate-400 font-serif italic font-bold tracking-tight leading-[0.9]">
+              The
+            </span>
+            <span className="text-6xl sm:text-8xl lg:text-[8rem] text-teal-600 font-cabinet font-black tracking-tighter leading-[0.9]">
+              Verse
+            </span>
+          </h1>
+          
+          {/* Subtitle */}
+          <p className="animate-fade-up delay-200 mt-10 text-slate-500 text-[10px] sm:text-[12px] uppercase tracking-[0.4em] font-semibold relative z-20">
+            Science <span className="mx-2 sm:mx-3 text-slate-300">•</span> Philosophy <span className="mx-2 sm:mx-3 text-slate-300">•</span> Life
+          </p>
+          
+          {/* Button */}
+          <button 
+            onClick={() => {
+              const nextSection = document.getElementById('content-section');
+              nextSection?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="animate-fade-up delay-300 mt-12 px-8 py-3.5 bg-slate-950 text-white rounded-full text-[11px] sm:text-xs font-semibold hover:bg-teal-600 active:scale-95 transition-all duration-300 flex items-center gap-3 relative z-30"
+          >
+            Explore Protocol <i className="fa-solid fa-arrow-down"></i>
+          </button>
         </div>
-        
-        {/* Logo Structure */}
-        <h1 className="animate-fade-up delay-100 flex flex-col items-center justify-center gap-1 sm:gap-2 select-none relative z-20">
-          <span className="text-6xl sm:text-8xl lg:text-[8rem] text-slate-900 font-cabinet font-black tracking-tighter leading-[0.9]">
-            Beyond
-          </span>
-          <span className="text-4xl sm:text-6xl lg:text-[5rem] lowercase text-slate-400 font-serif italic font-bold tracking-tight leading-[0.9]">
-            The
-          </span>
-          <span className="text-6xl sm:text-8xl lg:text-[8rem] text-teal-600 font-cabinet font-black tracking-tighter leading-[0.9]">
-            Verse
-          </span>
-        </h1>
-        
-        {/* Subtitle */}
-        <p className="animate-fade-up delay-200 mt-10 text-slate-500 text-[10px] sm:text-[12px] uppercase tracking-[0.4em] font-semibold relative z-20">
-          Science <span className="mx-2 sm:mx-3 text-slate-300">•</span> Philosophy <span className="mx-2 sm:mx-3 text-slate-300">•</span> Life
-        </p>
-        
-        {/* Button */}
-        <button 
-          onClick={() => {
-            const nextSection = document.getElementById('content-section');
-            nextSection?.scrollIntoView({ behavior: 'smooth' });
-          }}
-          className="animate-fade-up delay-300 mt-12 px-8 py-3.5 bg-slate-950 text-white rounded-full text-[11px] sm:text-xs font-semibold hover:bg-teal-600 active:scale-95 transition-all duration-300 flex items-center gap-3 relative z-30"
-        >
-          Explore Protocol <i className="fa-solid fa-arrow-down"></i>
-        </button>
       </section>
 
       {/* 🌟 SECTION 2: STORY SECTION */}

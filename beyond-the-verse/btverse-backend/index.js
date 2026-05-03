@@ -48,6 +48,20 @@ app.post('/api/send-notification', async (req, res) => {
   }
 });
 
+// 🌟 SESSION MANAGEMENT API ROUTE
+app.post('/api/revoke-sessions', async (req, res) => {
+  const { uid } = req.body;
+  if (!uid) return res.status(400).json({ error: "UID is missing!" });
+  
+  try {
+    await admin.auth().revokeRefreshTokens(uid);
+    res.status(200).json({ success: true, message: "All sessions revoked successfully!" });
+  } catch (error) {
+    console.error("Error revoking sessions:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // 🌟 VERCEL SPECIFIC: Export the app instead of app.listen
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 3000;

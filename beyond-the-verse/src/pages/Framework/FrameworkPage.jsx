@@ -59,7 +59,7 @@ export default function FrameworkPage({ showToast }) {
         {currentPageIndex === -1 ? (
           <div>
             {/* 📖 Book Cover / Title Page */}
-            <div className="pt-32 pb-24 px-6 text-center border-b border-slate-300/50 max-w-4xl mx-auto">
+            <div className="pt-32 pb-24 px-6 text-center border-b border-slate-300/50 max-w-3xl mx-auto">
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-slate-500 mb-6">
                 {intro?.pageLabel || 'Beyond The Verse'}
               </p>
@@ -73,7 +73,7 @@ export default function FrameworkPage({ showToast }) {
 
             {/* Intro Main Body & Thesis */}
             {intro && (intro.mainBody || intro.coreThesis) && (
-              <div className="max-w-4xl mx-auto px-6 sm:px-12 mt-16 mb-20 pb-16">
+              <div className="max-w-3xl mx-auto px-6 sm:px-12 mt-16 mb-20 pb-16">
                 {intro.mainBody && (
                   <div className="text-lg text-slate-700 leading-[1.8] mb-12 text-justify hyphens-auto whitespace-pre-wrap">
                     {intro.mainBody}
@@ -89,7 +89,7 @@ export default function FrameworkPage({ showToast }) {
           </div>
         ) : (
           scales.length > 0 && scales[currentPageIndex] && (
-            <div className="w-full max-w-4xl mx-auto px-6 sm:px-12 mt-20 mb-20">
+            <div className="w-full max-w-3xl mx-auto px-6 sm:px-12 mt-20 mb-20">
               <article className="relative">
                 
                 {/* Header */}
@@ -184,7 +184,7 @@ export default function FrameworkPage({ showToast }) {
       </div>
 
       {/* 📖 Navigation Bar */}
-      <div className="max-w-4xl mx-auto w-full px-6 pb-12 pt-8 border-t border-slate-200/60 mt-auto">
+      <div className="max-w-3xl mx-auto w-full px-6 pb-12 pt-8 border-t border-slate-200/60 mt-auto">
         <div className="flex items-center justify-between">
           <button 
             onClick={() => {

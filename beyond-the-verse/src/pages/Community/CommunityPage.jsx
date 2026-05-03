@@ -111,7 +111,11 @@ export default function CommunityPage({ showToast }) {
       )}
 
       {/* 🌟 WRAPPER: Agar login nahi hai to page blur aur click disable ho jayega */}
-      <div className={`max-w-3xl mx-auto w-full flex flex-col gap-3 sm:gap-4 md:gap-6 px-0 sm:px-4 md:px-6 lg:px-0 transition-all duration-300 ${!isAuthenticated ? "pointer-events-none opacity-30 select-none" : ""}`}>
+      <div className={`w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-300 ${!isAuthenticated ? "pointer-events-none opacity-30 select-none" : ""}`}>
+        <div className="flex justify-center w-full">
+          {/* CENTER COLUMN: Feed */}
+          <div className="w-full max-w-2xl flex flex-col gap-3 sm:gap-4 md:gap-6">
+
         
         {/* POST COMPOSER (Sirf tab render hoga jab user logged in ho) */}
         {isAuthenticated && (
@@ -198,6 +202,8 @@ export default function CommunityPage({ showToast }) {
           )}
         </div>
 
+          </div>
+        </div>
       </div>
     </div>
   );

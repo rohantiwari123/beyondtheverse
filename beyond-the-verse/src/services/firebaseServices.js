@@ -272,6 +272,17 @@ export const saveExamToDb = async (examData) => {
   }
 };
 
+export const updateExamInDb = async (examId, examData) => {
+  try {
+    const docRef = doc(db, "exams", examId);
+    await updateDoc(docRef, examData);
+    return true;
+  } catch (error) {
+    console.error("Error updating exam: ", error);
+    throw error;
+  }
+};
+
 export const getExamById = async (examId) => {
   const docRef = doc(db, "exams", examId);
   const docSnap = await getDoc(docRef);

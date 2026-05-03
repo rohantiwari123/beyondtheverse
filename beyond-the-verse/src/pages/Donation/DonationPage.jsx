@@ -47,7 +47,7 @@ export default function DonationPage({ showToast, onBack }) {
     <div className="w-full min-h-screen bg-zinc-50 pb-24 pt-4 sm:pt-10 selection:bg-zinc-200 selection:text-zinc-900 font-sans relative">
       
       {/* Main Wrapper */}
-      <div className="max-w-6xl mx-auto px-0 sm:px-6 lg:px-8 animate-fade-in transition-all duration-300">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in transition-all duration-300">
         
         {/* HEADER */}
         <div className="px-4 sm:px-0 mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">

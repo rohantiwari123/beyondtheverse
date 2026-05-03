@@ -46,9 +46,9 @@ export default function SinglePostPage({ showToast }) {
 
   return (
     <div className="w-full min-h-screen bg-slate-50 pb-20 pt-6 sm:pt-10">
-      <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8 animate-fade-in">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8 animate-fade-in">
         
-        <div className="px-4 sm:px-6 lg:px-8">
+        <div>
           <div 
             onClickCapture={handleBackIntercept} 
             className="inline-block cursor-pointer w-max"
@@ -57,17 +57,21 @@ export default function SinglePostPage({ showToast }) {
           </div>
         </div>
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-24">
-            <i className="fa-solid fa-circle-notch fa-spin text-3xl text-teal-500 mb-4"></i>
-            <span className="text-[10px] text-slate-400">Loading Thought...</span>
+        <div className="flex justify-center w-full">
+          <div className="w-full max-w-2xl">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-24">
+                <i className="fa-solid fa-circle-notch fa-spin text-3xl text-teal-500 mb-4"></i>
+                <span className="text-[10px] text-slate-400">Loading Thought...</span>
+              </div>
+            ) : post ? (
+              <div className="animate-fade-in-up">
+                {/* 🌟 3. isSinglePost={true} pass kiya taaki comments auto-open ho sakein */}
+                <PostCard post={post} showToast={showToast} isSinglePost={true} />
+              </div>
+            ) : null}
           </div>
-        ) : post ? (
-          <div className="px-0 sm:px-6 lg:px-8 animate-fade-in-up">
-            {/* 🌟 3. isSinglePost={true} pass kiya taaki comments auto-open ho sakein */}
-            <PostCard post={post} showToast={showToast} isSinglePost={true} />
-          </div>
-        ) : null}
+        </div>
 
       </div>
     </div>

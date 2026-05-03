@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { formatDateTime } from '../../utils/dateFormatter';
 import UserAvatar from '../common/UserAvatar';
+import ConfirmModal from '../common/ConfirmModal';
 import { Link } from 'react-router-dom'; // 🌟 Naya Import (Profile par bhejne ke liye)
 
 // 🌟 Real Service Imports
@@ -24,6 +25,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
 
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editText, setEditText] = useState(interaction.text);
 
   const isOwner = interaction.userId === userId;
@@ -80,7 +82,6 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
   const parentInteraction = allInteractions?.find(i => (i.id || i.timestamp) === interaction.parentId);
 
   const handleDeleteComment = async () => {
-    if (!window.confirm("Delete this reflection?")) return;
     try {
       await deleteCommentInteraction(post.id, post.interactions, targetId, interaction.parentId, interaction.type, userId);
       showToast("Comment deleted.");
@@ -229,7 +230,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
                 {(isOwner || isAdmin) && (
                   <>
                     {isOwner && <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50">Edit</button>}
-                    <button onClick={handleDeleteComment} className="w-full text-left px-4 py-2 text-xs text-rose-600 hover:bg-rose-50">Delete</button>
+                    <button onClick={() => setShowDeleteModal(true)} className="w-full text-left px-4 py-2 text-xs text-rose-600 hover:bg-rose-50">Delete</button>
                   </>
                 )}
                 {!isOwner && <button onClick={() => { showToast("Reported"); setShowMenu(false) }} className="w-full text-left px-4 py-2 text-xs text-amber-600 hover:bg-amber-50">Report</button>}
@@ -302,6 +303,17 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
           )}
         </div>
       </div>
+
+      <ConfirmModal 
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={() => {
+          setShowDeleteModal(false);
+          handleDeleteComment();
+        }}
+        title="Delete Reflection?"
+        message="This action cannot be undone. Are you sure you want to permanently remove this thought?"
+      />
     </div>
   );
 }

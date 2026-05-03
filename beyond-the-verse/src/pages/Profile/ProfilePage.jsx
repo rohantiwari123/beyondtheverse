@@ -1,35 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom"; 
 import { useAuth } from "../../context/AuthContext";
-import {
-  getUserPosts,
-  getUserBookmarkedPosts,
-  getUserExamResults,
-  getUserProfile,
-  getAllExams, // 🌟 NAYA IMPORT: Absent exams calculate karne ke liye
-  getResultsReleaseStatus
-} from "../../services/firebaseServices";
+import { getUserProfile, getUserPosts, getUserBookmarkedPosts, getUserExamResults, getAllExams, getResultsReleaseStatus } from '../../services/firebaseServices';
 
 // Components
 import ProfileHeader from "../../components/Profile/ProfileHeader";
 import PostCard from "../../components/Community/PostCard";
 import BackButton from "../../components/common/BackButton";
 
-export default function ProfilePage() {
-  const { id } = useParams(); 
+export default function ProfilePage({ showToast }) {
+  const { id } = useParams();
   const { currentUser, userId } = useAuth();
 
   const isMyProfile = !id || id === userId;
   const targetUserId = isMyProfile ? userId : id;
 
   const [activeTab, setActiveTab] = useState("posts");
-  const [profileData, setProfileData] = useState(null); 
+  const [profileData, setProfileData] = useState(null);
 
   // Data States
   const [myPosts, setMyPosts] = useState([]);
   const [savedPosts, setSavedPosts] = useState([]);
   const [examResults, setExamResults] = useState([]);
-  const [allExams, setAllExams] = useState([]); 
+  const [allExams, setAllExams] = useState([]);
   const [resultsReleased, setResultsReleased] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -67,8 +60,6 @@ export default function ProfilePage() {
     fetchProfileData();
   }, [targetUserId, isMyProfile, userId]);
 
-  const showToast = (msg) => alert(msg);
-
   if (!currentUser) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
@@ -100,7 +91,8 @@ export default function ProfilePage() {
   });
 
   return (
-    <section className="w-full max-w-4xl mx-auto py-4 sm:py-12 animate-fade-in font-sans">
+    <section className="w-full max-w-7xl mx-auto py-4 sm:py-12 animate-fade-in font-sans">
+      <div className="w-full max-w-3xl mx-auto">
 
       <div className="px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
         <BackButton to={-1} label="Back" />
@@ -271,6 +263,7 @@ export default function ProfilePage() {
             )}
           </>
         )}
+      </div>
       </div>
     </section>
   );

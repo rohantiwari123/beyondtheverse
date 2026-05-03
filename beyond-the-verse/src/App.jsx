@@ -10,6 +10,7 @@ import { useAuth } from './context/AuthContext';
 import Header from './components/Layout/Header';
 import Toast from './components/common/Toast';
 import ExamResult from './components/Exam/ExamResult';
+
 // 🌟 PRO FIX 1: Code Splitting (Lazy Loading) 🌟
 // अब पेजेस सिर्फ तभी लोड होंगे जब यूज़र उनके लिंक पर क्लिक करेगा
 const LoginPage = lazy(() => import('./pages/Auth/LoginPage'));
@@ -121,7 +122,7 @@ export default function App() {
 
             <Route path="/settings" element={<SettingsPage showToast={showToast} />} />
             <Route path="/library" element={<LibraryPage />} />
-            <Route path="/profile/:id" element={<ProfilePage />} />
+            <Route path="/profile/:id" element={<ProfilePage showToast={showToast} />} />
             
             
             {/* Fallback Route */}

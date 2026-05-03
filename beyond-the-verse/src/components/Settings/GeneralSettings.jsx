@@ -247,7 +247,7 @@ export default function GeneralSettings() {
     );
 
     return (
-        <div className="w-full max-w-4xl animate-fade-in space-y-6 pt-2">
+        <div className="w-full max-w-3xl animate-fade-in space-y-6 pt-2">
             
             {message.text && (
                 <div className={`p-4 rounded-xl text-sm font-medium flex items-center gap-3 animate-fade-in-up ${message.type === 'success' ? 'bg-teal-50 text-teal-800 border border-teal-100' : 'bg-rose-50 text-rose-800 border border-rose-100'}`}>

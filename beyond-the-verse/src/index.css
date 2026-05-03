@@ -48,3 +48,4 @@
 /* Ninja Mode: Hide Google Translate Top Bar */
 .skiptranslate > iframe { display: none !important; }
 body { top: 0 !important; position: static !important; }
+

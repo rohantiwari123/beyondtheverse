@@ -353,7 +353,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
 
         {/* 🌟 MAIN CONTENT AREA */}
         <div className="flex-1 w-full overflow-hidden">
-          <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 animate-fade-in">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 animate-fade-in">
 
           {/* TAB: ACADEMY */}
           {activeTab === 'academy' && (

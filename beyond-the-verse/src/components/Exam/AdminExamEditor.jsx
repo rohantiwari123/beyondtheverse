@@ -5,7 +5,7 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css'; 
 
 // Services
-import { saveExamToDb, getAdminCategories, saveAdminCategories } from '../../services/firebaseServices';
+import { saveExamToDb, updateExamInDb, getAllExams, getAdminCategories, saveAdminCategories } from '../../services/firebaseServices';
 
 // ==========================================
 // 🎨 GLOBAL UI THEME (Reusable Styles)
@@ -151,6 +151,43 @@ function CategoryManager({ isOpen, onClose, categories, setCategories, onSelect 
   );
 }
 
+// 4. Drafts Manager Modal
+function DraftManager({ isOpen, onClose, drafts, onLoadDraft }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className={UI_THEME.modalOverlay}>
+      <div className={UI_THEME.modalBackdrop} onClick={onClose}></div>
+      <div className={`${UI_THEME.modalContainer} max-w-lg flex flex-col max-h-[80vh]`}>
+        <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50/50 rounded-t-2xl">
+          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2"><i className="fa-solid fa-file-pen text-rose-600"></i> Load Draft</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-900 transition-colors"><i className="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        
+        <div className="p-6 overflow-y-auto flex-1">
+          <div className="space-y-3">
+            {drafts.map((draft, idx) => (
+              <div key={idx} className="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl group hover:border-teal-300 hover:shadow-sm transition-all cursor-pointer" onClick={() => onLoadDraft(draft)}>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">{draft.title || "Untitled Draft"}</h4>
+                  <p className="text-[11px] text-slate-500 mt-1 uppercase tracking-widest">{draft.category || "Uncategorized"} • {draft.questions?.length || 0} Questions</p>
+                </div>
+                <button className="text-[10px] font-bold uppercase tracking-wider text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 px-4 py-2 rounded-lg transition-colors">Load</button>
+              </div>
+            ))}
+            {drafts.length === 0 && (
+              <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                <i className="fa-solid fa-folder-open text-3xl text-slate-300 mb-3"></i>
+                <p className="text-sm font-medium text-slate-500">No saved drafts found.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ==========================================
 // 🌟 MAIN COMPONENT
 // ==========================================
@@ -170,14 +207,44 @@ export default function AdminExamEditor({ showToast }) {
   const [isSaving, setIsSaving] = useState(false);
   const [categories, setCategories] = useState([]);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [drafts, setDrafts] = useState([]);
+  const [editingExamId, setEditingExamId] = useState(null);
+  const [isDraftsModalOpen, setIsDraftsModalOpen] = useState(false);
 
   useEffect(() => {
-    const loadCategories = async () => {
+    const loadCategoriesAndDrafts = async () => {
       const fetchedCats = await getAdminCategories();
       setCategories(fetchedCats);
+      const fetchedExams = await getAllExams();
+      setDrafts(fetchedExams.filter(exam => exam.isDraft));
     };
-    loadCategories();
+    loadCategoriesAndDrafts();
   }, []);
+
+  const loadDraftIntoEditor = (draft) => {
+    setEditingExamId(draft.id);
+    setExamTitle(draft.title || "");
+    setExamCategory(draft.category || "");
+    if (draft.date) {
+      const parts = draft.date.split(" ");
+      if (parts.length === 3) {
+        setExamDay(parts[0]); setExamMonth(parts[1]); setExamYear(parts[2]);
+      }
+    }
+    if (draft.time) {
+      const parts = draft.time.split(" ");
+      if (parts.length === 2) {
+        const timeParts = parts[0].split(":");
+        if (timeParts.length === 2) {
+          setExamHour(timeParts[0]); setExamMinute(timeParts[1]);
+        }
+        setExamAmPm(parts[1]);
+      }
+    }
+    setQuestions(draft.questions && draft.questions.length > 0 ? draft.questions : [{ id: `q_${Date.now()}`, text: "", options: [{ id: `opt_${Date.now()}_1`, text: "" }, { id: `opt_${Date.now()}_2`, text: "" }], correctOptionIds: [] }]);
+    setIsDraftsModalOpen(false);
+    showToast("Draft loaded into editor");
+  };
 
   const updateAndSaveCategories = async (newCatsArray) => {
     setCategories(newCatsArray); 
@@ -251,9 +318,11 @@ export default function AdminExamEditor({ showToast }) {
     }));
   };
 
-  const handleSaveExam = async () => {
+  const handleSaveExam = async (isDraft = false) => {
     if (!examTitle.trim()) return showAlert("Please enter an Assessment Title.");
     if (!examCategory) return showAlert("Please select a Category.");
+    
+    // Only enforce date/time if not saving as draft (or enforce anyway if needed, let's enforce anyway for consistency, or maybe skip for drafts? Let's keep enforcing to ensure data integrity unless specifically asked otherwise)
     if (!examDay || !examMonth || !examYear) return showAlert("Please select a complete Date.");
     if (!examHour || !examMinute || !examAmPm) return showAlert("Please select a complete Time.");
 
@@ -268,20 +337,32 @@ export default function AdminExamEditor({ showToast }) {
       const formattedDate = `${examDay} ${examMonth} ${examYear}`;
       const formattedTime = `${examHour}:${examMinute} ${examAmPm}`;
 
-      await saveExamToDb({ 
+      const examData = { 
         title: examTitle, 
         category: examCategory, 
         date: formattedDate, 
         time: formattedTime, 
-        questions: questions 
-      });
+        questions: questions,
+        isDraft: isDraft 
+      };
+
+      if (editingExamId) {
+        await updateExamInDb(editingExamId, examData);
+      } else {
+        await saveExamToDb(examData);
+      }
       
-      showToast("Assessment Created Successfully!");
+      showToast(isDraft ? "Draft Saved Successfully!" : "Assessment Published Successfully!");
       
+      // refresh drafts list
+      const fetchedExams = await getAllExams();
+      setDrafts(fetchedExams.filter(exam => exam.isDraft));
+
       setExamTitle(""); setExamCategory("");
       setExamDay(""); setExamMonth(""); setExamYear("");
       setExamHour(""); setExamMinute(""); setExamAmPm("");
       setQuestions([{ id: `q_${Date.now()}`, text: "", options: [{ id: `opt_${Date.now()}_1`, text: "" }, { id: `opt_${Date.now()}_2`, text: "" }], correctOptionIds: [] }]);
+      setEditingExamId(null);
     } catch (error) {
       showAlert("Failed to save. Please check your internet connection and try again.");
     } finally {
@@ -301,15 +382,26 @@ export default function AdminExamEditor({ showToast }) {
         onSelect={setExamCategory} 
       />
 
-      <div className="max-w-4xl mx-auto px-0 sm:px-6 lg:px-8 animate-fade-in">
+      <DraftManager 
+        isOpen={isDraftsModalOpen} 
+        onClose={() => setIsDraftsModalOpen(false)} 
+        drafts={drafts} 
+        onLoadDraft={loadDraftIntoEditor} 
+      />
+
+      <div className="max-w-3xl mx-auto px-0 sm:px-6 lg:px-8 animate-fade-in">
         
         {/* 1. HEADER SECTION */}
         <div className={`${UI_THEME.card} relative mb-6`}>
           <div className="absolute top-0 left-0 w-full h-1 bg-teal-500 sm:rounded-t-2xl"></div>
           
+          <div className="flex justify-end p-4 pb-0">
+            <button onClick={() => setIsDraftsModalOpen(true)} className="text-[10px] font-bold uppercase tracking-widest text-rose-600 hover:text-rose-700 transition-colors bg-rose-50 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-rose-100">
+              <i className="fa-solid fa-file-pen"></i> Load Draft
+            </button>
+          </div>
           
-          
-          <div className="space-y-5">
+          <div className="space-y-5 px-5 sm:px-8 pb-5 sm:pb-8 pt-2">
             <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
               <div className="flex-[2]">
                 <label className={UI_THEME.label}>Assessment Title *</label>
@@ -422,20 +514,29 @@ export default function AdminExamEditor({ showToast }) {
 
       {/* 3. SOLID FIXED FOOTER */}
       <div className="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-200 p-4 sm:p-5 z-50">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="max-w-3xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-[11px] sm:text-xs font-medium text-slate-500 text-center sm:text-left flex items-center gap-2">
             <div className="h-6 w-6 rounded-full bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center shrink-0">
               <i className="fa-solid fa-check-double text-[10px]"></i>
             </div>
             Review all questions and valid targets before saving.
           </div>
-          <button onClick={handleSaveExam} disabled={isSaving} className={`${UI_THEME.btnPrimary} px-8 py-3.5`}>
-            {isSaving ? (
-              <><i className="fa-solid fa-circle-notch fa-spin"></i> Saving...</>
-            ) : (
-              <><i className="fa-solid fa-floppy-disk"></i> Compile Module</>
-            )}
-          </button>
+          <div className="flex gap-3">
+            <button onClick={() => handleSaveExam(true)} disabled={isSaving} className={`${UI_THEME.btnDark} px-6 py-3.5`}>
+              {isSaving ? (
+                <><i className="fa-solid fa-circle-notch fa-spin"></i> Saving...</>
+              ) : (
+                <><i className="fa-solid fa-floppy-disk"></i> Save Draft</>
+              )}
+            </button>
+            <button onClick={() => handleSaveExam(false)} disabled={isSaving} className={`${UI_THEME.btnPrimary} px-8 py-3.5`}>
+              {isSaving ? (
+                <><i className="fa-solid fa-circle-notch fa-spin"></i> Publishing...</>
+              ) : (
+                <><i className="fa-solid fa-paper-plane"></i> Publish</>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 

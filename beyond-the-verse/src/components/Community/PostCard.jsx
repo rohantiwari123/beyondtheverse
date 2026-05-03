@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import CommentBox from './CommentBox';
 import UserAvatar from '../common/UserAvatar';
+import ConfirmModal from '../common/ConfirmModal';
 import { Link } from 'react-router-dom'; // 🌟 Naya Import: Profile par link karne ke liye
 
 // Utils aur Services
@@ -385,40 +386,13 @@ export default function PostCard({ post, showToast, isSinglePost }) {
         </div>
       )}
 
-      {/* ==============================================
-          🌟 CUSTOM DELETE CONFIRMATION MODAL 🌟 
-      ================================================ */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full animate-fade-in-up border border-slate-200 text-center">
-
-            <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-5 mx-auto">
-              <i className="fa-solid fa-trash-can text-2xl"></i>
-            </div>
-
-            <h3 className="text-lg sm:text-xl text-slate-800 mb-2">Delete Thought?</h3>
-            <p className="text-xs sm:text-sm text-slate-500 mb-8">
-              This action cannot be undone. Are you sure you want to permanently remove this thought from the verse?
-            </p>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-4 py-3 rounded-xl text-xs sm:text-sm text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={executeDelete}
-                className="flex-1 px-4 py-3 rounded-xl text-xs sm:text-sm text-white bg-rose-500 hover:bg-rose-600 active:scale-95 transition-all"
-              >
-                Yes, Delete
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
+      <ConfirmModal 
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={executeDelete}
+        title="Delete Thought?"
+        message="This action cannot be undone. Are you sure you want to permanently remove this thought from the verse?"
+      />
 
     </div>
   );

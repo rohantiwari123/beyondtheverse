@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { updateUserSecurityPassword } from '../../services/firebaseServices';
+import { auth, db } from '../../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function SecuritySettings() {
     const [passwords, setPasswords] = useState({ new: '', confirm: '' });
     const [showPassword, setShowPassword] = useState(false); // 🌟 Eye icon toggle
     const [isLoading, setIsLoading] = useState(false);
+    const [isRevoking, setIsRevoking] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
 
     // 🌟 1. DYNAMIC PASSWORD RULES
@@ -45,6 +48,31 @@ export default function SecuritySettings() {
         try {
             await updateUserSecurityPassword(passwords.new);
             setMessage({ type: 'success', text: 'Password updated successfully! 🔒' });
+            
+            // 🌟 SECURITY FEATURE: Send Push Alert on Password Change
+            if (auth.currentUser) {
+                try {
+                    const userRef = doc(db, "users", auth.currentUser.uid);
+                    const userSnap = await getDoc(userRef);
+                    const fcmToken = userSnap.data()?.fcmToken;
+                    
+                    if (fcmToken) {
+                        fetch("https://beyondtheverse.vercel.app/api/send-notification", {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                fcmToken: fcmToken,
+                                title: "Security Alert 🔒",
+                                body: "Your password was just changed. If this wasn't you, reset it immediately.",
+                                link: "/settings"
+                            })
+                        }).catch(err => console.error("FCM Push Error:", err));
+                    }
+                } catch (err) {
+                    console.error("Alert failed:", err);
+                }
+            }
+            
             setPasswords({ new: '', confirm: '' }); // Form clear
             setShowPassword(false);
         } catch (error) {
@@ -169,13 +197,55 @@ export default function SecuritySettings() {
                     <button 
                         type="submit" 
                         // 🌟 BUTTON TAB TAK DISABLED RAHEGA JAB TAK SAB THEEK NA HO
-                        disabled={isLoading || !isPasswordValid || !passwordsMatch || !isConfirming}
+                        disabled={isLoading || !isPasswordValid || !passwordsMatch || !isConfirming || isRevoking}
                         className="px-6 py-3 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 min-w-[160px]"
                     >
                         {isLoading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : 'Update Password'}
                     </button>
                 </div>
             </form>
+
+            {/* 🌟 NEW FEATURE: Session Management */}
+            <div className="mt-8 pt-6 border-t border-slate-200 animate-fade-in-up">
+                <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
+                    <i className="fa-solid fa-laptop-mobile text-slate-400"></i> Active Sessions
+                </h3>
+                <p className="text-xs text-slate-500 mb-4">
+                    If you noticed suspicious activity or left your account logged in on another device, you can log out of all devices (except this one). You may need to log back in.
+                </p>
+                <button 
+                    type="button"
+                    onClick={async () => {
+                        if (!auth.currentUser) return;
+                        if (!window.confirm("Are you sure you want to log out of all other devices?")) return;
+                        
+                        setIsRevoking(true);
+                        try {
+                            const BACKEND_URL = "https://beyondtheverse.vercel.app/api/revoke-sessions";
+                            const res = await fetch(BACKEND_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ uid: auth.currentUser.uid })
+                            });
+                            
+                            if (res.ok) {
+                                setMessage({ type: 'success', text: 'Successfully logged out of all other devices! 🔒' });
+                            } else {
+                                setMessage({ type: 'error', text: 'Failed to log out of other devices.' });
+                            }
+                        } catch (error) {
+                            setMessage({ type: 'error', text: 'Error communicating with server.' });
+                        } finally {
+                            setIsRevoking(false);
+                        }
+                    }}
+                    disabled={isRevoking || isLoading}
+                    className="px-4 py-2.5 bg-rose-50 text-rose-600 hover:bg-rose-100 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-bold rounded-xl transition-colors flex items-center gap-2 w-full sm:w-auto justify-center"
+                >
+                    {isRevoking ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-right-from-bracket"></i>}
+                    Log out of all other devices
+                </button>
+            </div>
         </div>
     );
 }

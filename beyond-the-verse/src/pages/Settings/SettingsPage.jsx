@@ -22,7 +22,7 @@ export default function SettingsPage() {
     }
 
     return (
-        <section className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 animate-fade-in">
+        <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 animate-fade-in">
             
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6 sm:mb-8">
                 <div>
@@ -79,7 +79,7 @@ export default function SettingsPage() {
                 </div>
 
                 {/* 🌟 DYNAMIC CONTENT AREA */}
-                <main className="flex-1 w-full max-w-none md:max-w-4xl">
+                <main className="flex-1 w-full max-w-none md:max-w-3xl">
                     {activeTab === 'general' && <GeneralSettings />}
                     {activeTab === 'privacy' && <PrivacySettings />}
                     {activeTab === 'security' && <SecuritySettings />}

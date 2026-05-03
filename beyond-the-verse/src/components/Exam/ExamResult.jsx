@@ -81,7 +81,7 @@ export default function ExamResult({ showToast }) {
 
   return (
     <div className="w-full min-h-screen bg-slate-50 pb-20 pt-4 sm:pt-10 selection:bg-teal-100 selection:text-teal-900 font-sans">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
         
         <div className="mb-6">
           <BackButton to="/exam" label="Back to Dashboard" />
