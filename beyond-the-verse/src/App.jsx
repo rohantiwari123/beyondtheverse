@@ -26,6 +26,7 @@ const ExamEngine = lazy(() => import('./components/Exam/ExamEngine'));
 const LibraryPage = lazy(() => import('./pages/Library/LibraryPage'));
 const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'));
 const SettingsPage = lazy(() => import('./pages/Settings/SettingsPage'));
+const ResearchPage = lazy(() => import('./components/ResearchPage'));
 
 // 🌟 PRO FIX 2: Global Page Loader 🌟
 // जब तक पेज बैकग्राउंड में डाउनलोड होगा, यूज़र को ये प्रीमियम एनीमेशन दिखेगा
@@ -74,7 +75,7 @@ export default function App() {
     setTimeout(() => setToast({ show: false, message: '', isSuccess: true }), 3500);
   };
 
-  const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin', '/profile', '/settings', '/community'].includes(location.pathname) || location.pathname.startsWith('/post/');
+  const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin', '/profile', '/settings', '/community', '/research'].includes(location.pathname) || location.pathname.startsWith('/post/');
 
   return (
     <div className="relative selection:bg-teal-600 selection:text-white min-h-screen bg-[#f8fafc] text-slate-800 overflow-x-hidden ">      
@@ -122,6 +123,7 @@ export default function App() {
 
             <Route path="/settings" element={<SettingsPage showToast={showToast} />} />
             <Route path="/library" element={<LibraryPage />} />
+            <Route path="/research" element={<ResearchPage />} />
             <Route path="/profile/:id" element={<ProfilePage showToast={showToast} />} />
             
             
