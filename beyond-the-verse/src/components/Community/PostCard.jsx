@@ -174,23 +174,6 @@ export default function PostCard({ post, showToast, isSinglePost }) {
       setReason("");
       setShowComments(true);
 
-      checkSpellingWithAPI(currentReasonText).then(async (mistakes) => {
-        if (mistakes && mistakes.length > 0) {
-          const botReplyData = {
-            id: "bot_" + Date.now().toString(36),
-            parentId: interactionId,
-            userId: "system_bot_001",
-            userName: "Grammar Bot 🤖",
-            type: "support",
-            text: `🤖 **Auto-Bot Alert:** I noticed a few typos in your reflection. Here are some suggestions:`,
-            mistakes: mistakes.slice(0, 5),
-            timestamp: new Date().toISOString(),
-            commentGates: { support: [], counter: [], doubt: [] },
-            isAdminComment: true
-          };
-          await addPostInteraction(post.id, botReplyData);
-        }
-      }).catch(err => console.log("Bot Error:", err));
 
     } catch (e) { showToast("Failed to record.", false); }
     finally { setIsSubmitting(false); }

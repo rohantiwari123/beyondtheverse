@@ -20,7 +20,7 @@ const SingleResearchPage = ({ showToast }) => {
       try {
         const docRef = doc(db, 'researches', researchId);
         const docSnap = await getDoc(docRef);
-        
+
         if (docSnap.exists()) {
           setResearch({ id: docSnap.id, ...docSnap.data() });
         }
@@ -46,45 +46,49 @@ const SingleResearchPage = ({ showToast }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-10 px-4 mt-6">
-      <div className="flex items-center justify-between mb-6">
-        <button 
-          onClick={() => navigate('/research')}
-          className="flex items-center gap-2 px-4 py-2 w-fit bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-teal-600 hover:border-teal-200 transition-colors font-medium text-sm shadow-sm"
-        >
-          <i className="fa-solid fa-arrow-left"></i> Back to Research Hub
-        </button>
-        
-        {isAdmin && research && (
-          <button 
-            onClick={() => setShowDeleteModal(true)}
-            className="flex items-center gap-2 px-4 py-2 w-fit bg-white border border-rose-200 rounded-xl text-rose-500 hover:text-white hover:bg-rose-500 hover:border-rose-500 transition-all font-medium text-sm shadow-sm active:scale-95"
+    <div className="min-h-screen bg-slate-50 pb-20 pt-2 sm:pt-8">
+      <div className="mx-auto max-w-5xl px-0 sm:px-4">
+        <div className="sticky top-14 z-30 flex items-center justify-between gap-2 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-xl sm:static sm:mb-6 sm:rounded-2xl sm:border sm:shadow-sm">
+          <button
+            onClick={() => navigate('/research')}
+            className="flex min-w-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-100 hover:text-teal-700"
           >
-            <i className="fa-solid fa-trash"></i> Delete
+            <i className="fa-solid fa-arrow-left"></i>
+            <span className="truncate">Research Hub</span>
           </button>
+
+          {isAdmin && research && (
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-bold text-rose-600 transition-all hover:bg-rose-500 hover:text-white active:scale-95"
+            >
+              <i className="fa-solid fa-trash"></i>
+              <span className="hidden sm:inline">Delete</span>
+            </button>
+          )}
+        </div>
+
+        <ConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDelete}
+          title="Delete Research?"
+          message="This action cannot be undone. Are you sure you want to permanently remove this research?"
+        />
+
+        {loading ? (
+          <div className="flex items-center justify-center py-24 text-teal-600">
+            <i className="fa-solid fa-circle-notch fa-spin text-4xl"></i>
+          </div>
+        ) : research ? (
+          <ResearchDetail research={research} />
+        ) : (
+          <ResearchEmptyState
+            message="Research not found"
+            subMessage="The research you are looking for might have been removed or does not exist."
+          />
         )}
       </div>
-
-      <ConfirmModal 
-        isOpen={showDeleteModal} 
-        onClose={() => setShowDeleteModal(false)} 
-        onConfirm={handleDelete}
-        title="Delete Research?"
-        message="This action cannot be undone. Are you sure you want to permanently remove this research?"
-      />
-
-      {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <i className="fa-solid fa-circle-notch fa-spin text-4xl text-teal-600"></i>
-        </div>
-      ) : research ? (
-        <ResearchDetail research={research} />
-      ) : (
-        <ResearchEmptyState 
-          message="Research not found" 
-          subMessage="The research you are looking for might have been removed or doesn't exist." 
-        />
-      )}
     </div>
   );
 };

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { auth } from '../../firebase'; 
 import BackButton from '../../components/common/BackButton'; // 👈 इम्पोर्ट करें
 
 // Services
@@ -11,7 +10,7 @@ import DonationForm from '../../components/Donation/DonationForm';
 import SupportersList from '../../components/Donation/SupportersList';
 import PaymentModal from '../../components/Donation/PaymentModal';
 
-export default function DonationPage({ showToast, onBack }) {
+export default function DonationPage({ showToast }) {
   const [targetAmount, setTargetAmount] = useState(50000); 
   const [donations, setDonations] = useState([]);
   const [totalRaised, setTotalRaised] = useState(0);

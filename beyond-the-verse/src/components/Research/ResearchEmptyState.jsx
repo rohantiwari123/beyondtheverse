@@ -1,13 +1,13 @@
 import React from 'react';
 
-const ResearchEmptyState = ({ message = "No research yet", subMessage = "Be the first to share your knowledge with the community!" }) => {
+const ResearchEmptyState = ({ message = 'No research yet', subMessage = 'Be the first to share your knowledge with the community!' }) => {
   return (
-    <div className="text-center py-16 bg-white border border-slate-200 rounded-2xl border-dashed">
-      <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-        <i className="fa-solid fa-microscope text-2xl"></i>
+    <div className="mx-4 border-y border-dashed border-slate-200 bg-white px-6 py-16 text-center sm:mx-0 sm:rounded-[2rem] sm:border">
+      <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-teal-50 text-teal-600 shadow-inner">
+        <i className="fa-solid fa-microscope text-3xl"></i>
       </div>
-      <h3 className="text-lg font-bold text-slate-700 mb-1">{message}</h3>
-      <p className="text-slate-500">{subMessage}</p>
+      <h3 className="text-xl font-black text-slate-800">{message}</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">{subMessage}</p>
     </div>
   );
 };
