@@ -82,8 +82,6 @@ export default function LoginPage({ showToast }) {
     hasNumber: /[0-9]/.test(username), 
     hasUnderscore: /_/.test(username), 
   };
-  const isUsernameFormatValid = username.length > 0 && Object.values(userRules).every(Boolean);
-
   // 🌟 SMART SUGGESTION ENGINE
   const fetchSuggestions = async (baseInput) => {
     let safeBase = baseInput.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 10);

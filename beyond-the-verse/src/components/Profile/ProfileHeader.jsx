@@ -7,9 +7,6 @@ import UserAvatar from '../common/UserAvatar'; // 🌟 Naya Import
 export default function ProfileHeader({ profileData, isMyProfile = true }) {
     const { userName, userUsername, isAdmin, currentUser } = useAuth();
     
-    // 🌟 LOGIC: Ab hume pata hai ye dusre ki profile hai ya apni
-    const isPublicProfile = !isMyProfile || !!profileData;
-
     const displayPhotoURL = isMyProfile ? currentUser?.photoURL : profileData?.profilePic;
     const displayUserName = isMyProfile ? userName : profileData?.name;
     const displayIsAdmin = isMyProfile ? isAdmin : (profileData?.role === 'admin');
@@ -49,7 +46,7 @@ export default function ProfileHeader({ profileData, isMyProfile = true }) {
         if (!file) return;
 
         if (!file.type.startsWith("image/")) {
-            showAlert("Please upload an image file!", "warning");
+            window.alert("Please upload an image file!");
             return;
         }
 
@@ -62,7 +59,7 @@ export default function ProfileHeader({ profileData, isMyProfile = true }) {
             setImagePreview(newPhotoURL);
         } catch (error) {
             console.error(error);
-            showAlert("Failed to update profile picture. Please try again.", "error");
+            window.alert("Failed to update profile picture. Please try again.");
         } finally {
             setIsUploading(false);
         }

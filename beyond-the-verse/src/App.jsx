@@ -44,7 +44,7 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation(); 
 
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const [toast, setToast] = useState({ show: false, message: '', isSuccess: true });
   const [donations, setDonations] = useState([]);
@@ -76,7 +76,6 @@ export default function App() {
     setTimeout(() => setToast({ show: false, message: '', isSuccess: true }), 3500);
   };
 
-  const isStandardLayout = ['/', '/donate', '/about', '/exam', '/admin', '/profile', '/settings', '/community', '/research'].includes(location.pathname) || location.pathname.startsWith('/post/') || location.pathname.startsWith('/research/');
 
   return (
     <div className="relative selection:bg-teal-600 selection:text-white min-h-screen bg-[#f8fafc] text-slate-800 overflow-x-hidden ">      
