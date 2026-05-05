@@ -4,30 +4,35 @@ const ResearchFilter = ({ fields, selectedField, onSelectField }) => {
   if (!fields || fields.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-2 mb-6">
-      <button
-        onClick={() => onSelectField(null)}
-        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-          selectedField === null
-            ? 'bg-teal-600 text-white shadow-sm'
-            : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-        }`}
-      >
-        All Fields
-      </button>
-      {fields.map((field) => (
+    <div className="-mx-4 overflow-x-auto px-4 pb-1 pt-4 no-scrollbar sm:mx-0 sm:px-0">
+      <div className="flex min-w-max gap-2 sm:min-w-0 sm:flex-wrap">
         <button
-          key={field}
-          onClick={() => onSelectField(field)}
-          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-            selectedField === field
-              ? 'bg-teal-600 text-white shadow-sm'
-              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+          onClick={() => onSelectField(null)}
+          className={`rounded-full border px-4 py-2.5 text-xs font-black uppercase tracking-[0.16em] transition-all active:scale-95 ${
+            selectedField === null
+              ? 'border-slate-900 bg-slate-900 text-white shadow-sm'
+              : 'border-slate-200 bg-white text-slate-600 hover:border-teal-200 hover:text-teal-700'
           }`}
         >
-          {field}
+          All Fields
         </button>
-      ))}
+        {fields.map(({ name, count }) => (
+          <button
+            key={name}
+            onClick={() => onSelectField(name)}
+            className={`rounded-full border px-4 py-2.5 text-xs font-black uppercase tracking-[0.16em] transition-all active:scale-95 ${
+              selectedField === name
+                ? 'border-teal-600 bg-teal-600 text-white shadow-sm'
+                : 'border-slate-200 bg-white text-slate-600 hover:border-teal-200 hover:text-teal-700'
+            }`}
+          >
+            {name}
+            <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] ${selectedField === name ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+              {count}
+            </span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
