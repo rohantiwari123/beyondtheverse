@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 // 🌟 FIX: 'where' import add kiya gaya hai
-import { collection, doc, setDoc, deleteDoc, addDoc, query, orderBy, onSnapshot, getDocs, where } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, addDoc, query, onSnapshot, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import AdminExamEditor from '../../components/Exam/AdminExamEditor';
@@ -73,13 +73,10 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
   const showAlert = (message) => setModalConfig({ isOpen: true, type: 'alert', message, onConfirm: null });
   const showConfirm = (message, onConfirm) => setModalConfig({ isOpen: true, type: 'confirm', message, onConfirm });
 
-  // Redirect non-admins
-  if (!isAdmin) {
-    return <Navigate to="/" />;
-  }
-
   // 🌟 FIX: Fetch Users (Real-time)
   useEffect(() => {
+    if (!isAdmin) return;
+
     if (activeTab === 'users') {
       setIsFetchingUsers(true);
       const q = query(collection(db, "users"));
@@ -93,10 +90,12 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
       });
       return () => unsubscribe();
     }
-  }, [activeTab, showToast]);
+  }, [activeTab, isAdmin, showToast]);
 
   // 🌟 FIX: Fetch Pending Questions (Real-time)
   useEffect(() => {
+    if (!isAdmin) return;
+
     if (activeTab === 'qna') {
       const q = query(collection(db, "user_questions"), where("status", "==", "pending"));
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -105,10 +104,12 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
       });
       return () => unsubscribe();
     }
-  }, [activeTab]);
+  }, [activeTab, isAdmin]);
 
   // 🌟 FIX: Fetch All Exam Results (Real-time)
   useEffect(() => {
+    if (!isAdmin) return;
+
     if (activeTab === 'results') {
       setIsFetchingResults(true);
       const q = query(collection(db, "exam_results"));
@@ -145,10 +146,12 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
 
       return () => unsubscribe();
     }
-  }, [activeTab, showToast]);
+  }, [activeTab, isAdmin, showToast]);
 
   // Fetch Result Release Status
   useEffect(() => {
+    if (!isAdmin) return;
+
     const fetchReleaseStatus = async () => {
       setIsFetchingReleaseStatus(true);
       try {
@@ -162,7 +165,12 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
     };
 
     fetchReleaseStatus();
-  }, []);
+  }, [isAdmin]);
+
+  // Redirect non-admins after hooks have been registered.
+  if (!isAdmin) {
+    return <Navigate to="/" />;
+  }
 
   // Target Update
   const handleSaveTarget = async () => {
