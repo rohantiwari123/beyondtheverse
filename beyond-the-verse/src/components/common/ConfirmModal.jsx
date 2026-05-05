@@ -24,16 +24,16 @@ export default function ConfirmModal({
           {message}
         </p>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 mt-4">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-3 rounded-xl text-xs sm:text-sm text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors"
+            className="flex-1 px-4 py-3.5 rounded-xl sm:rounded-2xl text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 transition-colors active:scale-95"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 px-4 py-3 rounded-xl text-xs sm:text-sm text-white bg-rose-500 hover:bg-rose-600 active:scale-95 transition-all"
+            className="flex-1 px-4 py-3.5 rounded-xl sm:rounded-2xl text-sm font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border-2 border-rose-100 transition-all active:scale-95"
           >
             {confirmText}
           </button>
