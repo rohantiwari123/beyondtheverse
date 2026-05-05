@@ -6,7 +6,7 @@ import ResearchDetail from '../../components/Research/ResearchDetail';
 import ResearchEmptyState from '../../components/Research/ResearchEmptyState';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { useAuth } from '../../context/AuthContext';
-
+B
 const SingleResearchPage = ({ showToast }) => {
   const { researchId } = useParams();
   const navigate = useNavigate();
