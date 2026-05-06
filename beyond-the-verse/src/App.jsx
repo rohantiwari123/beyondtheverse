@@ -83,7 +83,7 @@ export default function App() {
       <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none z-0"></div>
       <div className="fixed -top-32 -left-32 w-96 h-96 bg-teal-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
-      {location.pathname !== '/login' && (
+      {!['/login', '/signup'].includes(location.pathname) && (
         <div className="relative z-50">
           <Header />
         </div>
@@ -96,6 +96,7 @@ export default function App() {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/login" element={!isAuthenticated ? <LoginPage showToast={showToast} /> : <Navigate to="/" />} />
+            <Route path="/signup" element={!isAuthenticated ? <LoginPage showToast={showToast} initialAuthMode="signup" /> : <Navigate to="/" />} />
 
             <Route path="/" element={<HomePage onNavigateToDonate={() => navigate('/donate')} />} />
             <Route path="/about" element={<AboutPage />} />
