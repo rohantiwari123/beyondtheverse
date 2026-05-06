@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
@@ -12,8 +11,6 @@ import UserAvatar from '../../components/common/UserAvatar'; // 🌟 2. UserAvat
 
 export default function CommunityPage({ showToast }) {
   const { isAuthenticated, userName, userId, isAdmin, currentUser } = useAuth(); // currentUser bhi nikal liya
-  const navigate = useNavigate();
-  
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState("");
   const [category, setCategory] = useState("Philosophy");
@@ -36,7 +33,7 @@ export default function CommunityPage({ showToast }) {
     const q = query(collection(db, "posts"), orderBy("isPinned", "desc"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    }, (error) => {
+    }, () => {
       const simpleQ = query(collection(db, "posts"), orderBy("createdAt", "desc"));
       onSnapshot(simpleQ, (s) => setPosts(s.docs.map(d => ({ id: d.id, ...d.data() }))));
     });

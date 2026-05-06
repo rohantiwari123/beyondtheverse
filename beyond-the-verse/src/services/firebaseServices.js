@@ -815,7 +815,9 @@ export const moveLibraryItem = async (itemId, newParentId) => {
 // 🌟 7. COPY ITEM
 export const copyLibraryItem = async (item, newParentId) => {
   try {
-    const { id, createdAt, ...rest } = item; // ID aur purana time hata kar baki data lo
+    const rest = { ...item };
+    delete rest.id;
+    delete rest.createdAt; // ID aur purana time hata kar baki data lo
     await addDoc(collection(db, "library"), {
       ...rest,
       name: `${rest.name} (Copy)`, // Copy pehchanne ke liye

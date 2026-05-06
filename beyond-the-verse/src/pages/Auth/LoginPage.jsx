@@ -1,51 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; 
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
+import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   signOut
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
-import emailjs from '@emailjs/browser'; 
+import emailjs from '@emailjs/browser';
 
-export default function LoginPage({ showToast }) {
-  const navigate = useNavigate(); 
-  
-  const [activeTab, setActiveTab] = useState('client'); 
-  const [authMode, setAuthMode] = useState('login'); 
-  
+export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [activeTab, setActiveTab] = useState('client');
+  const [authMode, setAuthMode] = useState('login');
+
   // Form States
   const [fullName, setFullName] = useState('');
-  const [username, setUsername] = useState(''); 
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  
+
   // Strict Error States
-  const [usernameError, setUsernameError] = useState(''); 
+  const [usernameError, setUsernameError] = useState('');
   const [emailError, setEmailError] = useState('');
-  const [loginPasswordError, setLoginPasswordError] = useState(''); 
+  const [loginPasswordError, setLoginPasswordError] = useState('');
 
   // Live Username Checking & Suggestions States
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-  const [isUsernameAvailable, setIsUsernameAvailable] = useState(null); 
-  const [suggestedUsernames, setSuggestedUsernames] = useState([]); 
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState(null);
+  const [suggestedUsernames, setSuggestedUsernames] = useState([]);
 
   // Email OTP States
   const [generatedEmailOtp, setGeneratedEmailOtp] = useState('');
   const [enteredEmailOtp, setEnteredEmailOtp] = useState('');
   const [emailOtpSent, setEmailOtpSent] = useState(false);
-  
+
   const [isLoading, setIsLoading] = useState(false);
+
+
+  useEffect(() => {
+    const urlMode = new URLSearchParams(location.search).get('mode');
+    const requestedMode = urlMode || location.state?.authMode || initialAuthMode;
+    const allowedModes = ['login', 'signup', 'forgot'];
+
+    if (allowedModes.includes(requestedMode)) {
+      setAuthMode(requestedMode);
+      if (requestedMode !== 'signup') {
+        setEmailOtpSent(false);
+        setEnteredEmailOtp('');
+      }
+    }
+  }, [initialAuthMode, location.search, location.state]);
 
   // 🌟 DESIGN VARIABLES
   const designVars = {
     inputBase: "w-full bg-slate-50 border py-3 pl-10 rounded-xl text-sm sm:text-base outline-none focus:bg-white transition-colors",
     inputNormal: "border-slate-200 focus:ring-teal-500/20 focus:border-teal-500 pr-4",
     inputError: "border-rose-400 focus:ring-rose-500/20 focus:border-rose-500 pr-4 bg-rose-50/30",
-    inputPassword: "pr-10", 
+    inputPassword: "pr-10",
     iconBase: "absolute left-4 top-1/2 -translate-y-1/2 text-sm transition-colors",
     iconNormal: "text-slate-400",
     iconError: "text-rose-500",
@@ -78,12 +94,10 @@ export default function LoginPage({ showToast }) {
   // 🌟 DYNAMIC USERNAME RULES
   const userRules = {
     length: username.length >= 6 && username.length <= 20,
-    format: /^[a-z0-9_]+$/.test(username), 
-    hasNumber: /[0-9]/.test(username), 
-    hasUnderscore: /_/.test(username), 
+    format: /^[a-z0-9_]+$/.test(username),
+    hasNumber: /[0-9]/.test(username),
+    hasUnderscore: /_/.test(username),
   };
-  const isUsernameFormatValid = username.length > 0 && Object.values(userRules).every(Boolean);
-
   // 🌟 SMART SUGGESTION ENGINE
   const fetchSuggestions = async (baseInput) => {
     let safeBase = baseInput.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 10);
@@ -106,7 +120,7 @@ export default function LoginPage({ showToast }) {
       setSuggestedUsernames(availableSuggestions);
     } catch (error) {
       console.error("Suggestion Error:", error);
-      setSuggestedUsernames(suggestions); 
+      setSuggestedUsernames(suggestions);
     }
   };
 
@@ -118,7 +132,7 @@ export default function LoginPage({ showToast }) {
       setUsernameError('');
       setIsCheckingUsername(false);
       setIsUsernameAvailable(null);
-      setSuggestedUsernames([]); 
+      setSuggestedUsernames([]);
       return;
     }
 
@@ -136,23 +150,23 @@ export default function LoginPage({ showToast }) {
       return () => clearTimeout(timeoutId);
     }
 
-    setUsernameError(''); 
+    setUsernameError('');
     setIsCheckingUsername(true);
     setIsUsernameAvailable(null);
-    setSuggestedUsernames([]); 
+    setSuggestedUsernames([]);
 
     const timeoutId = setTimeout(async () => {
       try {
         const q = query(collection(db, 'users'), where('username', '==', username));
         const querySnapshot = await getDocs(q);
-        
+
         if (querySnapshot.empty) {
-          setIsUsernameAvailable(true); 
-          setSuggestedUsernames([]); 
+          setIsUsernameAvailable(true);
+          setSuggestedUsernames([]);
         } else {
-          setIsUsernameAvailable(false); 
+          setIsUsernameAvailable(false);
           setUsernameError("Oops! This username is already taken.");
-          fetchSuggestions(username); 
+          fetchSuggestions(username);
         }
       } catch (error) {
         console.error("Username check error:", error);
@@ -188,17 +202,17 @@ export default function LoginPage({ showToast }) {
       return;
     }
     if (!isPasswordValid) return showToast("Please fulfill all password requirements.", false);
-    
+
     setIsLoading(true);
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedEmailOtp(newOtp);
 
     try {
       await emailjs.send(
-        'service_2cyd1id', 
-        'template_2x68oex', 
+        'service_2cyd1id',
+        'template_2x68oex',
         { to_name: fullName, to_email: email, otp_code: newOtp },
-        'HZr8hKSA5jdTwvwVK' 
+        'HZr8hKSA5jdTwvwVK'
       );
       setEmailOtpSent(true);
       showToast("6-Digit OTP sent to your email! Check inbox/spam.");
@@ -219,15 +233,15 @@ export default function LoginPage({ showToast }) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      
+
       await setDoc(doc(db, 'users', user.uid), {
-        name: fullName, 
-        username: username, 
-        email: user.email, 
-        role: 'client', 
+        name: fullName,
+        username: username,
+        email: user.email,
+        role: 'client',
         createdAt: Date.now()
       });
-      
+
       showToast(`Welcome ${fullName}! Account created successfully.`);
       navigate('/');
     } catch (error) {
@@ -265,11 +279,11 @@ export default function LoginPage({ showToast }) {
       setLoginPasswordError("Password is required.");
       return;
     }
-    
+
     setIsLoading(true);
     try {
       if (authMode === 'login') {
-        let loginEmail = email.trim(); 
+        let loginEmail = email.trim();
 
         if (!loginEmail.includes('@')) {
           const q = query(collection(db, 'users'), where('username', '==', loginEmail.toLowerCase()));
@@ -286,30 +300,30 @@ export default function LoginPage({ showToast }) {
         const userCredential = await signInWithEmailAndPassword(auth, loginEmail, password);
         const user = userCredential.user;
         const userDoc = await getDoc(doc(db, 'users', user.uid));
-        
+
         if (userDoc.exists()) {
-          if (userDoc.data().role !== activeTab) { 
-            await signOut(auth); 
-            showToast(`Access Denied! You are not registered as an ${activeTab.toUpperCase()}.`, false); 
-            setIsLoading(false); 
-            return; 
+          if (userDoc.data().role !== activeTab) {
+            await signOut(auth);
+            showToast(`Access Denied! You are not registered as an ${activeTab.toUpperCase()}.`, false);
+            setIsLoading(false);
+            return;
           }
-          showToast(`Logged in successfully!`); 
+          showToast(`Logged in successfully!`);
           navigate('/');
-        } else { 
-          showToast("User role not found!", false); 
-          await signOut(auth); 
+        } else {
+          showToast("User role not found!", false);
+          await signOut(auth);
         }
 
       } else if (authMode === 'forgot') {
-        await sendPasswordResetEmail(auth, email); 
-        showToast("Password reset link sent to your email!"); 
+        await sendPasswordResetEmail(auth, email);
+        showToast("Password reset link sent to your email!");
         setAuthMode('login');
       }
     } catch (error) {
       console.error("Authentication Error Details:", error);
       let msg = "Authentication failed!";
-      
+
       if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         msg = "Invalid email/username or password!";
         setLoginPasswordError(msg);
@@ -320,27 +334,27 @@ export default function LoginPage({ showToast }) {
         msg = "Database Rules are blocking the login! Update Firestore Rules.";
         setEmailError(msg);
       } else {
-        msg = error.message; 
+        msg = error.message;
       }
       showToast(msg, false);
-    } finally { 
-      setIsLoading(false); 
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleTabChange = (tab) => {
-    setActiveTab(tab); 
-    setAuthMode('login'); 
-    setFullName(''); 
+    setActiveTab(tab);
+    setAuthMode('login');
+    setFullName('');
     setUsername('');
-    setEmail(''); 
-    setPassword(''); 
-    setEmailError(''); 
-    setLoginPasswordError(''); 
+    setEmail('');
+    setPassword('');
+    setEmailError('');
+    setLoginPasswordError('');
     setUsernameError('');
-    setSuggestedUsernames([]); 
-    setEmailOtpSent(false); 
-    setEnteredEmailOtp(''); 
+    setSuggestedUsernames([]);
+    setEmailOtpSent(false);
+    setEnteredEmailOtp('');
   };
 
   const RuleItem = ({ met, text }) => (
@@ -355,7 +369,7 @@ export default function LoginPage({ showToast }) {
   return (
     <div className="min-h-[100dvh] flex items-center justify-center p-0 sm:p-6 lg:p-8 relative z-10 bg-slate-50">
       <div className="bg-white sm:border border-slate-200 px-6 py-8 sm:p-10 rounded-none sm:rounded-[2.5rem] w-full max-w-[30rem] min-h-[100dvh] sm:min-h-fit flex flex-col justify-center relative shadow-none">
-        
+
         <div className="flex justify-center mb-8">
           <div className="flex items-baseline gap-1">
             <span className="text-[24px] sm:text-[28px] text-slate-900 font-cabinet font-black tracking-tighter leading-none">Beyond</span>
@@ -365,14 +379,14 @@ export default function LoginPage({ showToast }) {
         </div>
 
         <div className="flex bg-slate-100 p-1 rounded-xl sm:rounded-2xl mb-6">
-          <button 
-            onClick={() => handleTabChange('client')} 
+          <button
+            onClick={() => handleTabChange('client')}
             className={`flex-1 py-2 sm:py-2.5 text-sm sm:text-base font-semibold rounded-lg sm:rounded-xl active:scale-[0.97] transition-all ${activeTab === 'client' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
           >
             <i className="fa-solid fa-users mr-1.5 opacity-80"></i> Client
           </button>
-          <button 
-            onClick={() => handleTabChange('admin')} 
+          <button
+            onClick={() => handleTabChange('admin')}
             className={`flex-1 py-2 sm:py-2.5 text-sm sm:text-base font-semibold rounded-lg sm:rounded-xl active:scale-[0.97] transition-all ${activeTab === 'admin' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
           >
             <i className="fa-solid fa-shield-halved mr-1.5 opacity-80"></i> Admin
@@ -380,7 +394,7 @@ export default function LoginPage({ showToast }) {
         </div>
 
         <form onSubmit={authMode === 'signup' ? (emailOtpSent ? handleVerifyEmailAndSignup : handleSendEmailOtp) : handleEmailAuth} className="grid grid-cols-1 gap-3 sm:gap-4" noValidate>
-          
+
           <div className="text-center mb-2">
             <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
               {authMode === 'login' && `Welcome Back`}
@@ -403,27 +417,27 @@ export default function LoginPage({ showToast }) {
                   <div className="flex flex-col">
                     <div className="relative">
                       <i className={`${designVars.iconBase} ${usernameError ? designVars.iconError : designVars.iconNormal} fa-solid fa-at`}></i>
-                      <input 
-                        type="text" 
-                        placeholder="Username (e.g. rohan_07)" 
-                        value={username} 
-                        onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))} 
-                        className={`${designVars.inputBase} ${usernameError ? designVars.inputError : designVars.inputNormal}`} 
+                      <input
+                        type="text"
+                        placeholder="Username (e.g. rohan_07)"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))}
+                        className={`${designVars.inputBase} ${usernameError ? designVars.inputError : designVars.inputNormal}`}
                       />
-                      
+
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
                         {username.length > 0 && isCheckingUsername && <i className="fa-solid fa-spinner fa-spin text-slate-400 text-sm"></i>}
                         {username.length > 0 && !isCheckingUsername && isUsernameAvailable === true && <i className="fa-solid fa-circle-check text-emerald-500 text-sm animate-fade-in-up"></i>}
                         {username.length > 0 && !isCheckingUsername && usernameError && <i className="fa-solid fa-circle-xmark text-rose-500 text-sm animate-fade-in-up"></i>}
                       </div>
                     </div>
-                    
+
                     {usernameError && (
                       <span className={designVars.errorMsg}>
                         <i className="fa-solid fa-triangle-exclamation"></i> {usernameError}
                       </span>
                     )}
-                    
+
                     <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl transition-all">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1.5">
                         <RuleItem met={userRules.length} text="6 to 20 characters" />
@@ -431,7 +445,7 @@ export default function LoginPage({ showToast }) {
                         <RuleItem met={userRules.hasNumber} text="At least 1 number (0-9)" />
                         <RuleItem met={userRules.hasUnderscore} text="At least 1 underscore (_)" />
                       </div>
-                      
+
                       {username.length > 0 && isUsernameAvailable === true && (
                         <div className="mt-2 pt-2 border-t border-slate-200 animate-fade-in-up">
                           <p className="text-[11px] text-emerald-600 font-bold">✨ Awesome! Username is available.</p>
@@ -449,9 +463,9 @@ export default function LoginPage({ showToast }) {
                                 key={sug}
                                 type="button"
                                 onClick={() => {
-                                  setUsername(sug); 
+                                  setUsername(sug);
                                   setUsernameError('');
-                                  setSuggestedUsernames([]); 
+                                  setSuggestedUsernames([]);
                                 }}
                                 className="px-2.5 py-1 bg-white text-teal-700 text-[11px] sm:text-xs font-bold rounded-lg border border-teal-200 hover:bg-teal-50 hover:border-teal-300 active:scale-95 transition-all shadow-sm"
                               >
@@ -465,54 +479,54 @@ export default function LoginPage({ showToast }) {
                   </div>
                 </>
               )}
-              
+
              {/* Email Input */}
               <div className="flex flex-col">
                 <div className="relative">
                   <i className={`${designVars.iconBase} ${emailError ? designVars.iconError : designVars.iconNormal} ${authMode === 'login' ? 'fa-solid fa-user' : 'fa-solid fa-envelope'}`}></i>
-                  <input 
-                    type={authMode === 'login' ? "text" : "email"} 
-                    placeholder={authMode === 'login' ? "Email or Username" : "Email Address"} 
-                    value={email} 
+                  <input
+                    type={authMode === 'login' ? "text" : "email"}
+                    placeholder={authMode === 'login' ? "Email or Username" : "Email Address"}
+                    value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
                       setEmailError('');
-                    }} 
-                    className={`${designVars.inputBase} ${emailError ? designVars.inputError : designVars.inputNormal}`} 
+                    }}
+                    className={`${designVars.inputBase} ${emailError ? designVars.inputError : designVars.inputNormal}`}
                   />
                 </div>
                 {emailError && <span className={designVars.errorMsg}><i className="fa-solid fa-circle-exclamation"></i> {emailError}</span>}
               </div>
-              
+
               {/* 🌟 UPGRADED PASSWORD INPUT (Live Errors) */}
               {authMode !== 'forgot' && (
                 <div className="flex flex-col">
                   <div className="relative">
                     <i className={`${designVars.iconBase} ${currentPasswordError ? designVars.iconError : designVars.iconNormal} fa-solid fa-lock`}></i>
-                    <input 
-                      type={showPassword ? "text" : "password"} 
-                      placeholder="Password" 
-                      value={password} 
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Password"
+                      value={password}
                       onChange={(e) => {
-                        setPassword(e.target.value); 
+                        setPassword(e.target.value);
                         setLoginPasswordError(''); // Login wala error reset
-                      }} 
-                      className={`${designVars.inputBase} ${currentPasswordError ? designVars.inputError : designVars.inputNormal} ${designVars.inputPassword}`} 
+                      }}
+                      className={`${designVars.inputBase} ${currentPasswordError ? designVars.inputError : designVars.inputNormal} ${designVars.inputPassword}`}
                     />
-                    
+
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                       {/* Live Success Indicator for Signup */}
                       {authMode === 'signup' && password.length > 0 && isPasswordValid && (
                         <i className="fa-solid fa-circle-check text-emerald-500 text-sm animate-fade-in-up mr-1"></i>
                       )}
-                      
+
                       {/* Show/Hide Eye Button */}
                       <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-slate-400 hover:text-slate-600 p-1">
                         <i className={`fa-solid text-sm ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                       </button>
                     </div>
                   </div>
-                  
+
                   {/* Live Error Message (Red Text below input) */}
                   {currentPasswordError && (
                     <span className={designVars.errorMsg}>
@@ -550,17 +564,17 @@ export default function LoginPage({ showToast }) {
               <button type="button" onClick={() => setAuthMode('forgot')} className="text-xs font-semibold text-slate-500 hover:text-teal-600">Forgot Password?</button>
             </div>
           )}
-          
-          <button 
-            type="submit" 
+
+          <button
+            type="submit"
             disabled={
-              isLoading || 
-              emailError !== '' || 
+              isLoading ||
+              emailError !== '' ||
               (authMode === 'signup' && (!isPasswordValid || usernameError !== '' || isUsernameAvailable === false || isCheckingUsername || (!emailOtpSent && fullName === '')))
-            } 
+            }
             className={`w-full text-white font-semibold py-3 sm:py-3.5 px-6 rounded-xl text-sm sm:text-base active:scale-[0.98] flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed ${activeTab === 'admin' ? 'bg-slate-900 hover:bg-slate-800' : 'bg-teal-600 hover:bg-teal-700'}`}
           >
-            {isLoading ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Processing...</> 
+            {isLoading ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Processing...</>
             : <>{authMode === 'login' ? 'Sign In' : authMode === 'signup' ? (emailOtpSent ? 'Verify OTP' : 'Continue') : 'Send Reset Link'}</>}
           </button>
         </form>

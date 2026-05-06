@@ -16,7 +16,6 @@ export default function ExamResult({ showToast }) {
   const [exam, setExam] = useState(null);
   const [userResult, setUserResult] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [resultsReleased, setResultsReleased] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
 
   // Fetch Exam Data & User's Result Data
@@ -41,8 +40,6 @@ export default function ExamResult({ showToast }) {
         }
 
         setExam(examData);
-        setResultsReleased(resultsReleasedStatus);
-
         if (!resultsReleasedStatus && !isAdmin) {
           setIsBlocked(true);
           setUserResult(null);
