@@ -89,60 +89,53 @@ const ResearchPage = ({ showToast }) => {
     });
   }, [researches, searchQuery, selectedField, sortMode]);
 
-  const featuredResearch = filteredResearches[0];
-
   return (
-    <div className="min-h-screen bg-slate-50 pb-20 pt-2 sm:pt-8">
-      <div className="mx-auto max-w-6xl space-y-6 px-4 sm:space-y-8">
+    <div className="min-h-screen bg-slate-50 pb-20 pt-0 sm:pt-6">
+      <div className="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
+        
+        {/* Header touches edges on mobile, rounded on desktop */}
         <ResearchHeader stats={stats} />
 
-        {isAdmin && <ResearchForm showToast={showToast} />}
-
-        <section className="grid gap-4 lg:grid-cols-[1fr_280px] lg:items-start">
-          <div className="space-y-4">
-            <ResearchSearch
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              sortMode={sortMode}
-              setSortMode={setSortMode}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              resultCount={filteredResearches.length}
-            />
-            <ResearchFilter
-              fields={fields}
-              selectedField={selectedField}
-              onSelectField={setSelectedField}
-            />
+        {isAdmin && (
+          <div className="px-4 sm:px-0">
+            <ResearchForm showToast={showToast} />
           </div>
+        )}
 
-          <aside className="hidden rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm lg:block">
-            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">Discovery Pulse</p>
-            <div className="mt-4 space-y-3">
-              <div className="rounded-2xl bg-teal-50 p-4">
-                <div className="font-cabinet text-3xl font-black text-teal-700">{stats.totalAuthors}</div>
-                <div className="text-xs font-bold uppercase tracking-widest text-teal-700/70">Contributors</div>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <div className="font-cabinet text-3xl font-black text-slate-900">{featuredResearch ? getResearchReadTime(featuredResearch) : 0}m</div>
-                <div className="text-xs font-bold uppercase tracking-widest text-slate-500">Featured read</div>
-              </div>
-            </div>
-          </aside>
+        {/* TOP TOOLBAR: Search and Filters stacked neatly */}
+        <section className="sticky top-0 z-30 flex flex-col gap-2 bg-slate-50/95 px-4 py-3 backdrop-blur-md sm:static sm:gap-4 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
+          <ResearchSearch
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            sortMode={sortMode}
+            setSortMode={setSortMode}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            resultCount={filteredResearches.length}
+          />
+          <ResearchFilter
+            fields={fields}
+            selectedField={selectedField}
+            onSelectField={setSelectedField}
+          />
         </section>
 
-        {isLoading ? (
-          <div className="flex justify-center py-20 text-teal-600">
-            <i className="fa-solid fa-circle-notch fa-spin text-4xl"></i>
-          </div>
-        ) : (
-          <ResearchList
-            researches={filteredResearches}
-            viewMode={viewMode}
-            selectedField={selectedField}
-            searchQuery={searchQuery}
-          />
-        )}
+        {/* FULL WIDTH LIST: Cards will now stretch and fill the space better */}
+        <main className="px-4 sm:px-0">
+          {isLoading ? (
+            <div className="flex justify-center py-20 text-teal-600">
+              <i className="fa-solid fa-circle-notch fa-spin text-4xl"></i>
+            </div>
+          ) : (
+            <ResearchList
+              researches={filteredResearches}
+              viewMode={viewMode}
+              selectedField={selectedField}
+              searchQuery={searchQuery}
+            />
+          )}
+        </main>
+
       </div>
     </div>
   );

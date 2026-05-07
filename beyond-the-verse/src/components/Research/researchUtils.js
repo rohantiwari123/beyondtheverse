@@ -45,6 +45,17 @@ export const getResearchTags = (research) => {
 
 export const getResearchExcerpt = (research, limit = 190) => {
   const text = (research?.abstract || research?.body || '').replace(/\s+/g, ' ').trim();
+  
   if (text.length <= limit) return text;
-  return `${text.slice(0, limit).trim()}…`;
+  
+  // Cut the text at the limit
+  const truncated = text.slice(0, limit);
+  
+  // Find the last space to avoid cutting a word in half
+  const lastSpaceIndex = truncated.lastIndexOf(' ');
+  
+  // If there's a space, cut there. Otherwise, just use the hard limit.
+  const finalLimit = lastSpaceIndex > 0 ? lastSpaceIndex : limit;
+  
+  return `${truncated.slice(0, finalLimit).trim()}...`;
 };

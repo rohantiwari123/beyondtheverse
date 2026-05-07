@@ -5,14 +5,19 @@ import ResearchEmptyState from './ResearchEmptyState';
 const ResearchList = ({ researches, viewMode, selectedField, searchQuery }) => {
   return (
     <section>
-      <div className="mb-5 flex items-end justify-between gap-4 px-4 sm:px-0">
+      {/* Clean Header */}
+      <div className="mb-6 flex items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.25em] text-teal-600">Research Library</p>
-          <h2 className="mt-1 font-cabinet text-2xl font-black text-slate-900 sm:text-3xl">
+          <p className="text-xs font-bold uppercase tracking-wider text-teal-600">
+            Research Library
+          </p>
+          <h2 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">
             Published Researches
           </h2>
         </div>
-        <div className="hidden rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-500 sm:block">
+        
+        {/* Result Counter Badge */}
+        <div className="hidden items-center justify-center rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 sm:flex">
           {researches.length} result{researches.length === 1 ? '' : 's'}
         </div>
       </div>
@@ -23,7 +28,15 @@ const ResearchList = ({ researches, viewMode, selectedField, searchQuery }) => {
           subMessage={searchQuery || selectedField ? 'Try another keyword or field filter.' : 'Be the first to share evidence-backed knowledge with the community.'}
         />
       ) : (
-        <div className={viewMode === 'compact' ? 'space-y-0 sm:space-y-3' : 'grid gap-4 lg:grid-cols-2'}>
+        <div 
+          className={
+            viewMode === 'compact' 
+              // COMPACT VIEW: Edge-to-edge on mobile (-mx-4 cancels out parent padding), stack normally on desktop
+              ? '-mx-4 flex flex-col sm:mx-0' 
+              // CARD VIEW: Responsive grid, 1 col mobile, 2 col tablet, 3 col desktop (since sidebar is gone)
+              : 'grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 sm:gap-6'
+          }
+        >
           {researches.map((res) => (
             <ResearchCard key={res.id} res={res} viewMode={viewMode} />
           ))}

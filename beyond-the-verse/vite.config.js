@@ -37,5 +37,9 @@ export default defineConfig({
   // और debugger हटा देगा। हैकर्स को तुम्हारा कोई भी डेटा कंसोल में नहीं दिखेगा!
   esbuild: {
     drop: ['console', 'debugger'],
+  },
+
+  optimizeDeps: {
+    include: ['animejs'],
   }
 })
