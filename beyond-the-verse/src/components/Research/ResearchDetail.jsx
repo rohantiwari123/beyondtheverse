@@ -200,7 +200,7 @@ const ResearchDetail = ({ research }) => {
         </div>
       )}
 
-      {/* UPDATED CSS: Strict One-Side 3D Flip */}
+      {/* UPDATED CSS: Strict One-Side 3D Flip & Book Flip for Desktop */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes flipPageNext {
           0% { transform: rotateY(0deg); }
@@ -227,6 +227,13 @@ const ResearchDetail = ({ research }) => {
           animation: flipPagePrev 0.6s ease-in-out forwards; 
           transform-style: preserve-3d; 
           backface-visibility: hidden;
+        }
+
+        /* Desktop: Book-like flip from the spine (center) */
+        @media (min-width: 640px) {
+          .flip-next, .flip-prev {
+            transform-origin: center center;
+          }
         }
       `}} />
     </div>
