@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { db } from '../../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState } from "react";
+import { db } from "../../firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useAuth } from "../../context/AuthContext";
 
 const ResearchForm = ({ showToast }) => {
   const { isAuthenticated, userName, userId } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [formData, setFormData] = useState({
-    field: '',
-    title: '',
-    abstract: '',
-    body: '',
-    tags: '',
-    sources: ['']
+    field: "",
+    title: "",
+    abstract: "",
+    body: "",
+    tags: "",
+    sources: [""],
   });
 
   const handleInputChange = (e) => {
@@ -28,7 +28,7 @@ const ResearchForm = ({ showToast }) => {
   };
 
   const addSourceField = () => {
-    setFormData({ ...formData, sources: [...formData.sources, ''] });
+    setFormData({ ...formData, sources: [...formData.sources, ""] });
   };
 
   const removeSourceField = (index) => {
@@ -38,7 +38,7 @@ const ResearchForm = ({ showToast }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!isAuthenticated) {
       showToast("You must be logged in to publish research.", false);
       return;
@@ -47,27 +47,30 @@ const ResearchForm = ({ showToast }) => {
     setIsSubmitting(true);
 
     try {
-      await addDoc(collection(db, 'researches'), {
+      await addDoc(collection(db, "researches"), {
         field: formData.field.trim(),
         title: formData.title.trim(),
         abstract: formData.abstract.trim(),
         body: formData.body.trim(),
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        sources: formData.sources.filter(source => source.trim() !== ''),
+        tags: formData.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+        sources: formData.sources.filter((source) => source.trim() !== ""),
         authorId: userId,
-        authorName: userName || 'Anonymous Researcher',
-        createdAt: serverTimestamp()
+        authorName: userName || "Anonymous Researcher",
+        createdAt: serverTimestamp(),
       });
-      
+
       showToast("Research published successfully!", true);
 
       setFormData({
-        field: '',
-        title: '',
-        abstract: '',
-        body: '',
-        tags: '',
-        sources: ['']
+        field: "",
+        title: "",
+        abstract: "",
+        body: "",
+        tags: "",
+        sources: [""],
       });
       setIsExpanded(false);
     } catch (error) {
@@ -82,24 +85,31 @@ const ResearchForm = ({ showToast }) => {
     <section className="overflow-hidden border-y border-slate-200 bg-white shadow-sm sm:rounded-[2rem] sm:border">
       <button
         type="button"
-        onClick={() => setIsExpanded(prev => !prev)}
+        onClick={() => setIsExpanded((prev) => !prev)}
         className="flex w-full items-center justify-between gap-4 px-4 py-5 text-left sm:px-6"
       >
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-teal-600">Admin Studio</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-teal-600">
+            Admin Studio
+          </p>
           <h2 className="mt-1 text-xl font-black text-slate-900 sm:text-2xl">
             Publish Advanced Research
           </h2>
         </div>
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-900 text-white">
-          <i className={`fa-solid ${isExpanded ? 'fa-minus' : 'fa-plus'}`}></i>
+          <i className={`fa-solid ${isExpanded ? "fa-minus" : "fa-plus"}`}></i>
         </span>
       </button>
 
       {isExpanded && (
-        <form onSubmit={handleSubmit} className="grid gap-5 border-t border-slate-100 px-4 pb-6 pt-5 sm:px-6 lg:grid-cols-2">
+        <form
+          onSubmit={handleSubmit}
+          className="grid gap-5 border-t border-slate-100 px-4 pb-6 pt-5 sm:px-6 lg:grid-cols-2"
+        >
           <div>
-            <label className="mb-2 block text-sm font-black text-slate-700">Research Field</label>
+            <label className="mb-2 block text-sm font-black text-slate-700">
+              Research Field
+            </label>
             <input
               type="text"
               name="field"
@@ -112,7 +122,9 @@ const ResearchForm = ({ showToast }) => {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-black text-slate-700">Keywords</label>
+            <label className="mb-2 block text-sm font-black text-slate-700">
+              Keywords
+            </label>
             <input
               type="text"
               name="tags"
@@ -124,7 +136,9 @@ const ResearchForm = ({ showToast }) => {
           </div>
 
           <div className="lg:col-span-2">
-            <label className="mb-2 block text-sm font-black text-slate-700">Research Title</label>
+            <label className="mb-2 block text-sm font-black text-slate-700">
+              Research Title
+            </label>
             <input
               type="text"
               name="title"
@@ -137,7 +151,9 @@ const ResearchForm = ({ showToast }) => {
           </div>
 
           <div className="lg:col-span-2">
-            <label className="mb-2 block text-sm font-black text-slate-700">Abstract / Executive Summary</label>
+            <label className="mb-2 block text-sm font-black text-slate-700">
+              Abstract / Executive Summary
+            </label>
             <textarea
               name="abstract"
               value={formData.abstract}
@@ -149,7 +165,9 @@ const ResearchForm = ({ showToast }) => {
           </div>
 
           <div className="lg:col-span-2">
-            <label className="mb-2 block text-sm font-black text-slate-700">Main Body</label>
+            <label className="mb-2 block text-sm font-black text-slate-700">
+              Main Body
+            </label>
             <textarea
               name="body"
               value={formData.body}
@@ -162,7 +180,9 @@ const ResearchForm = ({ showToast }) => {
           </div>
 
           <div className="lg:col-span-2">
-            <label className="mb-2 block text-sm font-black text-slate-700">Sources / References</label>
+            <label className="mb-2 block text-sm font-black text-slate-700">
+              Sources / References
+            </label>
             <div className="space-y-3">
               {formData.sources.map((source, index) => (
                 <div key={index} className="grid gap-2 sm:grid-cols-[1fr_auto]">
@@ -173,7 +193,9 @@ const ResearchForm = ({ showToast }) => {
                     <input
                       type="url"
                       value={source}
-                      onChange={(e) => handleSourceChange(index, e.target.value)}
+                      onChange={(e) =>
+                        handleSourceChange(index, e.target.value)
+                      }
                       className="input-with-icon"
                       placeholder="https://example-source.com"
                     />
@@ -192,17 +214,31 @@ const ResearchForm = ({ showToast }) => {
               ))}
             </div>
 
-            <button type="button" onClick={addSourceField} className="btn-secondary mt-3 w-full sm:w-max">
+            <button
+              type="button"
+              onClick={addSourceField}
+              className="btn-secondary mt-3 w-full sm:w-max"
+            >
               <i className="fa-solid fa-plus"></i> Add Source
             </button>
           </div>
 
           <div className="border-t border-slate-100 pt-5 lg:col-span-2">
-            <button type="submit" disabled={isSubmitting} className="btn-dark w-full sm:w-auto">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="btn-dark w-full sm:w-auto"
+            >
               {isSubmitting ? (
-                <><i className="fa-solid fa-circle-notch fa-spin mr-2"></i>Publishing...</>
+                <>
+                  <i className="fa-solid fa-circle-notch fa-spin mr-2"></i>
+                  Publishing...
+                </>
               ) : (
-                <><i className="fa-solid fa-paper-plane mr-2"></i>Submit Research</>
+                <>
+                  <i className="fa-solid fa-paper-plane mr-2"></i>Submit
+                  Research
+                </>
               )}
             </button>
           </div>

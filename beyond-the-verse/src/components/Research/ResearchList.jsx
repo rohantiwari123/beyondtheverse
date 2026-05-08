@@ -1,12 +1,17 @@
-import React from 'react';
-import ResearchCard from './ResearchCard';
-import ResearchEmptyState from './ResearchEmptyState';
+import React from "react";
+import ResearchCard from "./ResearchCard";
+import ResearchEmptyState from "./ResearchEmptyState";
 
-const ResearchList = ({ researches, viewMode, selectedField, searchQuery }) => {
+const ResearchList = ({
+  researches = [],
+  viewMode,
+  selectedField,
+  searchQuery,
+}) => {
   return (
     <section>
       {/* Clean Header */}
-      <div className="mb-6 flex items-end justify-between gap-4">
+      <div className="mb-6 px-4 flex items-end justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-teal-600">
             Research Library
@@ -15,26 +20,32 @@ const ResearchList = ({ researches, viewMode, selectedField, searchQuery }) => {
             Published Researches
           </h2>
         </div>
-        
+
         {/* Result Counter Badge */}
         <div className="hidden items-center justify-center rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 sm:flex">
-          {researches.length} result{researches.length === 1 ? '' : 's'}
+          {researches?.length || 0} result
+          {(researches?.length || 0) === 1 ? "" : "s"}
         </div>
       </div>
 
-      {researches.length === 0 ? (
+      {/* SAFETY CHECK: Check if array is empty or undefined */}
+      {!researches || researches.length === 0 ? (
         <ResearchEmptyState
-          message="No matching research"
-          subMessage={searchQuery || selectedField ? 'Try another keyword or field filter.' : 'Be the first to share evidence-backed knowledge with the community.'}
+          message="No research yet" // Fixed: Ab yahan wahi dikhega jo aap chahte hain
+          subMessage={
+            searchQuery || selectedField
+              ? "Try another keyword or field filter."
+              : "Be the first to share evidence-backed knowledge with the community."
+          }
         />
       ) : (
-        <div 
+        <div
           className={
-            viewMode === 'compact' 
-              // COMPACT VIEW: Edge-to-edge on mobile (-mx-4 cancels out parent padding), stack normally on desktop
-              ? '-mx-4 flex flex-col sm:mx-0' 
-              // CARD VIEW: Responsive grid, 1 col mobile, 2 col tablet, 3 col desktop (since sidebar is gone)
-              : 'grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 sm:gap-6'
+            viewMode === "compact"
+              ? // COMPACT VIEW: Edge-to-edge on mobile
+                "-mx-4 flex flex-col sm:mx-0"
+              : // CARD VIEW: Responsive grid
+                "grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 sm:gap-6"
           }
         >
           {researches.map((res) => (
