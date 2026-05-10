@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import HTMLFlipBook from "react-pageflip";
+import "react-quill-new/dist/quill.snow.css"; // Required to render Quill's HTML correctly against Tailwind's reset
 import {
   formatResearchDate,
   getResearchSources,
@@ -116,16 +117,19 @@ const ResearchDetail = ({ research }) => {
 
   // Reusable content renderer (No fixed fonts, inherits clean workspace text)
   const renderContent = () => (
-    <div className="text-left sm:text-justify text-[14px] leading-relaxed text-slate-800 sm:text-[15px] sm:leading-[1.8] tracking-tight">
+    <div className="text-left sm:text-justify text-[14px] leading-relaxed text-slate-800 sm:text-[15px] sm:leading-[1.8] tracking-tight pb-8">
        {research.abstract && (
-         <p className="mb-6 break-inside-avoid font-bold">
-           {research.abstract}
-         </p>
+         <div 
+           className="mb-6 break-inside-avoid font-bold ql-editor px-0 py-0" 
+           dangerouslySetInnerHTML={{ __html: research.abstract }}
+         />
        )}
-       {research.body?.split("\n").map((p, idx) => {
-          if (!p.trim()) return <div key={idx} className="h-4" />;
-          return <p key={idx} className="mb-4">{p}</p>;
-       })}
+       {research.body && (
+         <div 
+           className="break-words ql-editor px-0 py-0"
+           dangerouslySetInnerHTML={{ __html: research.body }}
+         />
+       )}
     </div>
   );
 
