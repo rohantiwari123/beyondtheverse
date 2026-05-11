@@ -108,7 +108,7 @@ export default function CommunityPage({ showToast }) {
       )}
 
       {/* 🌟 WRAPPER: Agar login nahi hai to page blur aur click disable ho jayega */}
-      <div className={`w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-300 ${!isAuthenticated ? "pointer-events-none opacity-30 select-none" : ""}`}>
+      <div className={`w-full max-w-7xl mx-auto  sm:px-6 lg:px-8 transition-all duration-300 ${!isAuthenticated ? "pointer-events-none opacity-30 select-none" : ""}`}>
         <div className="flex justify-center w-full">
           {/* CENTER COLUMN: Feed */}
           <div className="w-full max-w-2xl flex flex-col gap-3 sm:gap-4 md:gap-6">

@@ -35,7 +35,7 @@ const SingleResearchPage = () => {
     <div className="min-h-screen bg-white pb-24 transition-colors duration-300 sm:bg-slate-50/80 sm:py-8 lg:py-12">
       
       {/* Wrapper width adjusted slightly larger than the book to allow padding */}
-      <div className="mx-auto w-full max-w-[900px] sm:px-6">
+      <div className="mx-auto w-full max-w-[900px]">
         
         {/* NATIVE TOOLBAR: Frosted Glass Sticky on Mobile, Static Transparent on Desktop */}
         <nav className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-slate-100 bg-white/90 px-5 py-3 backdrop-blur-xl transition-all sm:static sm:mb-8 sm:border-none sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">

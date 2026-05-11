@@ -127,7 +127,7 @@ const ResearchPage = ({ showToast }) => {
 
         {/* ADMIN FORM: Padding applied on mobile so it doesn't hit edges */}
         {isAdmin && (
-          <div className="px-4 sm:px-0">
+          <div>
             <ResearchForm showToast={showToast} />
           </div>
         )}

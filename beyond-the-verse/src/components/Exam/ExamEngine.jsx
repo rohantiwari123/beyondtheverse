@@ -57,6 +57,7 @@ export default function ExamEngine({ showToast }) {
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
 
   const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 Minutes
+  const [warnings, setWarnings] = useState(0); // 🌟 Anti-cheating state
   
   // 🌟 FIX: Prevent showing "already submitted" toast immediately after submission
   const isInitialLoad = React.useRef(true);
@@ -103,7 +104,7 @@ export default function ExamEngine({ showToast }) {
     fetchExamAndVerify();
   }, [examId, userId, navigate]);
 
-  // 🌟 NAYA: Auto-Submit Timer Logic
+  // 🌟 NAYA: Auto-Submit Timer & Anti-Cheating Execution
   useEffect(() => {
     if (!exam || isSubmitting) return;
 
@@ -113,12 +114,75 @@ export default function ExamEngine({ showToast }) {
       return;
     }
 
+    if (warnings >= 2) {
+      if (showToast) showToast("🚨 Multiple tab switches detected. Auto-submitting exam.", false);
+      executeSubmit();
+      return;
+    }
+
     const timerId = setInterval(() => {
       setTimeLeft(prev => prev - 1);
     }, 1000);
 
     return () => clearInterval(timerId);
-  }, [timeLeft, exam, isSubmitting]);
+  }, [timeLeft, exam, isSubmitting, warnings]);
+
+  // 🌟 NAYA: Tab Switching Detection
+  useEffect(() => {
+    if (!exam || isSubmitting || warnings >= 2) return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setWarnings(prev => {
+          const newWarnings = prev + 1;
+          if (newWarnings < 2) {
+            showAlert(`🚨 Anti-Cheating Warning: Tab switching or minimizing is not allowed. Warning ${newWarnings}/2. Next time, your exam will be automatically submitted.`);
+          }
+          return newWarnings;
+        });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [exam, isSubmitting, warnings]);
+
+  // 🌟 NAYA: Split-Screen / Resize Detection (Mobile)
+  useEffect(() => {
+    if (!exam || isSubmitting || warnings >= 2) return;
+
+    // Record initial height
+    const initialHeight = window.innerHeight;
+
+    const handleResize = () => {
+      const currentHeight = window.innerHeight;
+      // If height decreases by more than 30% (indicates split screen, as keyboard shouldn't open for MCQ)
+      if (currentHeight < initialHeight * 0.7) {
+        setWarnings(prev => {
+          // Prevent multiple quick triggers
+          if (prev >= 2) return prev;
+          const newWarnings = prev + 1;
+          if (newWarnings < 2) {
+            showAlert(`🚨 Anti-Cheating Warning: Split-screen or significant window resizing is not allowed. Warning ${newWarnings}/2. Next time, your exam will be automatically submitted.`);
+          }
+          return newWarnings;
+        });
+      }
+    };
+
+    // Use a small timeout to avoid rapid firing
+    let resizeTimer;
+    const debouncedResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(handleResize, 500);
+    };
+
+    window.addEventListener("resize", debouncedResize);
+    return () => {
+      window.removeEventListener("resize", debouncedResize);
+      clearTimeout(resizeTimer);
+    };
+  }, [exam, isSubmitting, warnings]);
 
   // Format time (MM:SS) for display
   const formatTime = (seconds) => {
@@ -222,7 +286,12 @@ export default function ExamEngine({ showToast }) {
   );
 
   return (
-    <div className="w-full min-h-screen bg-slate-50 pb-28 md:py-10 sm:px-6 lg:px-8 relative selection:bg-teal-100 selection:text-teal-900">
+    <div 
+      className="w-full min-h-screen bg-slate-50 pb-28 md:py-10 sm:px-6 lg:px-8 relative select-none"
+      onContextMenu={(e) => { e.preventDefault(); if (showToast) showToast("⚠️ Right-click is disabled during the assessment."); }}
+      onCopy={(e) => { e.preventDefault(); if (showToast) showToast("⚠️ Copying text is disabled."); }}
+      onPaste={(e) => { e.preventDefault(); if (showToast) showToast("⚠️ Pasting is disabled."); }}
+    >
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
 
       {/* 🌟 STICKY TIMER FOR MOBILE */}
