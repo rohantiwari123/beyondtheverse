@@ -56,7 +56,7 @@ export default function ExamEngine({ showToast }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
 
-  const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 Minutes
+  const [timeLeft, setTimeLeft] = useState(30 * 60); // Default 30 Minutes
   const [warnings, setWarnings] = useState(0); // 🌟 Anti-cheating state
   
   // 🌟 FIX: Prevent showing "already submitted" toast immediately after submission
@@ -64,6 +64,31 @@ export default function ExamEngine({ showToast }) {
 
   const showAlert = (message) => setModalConfig({ isOpen: true, type: 'alert', message, onConfirm: null });
   const showConfirm = (message, onConfirm) => setModalConfig({ isOpen: true, type: 'confirm', message, onConfirm });
+
+  const calculateTimeLeft = (endDateStr, endTimeStr) => {
+    if (!endDateStr || !endTimeStr) return 30 * 60;
+    try {
+      const [day, month, year] = endDateStr.split(' ');
+      const [time, modifier] = endTimeStr.split(' ');
+      let [hours, minutes] = time.split(':');
+      
+      hours = parseInt(hours, 10);
+      if (hours === 12) {
+        hours = modifier === 'AM' ? 0 : 12;
+      } else if (modifier === 'PM') {
+        hours += 12;
+      }
+      
+      const monthMap = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+      
+      const endDateTime = new Date(year, monthMap[month], parseInt(day, 10), hours, parseInt(minutes, 10), 0).getTime();
+      const now = new Date().getTime();
+      const diff = Math.floor((endDateTime - now) / 1000);
+      return diff > 0 ? diff : 0;
+    } catch (e) {
+      return 30 * 60;
+    }
+  };
 
   // 1. Fetch Exam
   useEffect(() => {
@@ -90,7 +115,7 @@ export default function ExamEngine({ showToast }) {
           let initialAnswers = {};
           examData.questions.forEach(q => { initialAnswers[q.id] = []; });
           setAnswers(initialAnswers);
-          // if(examData.duration) setTimeLeft(examData.duration * 60);
+          setTimeLeft(calculateTimeLeft(examData.endDate, examData.endTime));
         } else {
           showToast("Assessment module unavailable.", false);
           navigate('/exam'); 
@@ -184,10 +209,15 @@ export default function ExamEngine({ showToast }) {
     };
   }, [exam, isSubmitting, warnings]);
 
-  // Format time (MM:SS) for display
+  // Format time for display
   const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60);
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
+
+    if (d > 0) return `${d}d ${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m`;
+    if (h > 0) return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 

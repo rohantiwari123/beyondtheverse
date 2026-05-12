@@ -204,6 +204,14 @@ export default function AdminExamEditor({ showToast }) {
   const [examMinute, setExamMinute] = useState("");
   const [examAmPm, setExamAmPm] = useState("");
 
+  const [examEndDay, setExamEndDay] = useState("");
+  const [examEndMonth, setExamEndMonth] = useState("");
+  const [examEndYear, setExamEndYear] = useState("");
+  
+  const [examEndHour, setExamEndHour] = useState("");
+  const [examEndMinute, setExamEndMinute] = useState("");
+  const [examEndAmPm, setExamEndAmPm] = useState("");
+
   const [isSaving, setIsSaving] = useState(false);
   const [categories, setCategories] = useState([]);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -239,6 +247,22 @@ export default function AdminExamEditor({ showToast }) {
           setExamHour(timeParts[0]); setExamMinute(timeParts[1]);
         }
         setExamAmPm(parts[1]);
+      }
+    }
+    if (draft.endDate) {
+      const parts = draft.endDate.split(" ");
+      if (parts.length === 3) {
+        setExamEndDay(parts[0]); setExamEndMonth(parts[1]); setExamEndYear(parts[2]);
+      }
+    }
+    if (draft.endTime) {
+      const parts = draft.endTime.split(" ");
+      if (parts.length === 2) {
+        const timeParts = parts[0].split(":");
+        if (timeParts.length === 2) {
+          setExamEndHour(timeParts[0]); setExamEndMinute(timeParts[1]);
+        }
+        setExamEndAmPm(parts[1]);
       }
     }
     setQuestions(draft.questions && draft.questions.length > 0 ? draft.questions : [{ id: `q_${Date.now()}`, text: "", options: [{ id: `opt_${Date.now()}_1`, text: "" }, { id: `opt_${Date.now()}_2`, text: "" }], correctOptionIds: [] }]);
@@ -325,6 +349,10 @@ export default function AdminExamEditor({ showToast }) {
     // Only enforce date/time if not saving as draft (or enforce anyway if needed, let's enforce anyway for consistency, or maybe skip for drafts? Let's keep enforcing to ensure data integrity unless specifically asked otherwise)
     if (!examDay || !examMonth || !examYear) return showAlert("Please select a complete Date.");
     if (!examHour || !examMinute || !examAmPm) return showAlert("Please select a complete Time.");
+    
+    // Validate End Date & Time if provided
+    if ((examEndDay || examEndMonth || examEndYear) && (!examEndDay || !examEndMonth || !examEndYear)) return showAlert("Please select a complete End Date.");
+    if ((examEndHour || examEndMinute || examEndAmPm) && (!examEndHour || !examEndMinute || !examEndAmPm)) return showAlert("Please select a complete End Time.");
 
     for (let i = 0; i < questions.length; i++) {
       if (questions[i].correctOptionIds.length === 0) return showAlert(`Question ${i + 1} needs at least one correct answer.`);
@@ -336,12 +364,16 @@ export default function AdminExamEditor({ showToast }) {
     try {
       const formattedDate = `${examDay} ${examMonth} ${examYear}`;
       const formattedTime = `${examHour}:${examMinute} ${examAmPm}`;
+      const formattedEndDate = examEndDay ? `${examEndDay} ${examEndMonth} ${examEndYear}` : "";
+      const formattedEndTime = examEndHour ? `${examEndHour}:${examEndMinute} ${examEndAmPm}` : "";
 
       const examData = { 
         title: examTitle, 
         category: examCategory, 
         date: formattedDate, 
         time: formattedTime, 
+        endDate: formattedEndDate,
+        endTime: formattedEndTime,
         questions: questions,
         isDraft: isDraft 
       };
@@ -418,7 +450,7 @@ export default function AdminExamEditor({ showToast }) {
 
             <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
               <div className="flex-1">
-                <label className={UI_THEME.label}>Exam Date *</label>
+                <label className={UI_THEME.label}>Start Date *</label>
                 <div className="flex gap-2">
                   <CustomDropdown options={days} value={examDay} onChange={setExamDay} placeholder="DD" widthClass="w-1/3" />
                   <CustomDropdown options={months} value={examMonth} onChange={setExamMonth} placeholder="MM" widthClass="w-1/3" />
@@ -426,12 +458,32 @@ export default function AdminExamEditor({ showToast }) {
                 </div>
               </div>
               <div className="flex-1">
-                <label className={UI_THEME.label}>Exam Time *</label>
+                <label className={UI_THEME.label}>Start Time *</label>
                 <div className="flex gap-2">
                   <CustomDropdown options={hours} value={examHour} onChange={setExamHour} placeholder="HH" widthClass="w-1/3" />
                   <span className="flex items-center text-slate-400 font-bold">:</span>
                   <CustomDropdown options={minutes} value={examMinute} onChange={setExamMinute} placeholder="MM" widthClass="w-1/3" />
                   <CustomDropdown options={ampm} value={examAmPm} onChange={setExamAmPm} placeholder="AM/PM" widthClass="w-1/3" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
+              <div className="flex-1">
+                <label className={UI_THEME.label}>End Date (Optional)</label>
+                <div className="flex gap-2">
+                  <CustomDropdown options={days} value={examEndDay} onChange={setExamEndDay} placeholder="DD" widthClass="w-1/3" />
+                  <CustomDropdown options={months} value={examEndMonth} onChange={setExamEndMonth} placeholder="MM" widthClass="w-1/3" />
+                  <CustomDropdown options={years} value={examEndYear} onChange={setExamEndYear} placeholder="YYYY" widthClass="w-1/3" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <label className={UI_THEME.label}>End Time (Optional)</label>
+                <div className="flex gap-2">
+                  <CustomDropdown options={hours} value={examEndHour} onChange={setExamEndHour} placeholder="HH" widthClass="w-1/3" />
+                  <span className="flex items-center text-slate-400 font-bold">:</span>
+                  <CustomDropdown options={minutes} value={examEndMinute} onChange={setExamEndMinute} placeholder="MM" widthClass="w-1/3" />
+                  <CustomDropdown options={ampm} value={examEndAmPm} onChange={setExamEndAmPm} placeholder="AM/PM" widthClass="w-1/3" />
                 </div>
               </div>
             </div>
