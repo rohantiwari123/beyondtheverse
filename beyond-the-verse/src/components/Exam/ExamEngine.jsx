@@ -68,11 +68,18 @@ export default function ExamEngine({ showToast }) {
   const calculateTimeLeft = (endDateStr, endTimeStr) => {
     if (!endDateStr || !endTimeStr) return 30 * 60;
     try {
-      const [day, month, year] = endDateStr.split(' ');
-      const [time, modifier] = endTimeStr.split(' ');
+      const dateParts = endDateStr.trim().split(' ');
+      const timeParts = endTimeStr.trim().split(' ');
+      
+      if (dateParts.length !== 3 || timeParts.length < 2) return 30 * 60;
+      
+      const [day, month, year] = dateParts;
+      const [time, modifier] = timeParts;
       let [hours, minutes] = time.split(':');
       
       hours = parseInt(hours, 10);
+      if (isNaN(hours)) return 30 * 60;
+
       if (hours === 12) {
         hours = modifier === 'AM' ? 0 : 12;
       } else if (modifier === 'PM') {
@@ -81,9 +88,16 @@ export default function ExamEngine({ showToast }) {
       
       const monthMap = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
       
-      const endDateTime = new Date(year, monthMap[month], parseInt(day, 10), hours, parseInt(minutes, 10), 0).getTime();
+      const parsedMonth = monthMap[month];
+      if (parsedMonth === undefined) return 30 * 60;
+      
+      const endDateTime = new Date(parseInt(year, 10), parsedMonth, parseInt(day, 10), hours, parseInt(minutes, 10), 0).getTime();
+      
+      if (isNaN(endDateTime)) return 30 * 60;
+
       const now = new Date().getTime();
       const diff = Math.floor((endDateTime - now) / 1000);
+      
       return diff > 0 ? diff : 0;
     } catch (e) {
       return 30 * 60;
@@ -115,7 +129,14 @@ export default function ExamEngine({ showToast }) {
           let initialAnswers = {};
           examData.questions.forEach(q => { initialAnswers[q.id] = []; });
           setAnswers(initialAnswers);
-          setTimeLeft(calculateTimeLeft(examData.endDate, examData.endTime));
+          
+          const initialTime = calculateTimeLeft(examData.endDate, examData.endTime);
+          if (initialTime <= 0) {
+            if (showToast) showToast("This assessment's deadline has passed. You can no longer attempt it.", false);
+            navigate('/exam');
+            return;
+          }
+          setTimeLeft(initialTime);
         } else {
           showToast("Assessment module unavailable.", false);
           navigate('/exam'); 
