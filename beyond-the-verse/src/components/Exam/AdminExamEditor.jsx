@@ -400,9 +400,19 @@ export default function AdminExamEditor({ showToast }) {
         isDraft: isDraft 
       };
 
-      if (editingExamId && isDraft) {
-        await updateExamInDb(editingExamId, examData);
+      if (editingExamId) {
+        if (isDraft) {
+          // Just saving the draft
+          await updateExamInDb(editingExamId, examData);
+        } else {
+          // Publishing a loaded draft:
+          // 1. Update the old draft so the backup has the final edits
+          await updateExamInDb(editingExamId, { ...examData, isDraft: true });
+          // 2. Create the new published assessment
+          await saveExamToDb(examData);
+        }
       } else {
+        // Creating a new draft or publishing a brand new assessment
         await saveExamToDb(examData);
       }
       
