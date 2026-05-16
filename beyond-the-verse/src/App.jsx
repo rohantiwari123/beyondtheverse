@@ -8,6 +8,7 @@ import { useAuth } from './context/AuthContext';
 
 // Components & Layout (इन्हें Lazy load नहीं करेंगे क्योंकि ये हर पेज पर दिखते हैं)
 import Header from './components/Layout/Header';
+import Footer from './components/Layout/Footer';
 import Toast from './components/common/Toast';
 import ExamResult from './components/Exam/ExamResult';
 
@@ -28,6 +29,12 @@ const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'));
 const SettingsPage = lazy(() => import('./pages/Settings/SettingsPage'));
 const ResearchPage = lazy(() => import('./pages/Research/ResearchPage'));
 const SingleResearchPage = lazy(() => import('./pages/Research/SingleResearchPage'));
+
+// ⚖️ NEW LEGAL & SUPPORT PAGES
+const PrivacyPage = lazy(() => import('./pages/Legal/PrivacyPage'));
+const TermsPage = lazy(() => import('./pages/Legal/TermsPage'));
+const ContactPage = lazy(() => import('./pages/Support/ContactPage'));
+const FAQPage = lazy(() => import('./pages/Support/FAQPage'));
 
 // 🌟 PRO FIX 2: Global Page Loader 🌟
 // जब तक पेज बैकग्राउंड में डाउनलोड होगा, यूज़र को ये प्रीमियम एनीमेशन दिखेगा
@@ -127,13 +134,23 @@ export default function App() {
             <Route path="/research" element={<ResearchPage showToast={showToast} />} />
             <Route path="/research/:researchId" element={<SingleResearchPage showToast={showToast} />} />
             <Route path="/profile/:id" element={<ProfilePage showToast={showToast} />} />
+
+            {/* Legal & Support Routes */}
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/faq" element={<FAQPage />} />
             
-            
-            {/* Fallback Route */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Suspense>
       </main>
+
+      {!['/login', '/signup'].includes(location.pathname) && (
+        <div className="relative z-10">
+          <Footer />
+        </div>
+      )}
       
       {/* Toast Notification Layer */}
       <div className="relative z-[100]">
