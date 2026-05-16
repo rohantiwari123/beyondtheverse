@@ -5,7 +5,7 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css'; 
 
 // Services
-import { saveExamToDb, updateExamInDb, getAllExams, getAdminCategories, saveAdminCategories } from '../../services/firebaseServices';
+import { saveExamToDb, updateExamInDb, getAllExams, getAdminCategories, saveAdminCategories, deleteExam } from '../../services/firebaseServices';
 
 // ==========================================
 // 🎨 GLOBAL UI THEME (Reusable Styles)
@@ -152,7 +152,7 @@ function CategoryManager({ isOpen, onClose, categories, setCategories, onSelect 
 }
 
 // 4. Drafts Manager Modal
-function DraftManager({ isOpen, onClose, drafts, onLoadDraft }) {
+function DraftManager({ isOpen, onClose, drafts, onLoadDraft, onDeleteDraft }) {
   if (!isOpen) return null;
 
   return (
@@ -167,12 +167,17 @@ function DraftManager({ isOpen, onClose, drafts, onLoadDraft }) {
         <div className="p-6 overflow-y-auto flex-1">
           <div className="space-y-3">
             {drafts.map((draft, idx) => (
-              <div key={idx} className="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl group hover:border-teal-300 hover:shadow-sm transition-all cursor-pointer" onClick={() => onLoadDraft(draft)}>
-                <div>
+              <div key={idx} className="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl group hover:border-teal-300 hover:shadow-sm transition-all">
+                <div className="flex-1 cursor-pointer" onClick={() => onLoadDraft(draft)}>
                   <h4 className="text-sm font-bold text-slate-800">{draft.title || "Untitled Draft"}</h4>
                   <p className="text-[11px] text-slate-500 mt-1 uppercase tracking-widest">{draft.category || "Uncategorized"} • {draft.questions?.length || 0} Questions</p>
                 </div>
-                <button className="text-[10px] font-bold uppercase tracking-wider text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 px-4 py-2 rounded-lg transition-colors">Load</button>
+                <div className="flex gap-2 items-center">
+                  <button onClick={() => onLoadDraft(draft)} className="text-[10px] font-bold uppercase tracking-wider text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 px-4 py-2 rounded-lg transition-colors">Load</button>
+                  <button onClick={(e) => { e.stopPropagation(); onDeleteDraft(draft.id); }} className={`${UI_THEME.btnDangerText} h-8 w-8 bg-rose-50 border border-rose-100`} title="Delete Draft">
+                    <i className="fa-solid fa-trash-can text-xs"></i>
+                  </button>
+                </div>
               </div>
             ))}
             {drafts.length === 0 && (
@@ -342,6 +347,23 @@ export default function AdminExamEditor({ showToast }) {
     }));
   };
 
+  const handleDeleteDraft = async (draftId) => {
+    try {
+      await deleteExam(draftId);
+      setDrafts(drafts.filter(d => d.id !== draftId));
+      if (editingExamId === draftId) {
+        setEditingExamId(null);
+        setExamTitle(""); setExamCategory("");
+        setExamDay(""); setExamMonth(""); setExamYear("");
+        setExamHour(""); setExamMinute(""); setExamAmPm("");
+        setQuestions([{ id: `q_${Date.now()}`, text: "", options: [{ id: `opt_${Date.now()}_1`, text: "" }, { id: `opt_${Date.now()}_2`, text: "" }], correctOptionIds: [] }]);
+      }
+      showToast("Draft deleted successfully");
+    } catch (error) {
+      showAlert("Failed to delete draft.");
+    }
+  };
+
   const handleSaveExam = async (isDraft = false) => {
     if (!examTitle.trim()) return showAlert("Please enter an Assessment Title.");
     if (!examCategory) return showAlert("Please select a Category.");
@@ -378,7 +400,7 @@ export default function AdminExamEditor({ showToast }) {
         isDraft: isDraft 
       };
 
-      if (editingExamId) {
+      if (editingExamId && isDraft) {
         await updateExamInDb(editingExamId, examData);
       } else {
         await saveExamToDb(examData);
@@ -414,13 +436,13 @@ export default function AdminExamEditor({ showToast }) {
         onSelect={setExamCategory} 
       />
 
-      <DraftManager 
-        isOpen={isDraftsModalOpen} 
-        onClose={() => setIsDraftsModalOpen(false)} 
-        drafts={drafts} 
-        onLoadDraft={loadDraftIntoEditor} 
+      <DraftManager
+        isOpen={isDraftsModalOpen}
+        onClose={() => setIsDraftsModalOpen(false)}
+        drafts={drafts}
+        onLoadDraft={loadDraftIntoEditor}
+        onDeleteDraft={handleDeleteDraft}
       />
-
       <div className="max-w-3xl mx-auto px-0 sm:px-6 lg:px-8 animate-fade-in">
         
         {/* 1. HEADER SECTION */}
