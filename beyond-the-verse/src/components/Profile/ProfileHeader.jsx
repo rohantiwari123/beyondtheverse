@@ -129,10 +129,6 @@ export default function ProfileHeader({ profileData, isMyProfile = true }) {
                 )}
 
                 <div className="mt-5 flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
-                    <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-50 border border-slate-100/80 text-[11px] font-bold text-slate-600 tracking-wide">
-                        <i className="fa-solid fa-rocket text-teal-500"></i> Explorer of the Verse
-                    </span>
-                    
                     {showLocation && location && (
                         <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-50 border border-slate-100/80 text-[11px] font-bold text-slate-600 tracking-wide">
                             <i className="fa-solid fa-location-dot text-slate-400"></i> {location}

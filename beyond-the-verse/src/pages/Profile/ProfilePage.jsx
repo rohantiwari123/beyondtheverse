@@ -125,7 +125,7 @@ export default function ProfilePage({ showToast }) {
                 onClick={() => setActiveTab("exams")}
                 className={`pb-4 text-sm font-bold uppercase tracking-wider transition-all relative whitespace-nowrap ${activeTab === "exams" ? "text-zinc-900 border-b-2 border-zinc-900" : "text-zinc-400 hover:text-zinc-600"}`}
               >
-                Vault
+                Results
               </button>
             </>
           )}

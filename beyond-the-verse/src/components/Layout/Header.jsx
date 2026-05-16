@@ -22,7 +22,7 @@ export default function Header() {
   const navLinks = [
     { name: 'Home', path: '/', icon: 'fa-house' },
     { name: 'Library', path: '/library', icon: 'fa-box-archive' },
-    { name: 'Assessments', path: '/exam', icon: 'fa-file-signature' },
+    { name: 'Exam', path: '/exam', icon: 'fa-file-signature' },
     { name: 'Community', path: '/community', icon: 'fa-users' },
     { name: 'Research', path: '/research', icon: 'fa-microscope' },
     { name: 'Framework', path: '/framework', icon: 'fa-network-wired' },
