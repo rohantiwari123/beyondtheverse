@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { db } from "../../firebase";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, deleteDoc, doc } from "firebase/firestore";
 import ResearchHeader from "../../components/Research/ResearchHeader";
 import ResearchForm from "../../components/Research/ResearchForm";
 import ResearchList from "../../components/Research/ResearchList";
@@ -26,6 +26,26 @@ const ResearchPage = ({ showToast }) => {
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [currentPage, setCurrentPage] = useState(1);
   const { isAdmin } = useAuth();
+
+  const handleDeleteResearch = useCallback(
+    async (researchId) => {
+      if (!researchId) return;
+
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this research entry? This cannot be undone."
+      );
+      if (!confirmed) return;
+
+      try {
+        await deleteDoc(doc(db, "researches", researchId));
+        if (showToast) showToast("Research deleted successfully.", true);
+      } catch (error) {
+        console.error("Error deleting research:", error);
+        if (showToast) showToast("Unable to delete research. Try again.", false);
+      }
+    },
+    [showToast]
+  );
 
   useEffect(() => {
     const q = query(collection(db, "researches"), orderBy("createdAt", "desc"));
@@ -192,6 +212,8 @@ const ResearchPage = ({ showToast }) => {
                 viewMode={viewMode}
                 selectedField={selectedField}
                 searchQuery={searchQuery}
+                isAdmin={isAdmin}
+                onDeleteResearch={handleDeleteResearch}
               />
 
               {/* PAGINATION: Responsive pagination controls */}

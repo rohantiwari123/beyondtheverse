@@ -7,6 +7,8 @@ const ResearchList = ({
   viewMode,
   selectedField,
   searchQuery,
+  isAdmin,
+  onDeleteResearch,
 }) => {
   return (
     <section>
@@ -49,7 +51,13 @@ const ResearchList = ({
           }
         >
           {researches.map((res) => (
-            <ResearchCard key={res.id} res={res} viewMode={viewMode} />
+            <ResearchCard
+              key={res.id}
+              res={res}
+              viewMode={viewMode}
+              isAdmin={isAdmin}
+              onDeleteResearch={onDeleteResearch}
+            />
           ))}
         </div>
       )}

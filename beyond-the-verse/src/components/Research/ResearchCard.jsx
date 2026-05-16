@@ -8,22 +8,23 @@ import {
   getResearchTags,
 } from "./researchUtils";
 
-const ResearchCard = ({ res, viewMode = "cards" }) => {
+const ResearchCard = ({ res, viewMode = "cards", isAdmin = false, onDeleteResearch }) => {
   const sources = getResearchSources(res);
   const tags = getResearchTags(res);
   const readTime = getResearchReadTime(res);
 
+  const handleDelete = async () => {
+    if (onDeleteResearch) {
+      await onDeleteResearch(res.id);
+    }
+  };
+
   // 1. COMPACT VIEW (List): Edge-to-Edge on mobile, rounded & bordered on desktop
   if (viewMode === "compact") {
     return (
-      <Link
-        to={`/research/${res.id}`}
-        // Mobile: py-5, px-4 (edge-to-edge), bottom border only. 
-        // Desktop (sm+): rounded corners, full border on hover.
-        className="group block border-b border-slate-100 bg-white px-4 py-5 transition-all hover:bg-slate-50/50 sm:mb-2 sm:rounded-xl sm:border sm:border-transparent sm:px-5 sm:py-4 sm:hover:border-slate-200"
-      >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-          <div className="min-w-0 flex-1">
+      <div className="group flex flex-col border-b border-slate-100 bg-white px-4 py-5 transition-all hover:bg-slate-50/50 sm:mb-2 sm:rounded-xl sm:border sm:border-transparent sm:px-5 sm:py-4 sm:hover:border-slate-200">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+          <Link to={`/research/${res.id}`} className="min-w-0 flex-1">
             <div className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-500">
               <span className="font-semibold text-teal-600">
                 {res.field || "General"}
@@ -37,29 +38,42 @@ const ResearchCard = ({ res, viewMode = "cards" }) => {
             <p className="mt-1 truncate text-sm text-slate-500 sm:mt-1.5">
               {getResearchExcerpt(res, 120)}
             </p>
-          </div>
+          </Link>
 
-          {/* Desktop Read Button */}
-          <div className="hidden shrink-0 items-center gap-4 sm:flex">
-            <span className="text-sm font-medium text-slate-400">
-              {readTime} min read
-            </span>
-            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition-all group-hover:border-teal-600 group-hover:bg-teal-600 group-hover:text-white">
-              Read <i className="fa-solid fa-book-open text-xs"></i>
+          <div className="flex flex-col items-start gap-3 sm:items-end">
+            <div className="hidden shrink-0 items-center gap-4 sm:flex">
+              <span className="text-sm font-medium text-slate-400">
+                {readTime} min read
+              </span>
+              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition-all group-hover:border-teal-600 group-hover:bg-teal-600 group-hover:text-white">
+                Read <i className="fa-solid fa-book-open text-xs"></i>
+              </div>
             </div>
-          </div>
-
-          {/* Mobile Read Indicator (Visible only on small screens) */}
-          <div className="flex items-center justify-between sm:hidden">
-             <span className="text-xs font-medium text-slate-400">
-              <i className="fa-regular fa-clock mr-1"></i> {readTime} min read
-            </span>
-            <span className="text-xs font-bold text-teal-600 group-hover:text-teal-700">
-              Read Article <i className="fa-solid fa-arrow-right ml-1"></i>
-            </span>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100"
+              >
+                <i className="fa-solid fa-trash-can"></i>
+                Delete
+              </button>
+            )}
           </div>
         </div>
-      </Link>
+
+        <div className="mt-4 flex items-center justify-between sm:hidden">
+          <span className="text-xs font-medium text-slate-400">
+            <i className="fa-regular fa-clock mr-1"></i> {readTime} min read
+          </span>
+          <Link
+            to={`/research/${res.id}`}
+            className="text-xs font-bold text-teal-600 transition-colors hover:text-teal-700"
+          >
+            Read Article <i className="fa-solid fa-arrow-right ml-1"></i>
+          </Link>
+        </div>
+      </div>
     );
   }
 
@@ -94,7 +108,7 @@ const ResearchCard = ({ res, viewMode = "cards" }) => {
       </p>
 
       {/* Footer / Author Info & CTA Button */}
-      <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-4 sm:pt-5">
+      <div className="mt-auto flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pt-5">
         <div className="flex flex-col pr-3">
           <span className="truncate text-sm font-bold text-slate-700">
             {res.authorName || "Anonymous"}
@@ -104,13 +118,24 @@ const ResearchCard = ({ res, viewMode = "cards" }) => {
           </span>
         </div>
 
-        {/* Card View Read Button */}
-        <Link
-          to={`/research/${res.id}`}
-          className="flex shrink-0 items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-teal-600 hover:shadow-md hover:shadow-teal-600/20 sm:text-sm"
-        >
-          Read <i className="fa-solid fa-book-open text-xs"></i>
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to={`/research/${res.id}`}
+            className="flex shrink-0 items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-teal-600 hover:shadow-md hover:shadow-teal-600/20 sm:text-sm"
+          >
+            Read <i className="fa-solid fa-book-open text-xs"></i>
+          </Link>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="flex shrink-0 items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100"
+            >
+              <i className="fa-solid fa-trash-can"></i>
+              Delete
+            </button>
+          )}
+        </div>
       </div>
     </article>
   );
