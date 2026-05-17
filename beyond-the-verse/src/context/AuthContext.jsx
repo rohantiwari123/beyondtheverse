@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore'; // 🌟 FIX: getDoc ki jagah onSnapshot
+import { doc, onSnapshot } from 'firebase/firestore'; 
 import { auth, db } from '../firebase'; 
 
 // 🛡️ SECURITY FIX: LocalStorage Helper Functions
@@ -16,31 +16,40 @@ export const AuthProvider = ({ children }) => {
   
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(!!savedUser);
+  const [userRole, setUserRole] = useState(savedUser?.role || 'user'); // student/user, teacher, admin, examiner
+  
   const [isAdmin, setIsAdmin] = useState(savedUser?.role === 'admin');
+  const [isTeacher, setIsTeacher] = useState(savedUser?.role === 'teacher');
+  const [isExaminer, setIsExaminer] = useState(savedUser?.role === 'examiner');
+  const [isUser, setIsUser] = useState(savedUser?.role === 'user' || !savedUser?.role);
+
   const [userName, setUserName] = useState(savedUser?.name || ""); 
   const [userUsername, setUserUsername] = useState(savedUser?.username || "");
   const [userProfilePic, setUserProfilePic] = useState(savedUser?.profilePic || "");
   const [isCheckingAuth, setIsCheckingAuth] = useState(!savedUser);
 
   useEffect(() => {
-    let unsubscribeSnapshot = null; // 🌟 Firestore listener ko rokne ke liye
+    let unsubscribeSnapshot = null; 
 
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
         setCurrentUser(user);
         
-        // 🚀 PRO UPGRADE: Real-time Database Listener
-        // Ab agar database mein role ya name change hoga, toh website par instantly update hoga (bina refresh)
         unsubscribeSnapshot = onSnapshot(doc(db, 'users', user.uid), 
           (userDoc) => {
             if (userDoc.exists()) {
-              const role = userDoc.data().role || 'client';
+              const role = userDoc.data().role || 'user';
               const realName = userDoc.data().name || user.displayName || ""; 
               const realUsername = userDoc.data().username || "";
               const realProfilePic = userDoc.data().profilePic || user.photoURL || "";
               
               setIsAuthenticated(true);
+              setUserRole(role);
               setIsAdmin(role === 'admin');
+              setIsTeacher(role === 'teacher');
+              setIsExaminer(role === 'examiner');
+              setIsUser(role === 'user');
+
               setUserName(realName); 
               setUserUsername(realUsername);
               setUserProfilePic(realProfilePic);
@@ -50,17 +59,20 @@ export const AuthProvider = ({ children }) => {
               const tempName = user.displayName || ""; 
               const tempProfilePic = user.photoURL || "";
               setIsAuthenticated(true);
+              setUserRole('user');
               setIsAdmin(false);
+              setIsTeacher(false);
+              setIsExaminer(false);
+              setIsUser(true);
               setUserName(tempName);
               setUserUsername("");
               setUserProfilePic(tempProfilePic);
-              saveLocalUser({ uid: user.uid, role: 'client', name: tempName, username: "", profilePic: tempProfilePic });
+              saveLocalUser({ uid: user.uid, role: 'user', name: tempName, username: "", profilePic: tempProfilePic });
             }
             setIsCheckingAuth(false);
           }, 
           (error) => {
             console.error("AuthContext Snapshot Error:", error);
-            // Fallback agar network chala jaye
             setIsAuthenticated(true); 
             setUserName(user.displayName || getLocalUser()?.name || "");
             setUserProfilePic(user.photoURL || getLocalUser()?.profilePic || "");
@@ -69,21 +81,22 @@ export const AuthProvider = ({ children }) => {
         );
 
       } else {
-        // User logged out
         setCurrentUser(null);
         removeLocalUser();
         setIsAuthenticated(false);
+        setUserRole('user');
         setIsAdmin(false);
+        setIsTeacher(false);
+        setIsExaminer(false);
+        setIsUser(false);
         setUserName("");
         setUserProfilePic("");
         setIsCheckingAuth(false);
         
-        // 🧹 Memory Leak roko: Agar user logout ho jaye toh Firestore ko sun-na band karo
         if (unsubscribeSnapshot) unsubscribeSnapshot();
       }
     });
 
-    // 🧹 Cleanup function jab component unmount ho
     return () => {
       unsubscribeAuth();
       if (unsubscribeSnapshot) unsubscribeSnapshot();
@@ -92,7 +105,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = (role, name, username, profilePic) => {
     setIsAuthenticated(true);
+    setUserRole(role);
     setIsAdmin(role === 'admin');
+    setIsTeacher(role === 'teacher');
+    setIsExaminer(role === 'examiner');
+    setIsUser(role === 'user');
     if (name) setUserName(name);
     if (username !== undefined) setUserUsername(username);
     if (profilePic !== undefined) setUserProfilePic(profilePic);
@@ -103,7 +120,11 @@ export const AuthProvider = ({ children }) => {
     removeLocalUser();
     setCurrentUser(null);
     setIsAuthenticated(false);
+    setUserRole('user');
     setIsAdmin(false);
+    setIsTeacher(false);
+    setIsExaminer(false);
+    setIsUser(false);
     setUserName("");
     setUserUsername("");
     setUserProfilePic("");
@@ -112,7 +133,11 @@ export const AuthProvider = ({ children }) => {
   const value = { 
     currentUser, 
     isAuthenticated, 
+    userRole,
     isAdmin, 
+    isTeacher,
+    isExaminer,
+    isUser,
     userName,
     userUsername, 
     userProfilePic,

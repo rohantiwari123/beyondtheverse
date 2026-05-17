@@ -1072,3 +1072,56 @@ export const saveFrameworkData = async (data) => {
     throw error;
   }
 };
+
+// ==========================================
+// 🛡️ 14. ADMIN ACTIONS (User Management)
+// ==========================================
+export const updateUserRole = async (userId, newRole) => {
+  try {
+    if (!userId) throw new Error("User ID is required");
+    const userRef = doc(db, "users", userId);
+    // 🌟 Robust Update using setDoc with merge
+    await setDoc(userRef, { role: newRole }, { merge: true });
+    return true;
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    throw error;
+  }
+};
+
+export const adminUpdateUserUsername = async (userId, newUsername) => {
+  try {
+    if (!userId) throw new Error("User ID is required");
+    // Check uniqueness
+    const usernameQuery = query(collection(db, "users"), where("username", "==", newUsername));
+    const usernameSnapshot = await getDocs(usernameQuery);
+    if (!usernameSnapshot.empty && usernameSnapshot.docs[0].id !== userId) {
+      throw new Error("Username is already taken.");
+    }
+
+    const userRef = doc(db, "users", userId);
+    await setDoc(userRef, { 
+      username: newUsername,
+      lastEditedUsername: Date.now() 
+    }, { merge: true });
+    return true;
+  } catch (error) {
+    console.error("Error admin updating username:", error);
+    throw error;
+  }
+};
+
+export const adminUpdateUserName = async (userId, newName) => {
+  try {
+    if (!userId) throw new Error("User ID is required");
+    const userRef = doc(db, "users", userId);
+    await setDoc(userRef, { 
+      name: newName,
+      lastEditedName: Date.now() 
+    }, { merge: true });
+    return true;
+  } catch (error) {
+    console.error("Error admin updating name:", error);
+    throw error;
+  }
+};

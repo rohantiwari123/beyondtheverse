@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import AdminExamEditor from '../../components/Exam/AdminExamEditor';
 import AdminFrameworkManager from '../../components/Admin/AdminFrameworkManager';
 
-import { publishQuestionToFAQ, deleteUserQuestion, getResultsReleaseStatus, setResultsReleaseStatus, getUserProfile } from '../../services/firebaseServices';
+import { publishQuestionToFAQ, deleteUserQuestion, getResultsReleaseStatus, setResultsReleaseStatus, getUserProfile, updateUserRole, adminUpdateUserUsername, adminUpdateUserName } from '../../services/firebaseServices';
 
 // ==========================================
 // 🌟 CUSTOM MODAL (For Safe Actions)
@@ -45,7 +45,8 @@ function CustomModal({ config, onClose }) {
 // 🌟 MAIN DASHBOARD COMPONENT
 // ==========================================
 export default function AdminDashboard({ showToast, donations, totalRaised, targetAmount }) {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isTeacher, isExaminer } = useAuth();
+  const canAccess = isAdmin || isTeacher || isExaminer;
 
   const [activeTab, setActiveTab] = useState('academy');
   const [searchTerm, setSearchTerm] = useState("");
@@ -94,7 +95,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
 
   // 🌟 FIX: Fetch Pending Questions (Real-time)
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!isAdmin && !isTeacher) return;
 
     if (activeTab === 'qna') {
       const q = query(collection(db, "user_questions"), where("status", "==", "pending"));
@@ -108,7 +109,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
 
   // 🌟 FIX: Fetch All Exam Results (Real-time)
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!canAccess) return;
 
     if (activeTab === 'results') {
       setIsFetchingResults(true);
@@ -150,7 +151,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
 
   // Fetch Result Release Status
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!canAccess) return;
 
     const fetchReleaseStatus = async () => {
       setIsFetchingReleaseStatus(true);
@@ -165,10 +166,10 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
     };
 
     fetchReleaseStatus();
-  }, [isAdmin]);
+  }, [isAdmin, isTeacher, isExaminer]);
 
   // Redirect non-admins after hooks have been registered.
-  if (!isAdmin) {
+  if (!canAccess) {
     return <Navigate to="/" />;
   }
 
@@ -252,6 +253,35 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
     link.click();
   };
 
+  // 🛡️ User Role Update
+  const handleRoleChange = async (userId, currentRole, newRole) => {
+    if (currentRole === newRole) return;
+    
+    showConfirm(`Are you sure you want to change this user's role to ${newRole.toUpperCase()}?`, async () => {
+      try {
+        await updateUserRole(userId, newRole);
+        showToast(`User role updated to ${newRole.toUpperCase()}.`);
+      } catch (error) {
+        console.error("Role Update Error:", error);
+        showToast(error.message || "Failed to update user role.", false);
+      }
+    });
+  };
+
+  // 🛡️ Admin User Details Update
+  const handleAdminUpdateUser = async (userId, type, currentValue) => {
+    const newValue = window.prompt(`Enter new ${type}:`, currentValue);
+    if (!newValue || newValue === currentValue) return;
+
+    try {
+      if (type === 'name') await adminUpdateUserName(userId, newValue);
+      else if (type === 'username') await adminUpdateUserUsername(userId, newValue);
+      showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} updated successfully!`);
+    } catch (error) {
+      showToast(error.message || `Failed to update ${type}.`, false);
+    }
+  };
+
   // 🌟 Q&A Handlers
   const handlePublishAnswer = async (questionId, questionText) => {
     const answerText = answerInputs[questionId];
@@ -286,6 +316,23 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
     d.phone?.includes(searchTerm)
   );
 
+  const allTabs = [
+    { id: 'results', icon: 'fa-chart-column', label: 'Results', roles: ['admin', 'teacher', 'examiner'] },
+    { id: 'qna', icon: 'fa-clipboard-question', label: 'Q&A Inbox', roles: ['admin', 'teacher'] },
+    { id: 'academy', icon: 'fa-brain', label: 'Assessments', roles: ['admin', 'teacher', 'examiner'] },
+    { id: 'subjects', icon: 'fa-book-open', label: 'Subjects', roles: ['admin'] },
+    { id: 'dashboard', icon: 'fa-wallet', label: 'Donations', roles: ['admin'] },
+    { id: 'users', icon: 'fa-users', label: 'Citizens', roles: ['admin'] },
+    { id: 'settings', icon: 'fa-sliders', label: 'Settings', roles: ['admin'] }
+  ];
+
+  const visibleTabs = allTabs.filter(tab => {
+    if (isAdmin) return true;
+    if (isTeacher && tab.roles.includes('teacher')) return true;
+    if (isExaminer && tab.roles.includes('examiner')) return true;
+    return false;
+  });
+
   return (
     <div className="w-full min-h-screen bg-slate-50">
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
@@ -299,20 +346,14 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
             {/* Desktop Navbar - Horizontal */}
             <nav className="hidden lg:flex items-center h-20 gap-1 overflow-x-auto">
               <div className="flex items-center gap-2 mr-8 shrink-0">
-                <i className="fa-solid fa-shield-halved text-teal-600 text-lg"></i>
-                <span className="text-slate-900 font-semibold text-sm">Admin Workspace</span>
+                <i className={`fa-solid ${isAdmin ? 'fa-shield-halved' : isTeacher ? 'fa-chalkboard-user' : 'fa-file-signature'} text-teal-600 text-lg`}></i>
+                <span className="text-slate-900 font-semibold text-sm">
+                  {isAdmin ? 'Admin Workspace' : isTeacher ? 'Teacher Workspace' : 'Examiner Workspace'}
+                </span>
               </div>
               
               <div className="flex items-center gap-2">
-                {[
-                  { id: 'academy', icon: 'fa-brain', label: 'Assessments' },
-                  { id: 'results', icon: 'fa-chart-column', label: 'Results' },
-                  { id: 'dashboard', icon: 'fa-wallet', label: 'Donations' },
-                  { id: 'qna', icon: 'fa-clipboard-question', label: 'Q&A Inbox' },
-                  { id: 'users', icon: 'fa-users', label: 'Citizens' },
-                  { id: 'subjects', icon: 'fa-book-open', label: 'Subjects' },
-                  { id: 'settings', icon: 'fa-sliders', label: 'Settings' }
-                ].map(tab => (
+                {visibleTabs.map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
@@ -332,15 +373,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
             {/* Mobile/Tablet Tabs - Vertical Scrollable */}
             <div className="lg:hidden overflow-x-auto -mx-4 px-4 hide-scrollbar">
               <nav className="flex gap-2 py-3 min-w-max">
-                {[
-                  { id: 'academy', icon: 'fa-brain', label: 'Assessments' },
-                  { id: 'results', icon: 'fa-chart-column', label: 'Results' },
-                  { id: 'dashboard', icon: 'fa-wallet', label: 'Donations' },
-                  { id: 'qna', icon: 'fa-clipboard-question', label: 'Q&A' },
-                  { id: 'users', icon: 'fa-users', label: 'Citizens' },
-                  { id: 'subjects', icon: 'fa-book-open', label: 'Subjects' },
-                  { id: 'settings', icon: 'fa-sliders', label: 'Settings' }
-                ].map(tab => (
+                {visibleTabs.map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
@@ -590,13 +623,14 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                         <tr>
                           <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold text-slate-600">Citizen Info</th>
                           <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold text-slate-600 text-center">Role</th>
+                          <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold text-slate-600 text-center">Actions</th>
                           <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold text-slate-600 hidden lg:table-cell">Unique ID</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {usersList.length === 0 ? (
                           <tr>
-                            <td colSpan="3" className="px-4 py-8 sm:px-6 text-center">
+                            <td colSpan="4" className="px-4 py-8 sm:px-6 text-center">
                               <i className="fa-solid fa-users text-3xl text-slate-300 mb-3 block"></i>
                               <p className="text-sm text-slate-400">No users found</p>
                             </td>
@@ -610,8 +644,18 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                                     {user.name?.charAt(0).toUpperCase() || "?"}
                                   </div>
                                   <div className="min-w-0">
-                                    <p className="text-sm font-medium text-slate-900 truncate">{user.name || "Unknown"}</p>
-                                    <p className="text-xs text-slate-500 truncate mt-0.5">{user.email || "No Email"}</p>
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-sm font-medium text-slate-900 truncate">{user.name || "Unknown"}</p>
+                                      <button onClick={() => handleAdminUpdateUser(user.uid, 'name', user.name)} className="text-[10px] text-slate-400 hover:text-teal-600 transition-colors">
+                                        <i className="fa-solid fa-pen-to-square"></i>
+                                      </button>
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                      <p className="text-xs text-slate-500 truncate">@{user.username || "no_username"}</p>
+                                      <button onClick={() => handleAdminUpdateUser(user.uid, 'username', user.username)} className="text-[10px] text-slate-400 hover:text-teal-600 transition-colors">
+                                        <i className="fa-solid fa-pen-to-square"></i>
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               </td>
@@ -621,8 +665,20 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                                     ? 'bg-slate-900 text-white border-slate-800' 
                                     : 'bg-teal-50 text-teal-700 border-teal-200'
                                 }`}>
-                                  {user.role || 'client'}
+                                  {user.role || 'user'}
                                 </span>
+                              </td>
+                              <td className="px-4 py-3 sm:px-6 sm:py-4 text-center">
+                                <select 
+                                  value={user.role || 'user'} 
+                                  onChange={(e) => handleRoleChange(user.uid, user.role || 'user', e.target.value)}
+                                  className="text-[10px] sm:text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer font-medium text-slate-700"
+                                >
+                                  <option value="user">User</option>
+                                  <option value="teacher">Teacher</option>
+                                  <option value="examiner">Examiner</option>
+                                  <option value="admin">Admin</option>
+                                </select>
                               </td>
                               <td className="px-4 py-3 sm:px-6 sm:py-4 hidden lg:table-cell">
                                 <code className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200 font-mono">

@@ -14,7 +14,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [activeTab, setActiveTab] = useState('client');
+  const [activeTab, setActiveTab] = useState('user'); // Login Portal Selection
   const [authMode, setAuthMode] = useState('login');
 
   // Form States
@@ -23,6 +23,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [selectedSignupRole, setSelectedSignupRole] = useState('user'); // Role selected during signup
 
   // Strict Error States
   const [usernameError, setUsernameError] = useState('');
@@ -68,7 +69,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
     errorMsg: "text-[10px] sm:text-[11px] text-rose-500 font-bold mt-1.5 ml-1 flex items-center gap-1.5 animate-fade-in-up"
   };
 
-  // 🌟 1. DYNAMIC PASSWORD RULES (Untouched)
+  // 🌟 1. DYNAMIC PASSWORD RULES
   const passRules = {
     length: password.length >= 8,
     uppercase: /[A-Z]/.test(password),
@@ -78,7 +79,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
   };
   const isPasswordValid = Object.values(passRules).every(Boolean);
 
-  // 🌟 2. LIVE PASSWORD ERROR GENERATOR (Synchronous)
+  // 🌟 2. LIVE PASSWORD ERROR GENERATOR
   let signupPasswordError = '';
   if (authMode === 'signup' && password.length > 0 && !isPasswordValid) {
     if (!passRules.length) signupPasswordError = "Password is too short (min 8 chars).";
@@ -88,7 +89,6 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
     else if (!passRules.special) signupPasswordError = "Missing special character (!@#$...).";
   }
 
-  // Combine login error (from Firebase) and live signup error
   const currentPasswordError = authMode === 'login' ? loginPasswordError : signupPasswordError;
 
   // 🌟 DYNAMIC USERNAME RULES
@@ -98,6 +98,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
     hasNumber: /[0-9]/.test(username),
     hasUnderscore: /_/.test(username),
   };
+
   // 🌟 SMART SUGGESTION ENGINE
   const fetchSuggestions = async (baseInput) => {
     let safeBase = baseInput.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 10);
@@ -192,7 +193,6 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
     setEmailError('');
     setLoginPasswordError('');
 
-    if (activeTab === 'admin') return showToast("Admin accounts cannot be created publicly!", false);
     if (!fullName.trim()) return showToast("Full Name is required!", false);
     if (usernameError || !isUsernameAvailable) return showToast("Please fix username errors first.", false);
 
@@ -238,11 +238,11 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
         name: fullName,
         username: username,
         email: user.email,
-        role: 'client',
+        role: selectedSignupRole,
         createdAt: Date.now()
       });
 
-      showToast(`Welcome ${fullName}! Account created successfully.`);
+      showToast(`Welcome ${fullName}! Account created as ${selectedSignupRole.toUpperCase()}.`);
       navigate('/');
     } catch (error) {
       console.error("Signup Error:", error);
@@ -302,16 +302,17 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
 
         if (userDoc.exists()) {
-          if (userDoc.data().role !== activeTab) {
+          const actualRole = userDoc.data().role || 'user';
+          if (actualRole !== activeTab) {
             await signOut(auth);
-            showToast(`Access Denied! You are not registered as an ${activeTab.toUpperCase()}.`, false);
+            showToast(`Access Denied! You are not registered as a ${activeTab.toUpperCase()}.`, false);
             setIsLoading(false);
             return;
           }
-          showToast(`Logged in successfully!`);
+          showToast(`Logged in as ${activeTab.toUpperCase()}!`);
           navigate('/');
         } else {
-          showToast("User role not found!", false);
+          showToast("User role data not found!", false);
           await signOut(auth);
         }
 
@@ -368,7 +369,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
 
   return (
     <div className="min-h-[100dvh] flex items-center justify-center p-0 sm:p-6 lg:p-8 relative z-10 bg-slate-50">
-      <div className="bg-white sm:border border-slate-200 px-6 py-8 sm:p-10 rounded-none sm:rounded-[2.5rem] w-full max-w-[30rem] min-h-[100dvh] sm:min-h-fit flex flex-col justify-center relative shadow-none">
+      <div className="bg-white sm:border border-slate-200 px-6 py-8 sm:p-10 rounded-none sm:rounded-[2.5rem] w-full max-w-[32rem] min-h-[100dvh] sm:min-h-fit flex flex-col justify-center relative shadow-none">
 
         <div className="flex justify-center mb-8">
           <div className="flex items-baseline gap-1">
@@ -378,35 +379,52 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
           </div>
         </div>
 
-        <div className="flex bg-slate-100 p-1 rounded-xl sm:rounded-2xl mb-6">
-          <button
-            onClick={() => handleTabChange('client')}
-            className={`flex-1 py-2 sm:py-2.5 text-sm sm:text-base font-semibold rounded-lg sm:rounded-xl active:scale-[0.97] transition-all ${activeTab === 'client' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
-          >
-            <i className="fa-solid fa-users mr-1.5 opacity-80"></i> Client
-          </button>
-          <button
-            onClick={() => handleTabChange('admin')}
-            className={`flex-1 py-2 sm:py-2.5 text-sm sm:text-base font-semibold rounded-lg sm:rounded-xl active:scale-[0.97] transition-all ${activeTab === 'admin' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
-          >
-            <i className="fa-solid fa-shield-halved mr-1.5 opacity-80"></i> Admin
-          </button>
+        {/* ROLE TABS FOR LOGIN PORTALS */}
+        <div className="flex bg-slate-100 p-1 rounded-xl sm:rounded-2xl mb-8 overflow-x-auto no-scrollbar">
+          {['user', 'teacher', 'examiner', 'admin'].map(role => (
+            <button
+              key={role}
+              onClick={() => handleTabChange(role)}
+              className={`flex-1 min-w-[80px] py-2 sm:py-2.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider rounded-lg sm:rounded-xl active:scale-[0.97] transition-all ${activeTab === role ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+            >
+              {role === 'user' ? <i className="fa-solid fa-graduation-cap mr-1.5 opacity-70"></i> : role === 'teacher' ? <i className="fa-solid fa-chalkboard-user mr-1.5 opacity-70"></i> : role === 'examiner' ? <i className="fa-solid fa-file-signature mr-1.5 opacity-70"></i> : <i className="fa-solid fa-shield-halved mr-1.5 opacity-70"></i>}
+              {role}
+            </button>
+          ))}
         </div>
 
         <form onSubmit={authMode === 'signup' ? (emailOtpSent ? handleVerifyEmailAndSignup : handleSendEmailOtp) : handleEmailAuth} className="grid grid-cols-1 gap-3 sm:gap-4" noValidate>
 
           <div className="text-center mb-2">
             <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-              {authMode === 'login' && `Welcome Back`}
+              {authMode === 'login' && `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Portal`}
               {authMode === 'signup' && (emailOtpSent ? 'Verify OTP' : `Create Account`)}
               {authMode === 'forgot' && `Reset Password`}
             </h2>
+            {authMode === 'login' && <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">Accessing workspace for {activeTab}s</p>}
           </div>
 
           {!emailOtpSent && (
             <>
               {authMode === 'signup' && (
                 <>
+                  {/* SIGNUP ROLE SELECTOR */}
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl mb-2">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Select your role</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['user', 'teacher', 'examiner'].map(r => (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => setSelectedSignupRole(r)}
+                          className={`py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${selectedSignupRole === r ? 'bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-500/20' : 'bg-white text-slate-400 border-slate-200 hover:border-teal-300 hover:text-slate-600'}`}
+                        >
+                          {r}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Full Name */}
                   <div className="relative">
                     <i className={`${designVars.iconBase} ${designVars.iconNormal} fa-solid fa-user`}></i>
@@ -498,7 +516,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
                 {emailError && <span className={designVars.errorMsg}><i className="fa-solid fa-circle-exclamation"></i> {emailError}</span>}
               </div>
 
-              {/* 🌟 UPGRADED PASSWORD INPUT (Live Errors) */}
+              {/* UPGRADED PASSWORD INPUT */}
               {authMode !== 'forgot' && (
                 <div className="flex flex-col">
                   <div className="relative">
@@ -509,25 +527,21 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
                       value={password}
                       onChange={(e) => {
                         setPassword(e.target.value);
-                        setLoginPasswordError(''); // Login wala error reset
+                        setLoginPasswordError('');
                       }}
                       className={`${designVars.inputBase} ${currentPasswordError ? designVars.inputError : designVars.inputNormal} ${designVars.inputPassword}`}
                     />
 
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                      {/* Live Success Indicator for Signup */}
                       {authMode === 'signup' && password.length > 0 && isPasswordValid && (
                         <i className="fa-solid fa-circle-check text-emerald-500 text-sm animate-fade-in-up mr-1"></i>
                       )}
-
-                      {/* Show/Hide Eye Button */}
                       <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-slate-400 hover:text-slate-600 p-1">
                         <i className={`fa-solid text-sm ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                       </button>
                     </div>
                   </div>
 
-                  {/* Live Error Message (Red Text below input) */}
                   {currentPasswordError && (
                     <span className={designVars.errorMsg}>
                       <i className="fa-solid fa-triangle-exclamation"></i> {currentPasswordError}
@@ -572,26 +586,37 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
               emailError !== '' ||
               (authMode === 'signup' && (!isPasswordValid || usernameError !== '' || isUsernameAvailable === false || isCheckingUsername || (!emailOtpSent && fullName === '')))
             }
-            className={`w-full text-white font-semibold py-3 sm:py-3.5 px-6 rounded-xl text-sm sm:text-base active:scale-[0.98] flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed ${activeTab === 'admin' ? 'bg-slate-900 hover:bg-slate-800' : 'bg-teal-600 hover:bg-teal-700'}`}
+            className={`w-full text-white font-bold py-3 sm:py-4 px-6 rounded-xl text-sm sm:text-base active:scale-[0.98] flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all uppercase tracking-widest ${activeTab === 'admin' ? 'bg-slate-900 hover:bg-black shadow-lg shadow-slate-900/10' : 'bg-teal-600 hover:bg-teal-700 shadow-lg shadow-teal-600/10'}`}
           >
             {isLoading ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Processing...</>
-            : <>{authMode === 'login' ? 'Sign In' : authMode === 'signup' ? (emailOtpSent ? 'Verify OTP' : 'Continue') : 'Send Reset Link'}</>}
+            : <>{authMode === 'login' ? `Sign In to ${activeTab}` : authMode === 'signup' ? (emailOtpSent ? 'Verify OTP' : 'Continue Signup') : 'Send Reset Link'}</>}
           </button>
         </form>
 
         {/* Form Footer Links */}
-        {authMode !== 'forgot' && activeTab === 'client' ? (
-          <div className="text-center mt-6 text-sm text-slate-500">
+        {authMode !== 'forgot' && activeTab !== 'admin' ? (
+          <div className="text-center mt-8 text-sm text-slate-500 font-medium">
             {authMode === 'login' ? "Don't have an account? " : "Already have an account? "}
-            <button onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')} className="text-teal-600 font-semibold hover:text-teal-700 hover:underline underline-offset-2">
+            <button onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')} className="text-teal-600 font-bold hover:text-teal-700 hover:underline underline-offset-4">
               {authMode === 'login' ? 'Sign up' : 'Log in'}
             </button>
           </div>
         ) : authMode === 'forgot' ? (
-          <div className="text-center mt-6 text-sm text-slate-500">
-            Remembered your password? <button onClick={() => setAuthMode('login')} className="text-teal-600 font-semibold hover:text-teal-700 hover:underline underline-offset-2">Back to Login</button>
+          <div className="text-center mt-8 text-sm text-slate-500 font-medium">
+            Remembered your password? <button onClick={() => setAuthMode('login')} className="text-teal-600 font-bold hover:text-teal-700 hover:underline underline-offset-4">Back to Login</button>
           </div>
         ) : null}
+
+        {/* ADMIN SECURITY NOTE */}
+        {activeTab === 'admin' && authMode === 'login' && (
+          <div className="mt-8 p-4 bg-amber-50 border border-amber-100 rounded-2xl flex gap-3">
+            <i className="fa-solid fa-shield-halved text-amber-500 mt-0.5"></i>
+            <div>
+              <p className="text-[11px] text-amber-800 font-bold uppercase tracking-tight">Security Protocol</p>
+              <p className="text-[10px] text-amber-700/80 leading-relaxed mt-0.5">Admin access is restricted to authorized personnel only. All attempts are monitored.</p>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

@@ -56,7 +56,10 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, isAdmin, userName, userProfilePic, userId, logout } = useAuth();
+  const { isAuthenticated, isAdmin, isTeacher, isExaminer, userName, userProfilePic, userId, logout } = useAuth();
+  
+  // High-level access check for Admin Link
+  const canAccessAdmin = isAdmin || isTeacher || isExaminer;
 
   const [notifications, setNotifications] = useState([]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -225,9 +228,13 @@ export default function Header() {
             <div className="hidden lg:flex items-center gap-1.5 xl:gap-2">
               {isAuthenticated && userName && (
                 <>
-                  {isAdmin && (
-                    <Link to="/admin" className={`${styles.actionBtnBase} ${isPathActive('/admin') ? "bg-slate-900 text-white border-slate-900" : styles.actionBtnInactive}`} title="Admin Dashboard">
-                      <i className="fa-solid fa-shield-halved text-xs xl:text-sm"></i>
+                  {canAccessAdmin && (
+                    <Link 
+                      to="/admin" 
+                      className={`${styles.actionBtnBase} ${isPathActive('/admin') ? "bg-slate-900 text-white border-slate-900" : styles.actionBtnInactive}`} 
+                      title={isAdmin ? "Admin Dashboard" : isTeacher ? "Teacher Tools" : "Examiner Tools"}
+                    >
+                      <i className={`fa-solid ${isAdmin ? "fa-shield-halved" : isTeacher ? "fa-chalkboard-user" : "fa-file-signature"} text-xs xl:text-sm`}></i>
                     </Link>
                   )}
                   <Link to="/settings" className={`${styles.actionBtnBase} ${isPathActive('/settings') ? styles.actionBtnActive : styles.actionBtnInactive}`} title="Settings">
@@ -288,10 +295,12 @@ export default function Header() {
             </Link>
           ))}
 
-          {isAdmin && (
+          {canAccessAdmin && (
             <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className={`${styles.mobileLinkBase} mt-2 ${isPathActive('/admin') ? styles.mobileAdminActive : styles.mobileAdminInactive}`}>
-              <div className="w-5 flex justify-center shrink-0"><i className="fa-solid fa-shield-halved text-base"></i></div>
-              <span className="text-sm font-bold">Admin Dashboard</span>
+              <div className="w-5 flex justify-center shrink-0">
+                <i className={`fa-solid ${isAdmin ? "fa-shield-halved" : isTeacher ? "fa-chalkboard-user" : "fa-file-signature"} text-base`}></i>
+              </div>
+              <span className="text-sm font-bold">{isAdmin ? "Admin Dashboard" : isTeacher ? "Teacher Tools" : "Examiner Tools"}</span>
             </Link>
           )}
         </nav>

@@ -1,0 +1,131 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 🟢 Helpers
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isAuth() && getUserData().role == 'admin';
+    }
+
+    function isTeacher() {
+      return isAuth() && getUserData().role == 'teacher';
+    }
+
+    function isExaminer() {
+      return isAuth() && getUserData().role == 'examiner';
+    }
+
+    function isOwner() {
+      return isAuth() && request.auth.uid == resource.data.userId;
+    }
+
+    // 🌟 1. Community Posts
+    match /posts/{postId} {
+      allow read: if true; 
+      allow create: if isAuth(); 
+      allow update: if isAuth(); 
+      allow delete: if isAdmin() || isOwner();
+    }
+
+    // 🌟 2. Users Collection (PROTECTED PRIMARY ADMIN)
+    match /users/{userId} {
+      allow read: if true; 
+      allow create: if isAuth() && request.auth.uid == userId;
+      allow update: if (
+        // Regular users can update themselves (but NOT their role)
+        (isAuth() && request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))
+      ) || (
+        // Admins can update roles of others, Primary Admin is protected
+        isAdmin() && userId != 'YOUR_PRIMARY_ADMIN_UID_HERE'
+      );
+      allow delete: if isAdmin() && userId != 'YOUR_PRIMARY_ADMIN_UID_HERE';
+    }
+
+    // 🌟 3. Exams Collection (Admin, Teacher, Examiner)
+    match /exams/{examId} {
+      allow read: if true;            
+      allow write: if isAdmin() || isTeacher() || isExaminer();     
+    }
+
+    // 🌟 4. Donations (Strictly Admin)
+    match /donations/{docId} {
+      allow read, create: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    // 🌟 5. Settings & Config
+    match /special_links/{linkId} { allow read: if true; allow write: if isAdmin(); }
+    match /settings/{settingId} { allow read: if true; allow write: if isAdmin(); }
+    match /subjects/{subjectId} { 
+      allow read: if true; 
+      allow write: if isAdmin(); 
+    }
+
+    // 🌟 6. Exam Results (Vault Data)
+    match /exam_results/{resultId} {
+      allow create: if isAuth();
+      allow read: if isAuth() && (request.auth.uid == resource.data.userId || isAdmin() || isTeacher() || isExaminer());
+      allow update: if isAdmin() || isTeacher() || isExaminer() || (isAuth() && request.auth.uid == resource.data.userId);
+      allow delete: if isAdmin();
+    }
+
+    // 🌟 7. FAQs
+    match /faqs/{faqId} {
+      allow read: if true; 
+      allow write: if isAdmin() || isTeacher();
+    }
+
+    // 🌟 8. User Questions (Q&A Inbox)
+    match /user_questions/{questionId} {
+      allow create: if true; 
+      allow update: if isAdmin() || isTeacher() || (isAuth() && request.auth.uid == resource.data.userId);
+      allow read, delete: if isAdmin() || isTeacher();
+    }
+
+    // 🌟 9. Notifications System
+    match /notifications/{notifId} {
+      allow create: if isAuth();
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // 🌟 10. Library (Knowledge Base)
+    match /library/{itemId} {
+      allow read: if true; 
+      allow write: if isAdmin() || isTeacher();
+    }
+
+    // 🌟 11. Admin Settings
+    match /adminSettings/{document=**} {
+      allow read: if true; 
+      allow write: if isAdmin(); 
+    }
+
+    // 🌟 12. Framework Scales
+    match /framework_scales/{scaleId} {
+      allow read: if true; 
+      allow write: if isAdmin(); 
+    }
+    
+    // 🌟 13. Daily Inquiries
+    match /daily_inquiries/{docId} {
+      allow read: if true; 
+      allow write: if isAdmin() || isTeacher(); 
+    }
+
+    // 🌟 14. Researches
+    match /researches/{researchId} {
+      allow read: if true; 
+      allow create: if isAuth(); 
+      allow update, delete: if isAdmin() || (isAuth() && request.auth.uid == resource.data.authorId);
+    }
+  }
+}
