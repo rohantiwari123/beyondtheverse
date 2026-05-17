@@ -12,28 +12,28 @@ function CustomModal({ config, onClose }) {
   if (!config.isOpen) return null;
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-zinc-900/20 dark:bg-slate-950/60 backdrop-blur-sm" onClick={onClose}></div>
-      <div className="bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 p-6 sm:p-8 w-full max-w-sm relative z-10 animate-fade-in-up rounded-2xl shadow-xl transition-colors">
+      <div className="absolute inset-0 bg-zinc-900/20 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="bg-white border border-zinc-200 p-6 sm:p-8 w-full max-w-sm relative z-10 animate-fade-in-up rounded-2xl shadow-xl transition-colors">
         <div className="flex items-start gap-4 mb-6">
-          <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center shrink-0 ${config.type === 'confirm' ? 'bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400' : 'bg-zinc-100 dark:bg-slate-800 text-zinc-600 dark:text-slate-400'}`}>
+          <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center shrink-0 ${config.type === 'confirm' ? 'bg-red-50 text-red-500' : 'bg-zinc-100 text-zinc-600'}`}>
             <i className={`fa-solid ${config.type === 'confirm' ? 'fa-trash-can' : 'fa-circle-info'} text-lg`}></i>
           </div>
           <div className="pt-0.5">
-            <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white mb-1 tracking-tight">
+            <h3 className="text-base sm:text-lg font-bold text-zinc-900 mb-1 tracking-tight">
               {config.type === 'confirm' ? 'Delete Test?' : 'Notice'}
             </h3>
-            <p className="text-[13px] sm:text-sm text-zinc-500 dark:text-slate-400 leading-relaxed font-medium transition-colors">{config.message}</p>
+            <p className="text-[13px] sm:text-sm text-zinc-500 leading-relaxed font-medium transition-colors">{config.message}</p>
           </div>
         </div>
         <div className="flex justify-end gap-2.5 mt-2">
           {config.type === 'confirm' && (
-            <button onClick={onClose} className="px-4 sm:px-5 py-2.5 rounded-xl text-[13px] font-bold uppercase tracking-widest text-zinc-500 hover:bg-zinc-100 dark:hover:bg-slate-800 transition-colors duration-200">
+            <button onClick={onClose} className="px-4 sm:px-5 py-2.5 rounded-xl text-[13px] font-bold uppercase tracking-widest text-zinc-500 hover:bg-zinc-100 transition-colors duration-200">
               Cancel
             </button>
           )}
           <button 
             onClick={() => { config.onConfirm && config.onConfirm(); onClose(); }} 
-            className={`px-5 sm:px-6 py-2.5 rounded-xl text-[13px] font-bold uppercase tracking-widest text-white transition-all active:scale-95 shadow-lg ${config.type === 'confirm' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : 'bg-slate-900 dark:bg-teal-600 hover:bg-slate-800 dark:hover:bg-teal-700 shadow-teal-500/10'}`}
+            className={`px-5 sm:px-6 py-2.5 rounded-xl text-[13px] font-bold uppercase tracking-widest text-white transition-all active:scale-95 shadow-lg ${config.type === 'confirm' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : 'bg-slate-900 hover:bg-slate-800 shadow-teal-500/10'}`}
           >
             {config.type === 'confirm' ? 'Delete' : 'Okay'}
           </button>
@@ -49,7 +49,7 @@ const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmi
     return {
       type: 'DRAFT',
       label: 'Draft',
-      color: 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30 font-bold uppercase tracking-widest text-[11px] sm:text-xs'
+      color: 'bg-rose-50 text-rose-600 border border-rose-200 font-bold uppercase tracking-widest text-[11px] sm:text-xs'
     };
   }
 
@@ -59,7 +59,7 @@ const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmi
       return {
         type: 'PENDING',
         label: 'Pending',
-        color: 'bg-yellow-50 dark:bg-amber-900/20 text-yellow-800 dark:text-amber-400 border border-yellow-200 dark:border-amber-900/30 font-bold uppercase tracking-widest text-[11px] sm:text-xs'
+        color: 'bg-yellow-50 text-yellow-800 border border-yellow-200 font-bold uppercase tracking-widest text-[11px] sm:text-xs'
       };
     }
 
@@ -73,7 +73,7 @@ const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmi
     return { 
       type: 'COMPLETED', 
       label: displayScore, 
-      color: 'bg-zinc-50 dark:bg-slate-800 text-zinc-900 dark:text-white border border-zinc-200 dark:border-slate-700 font-mono font-bold text-[13px] sm:text-sm' 
+      color: 'bg-zinc-50 text-zinc-900 border border-zinc-200 font-mono font-bold text-[13px] sm:text-sm' 
     };
   }
 
@@ -84,7 +84,7 @@ const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmi
     return { 
       type: 'ACTIVE', 
       label: 'Enter', 
-      color: 'bg-zinc-900 dark:bg-teal-600 text-white hover:bg-zinc-800 dark:hover:bg-teal-700 transition-colors duration-200 font-bold uppercase tracking-widest text-[11px] sm:text-xs' 
+      color: 'bg-zinc-900 text-white hover:bg-zinc-800 transition-colors duration-200 font-bold uppercase tracking-widest text-[11px] sm:text-xs' 
     };
   }
 
@@ -105,7 +105,7 @@ const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmi
     return { 
       type: 'UPCOMING', 
       label: timerStr, 
-      color: 'bg-transparent text-zinc-500 dark:text-slate-400 font-mono tracking-tight border border-zinc-200 dark:border-slate-800 font-medium text-[11px] sm:text-xs' 
+      color: 'bg-transparent text-zinc-500 font-mono tracking-tight border border-zinc-200 font-medium text-[11px] sm:text-xs' 
     };
   }
 
@@ -114,7 +114,7 @@ const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmi
     return { 
       type: 'ACTIVE', 
       label: 'Enter', 
-      color: 'bg-zinc-900 dark:bg-teal-600 text-white hover:bg-zinc-800 dark:hover:bg-teal-700 transition-colors duration-200 font-bold uppercase tracking-widest text-[11px] sm:text-xs' 
+      color: 'bg-zinc-900 text-white hover:bg-zinc-800 transition-colors duration-200 font-bold uppercase tracking-widest text-[11px] sm:text-xs' 
     };
   }
 
@@ -122,7 +122,7 @@ const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmi
   return { 
     type: 'ABSENT', 
     label: 'Absent', 
-    color: 'bg-transparent text-red-500 dark:text-rose-400 border border-red-200 dark:border-rose-900/30 uppercase tracking-widest font-bold text-[10px] sm:text-[11px]' 
+    color: 'bg-transparent text-red-500 border border-red-200 uppercase tracking-widest font-bold text-[10px] sm:text-[11px]' 
   };
 };
 
@@ -182,7 +182,7 @@ export default function ExamPage({ showToast }) {
   };
 
   return (
-    <div className="w-full min-h-screen bg-zinc-50 dark:bg-slate-950 pb-24 pt-4 sm:pt-10 selection:bg-zinc-200 dark:selection:bg-teal-500 selection:text-zinc-900 dark:selection:text-slate-950 font-sans relative transition-colors duration-300">
+    <div className="w-full min-h-screen bg-zinc-50 pb-24 pt-4 sm:pt-10 selection:bg-zinc-200 selection:text-zinc-900 font-sans relative transition-colors duration-300">
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
 
       {!isAuthenticated && (
@@ -200,28 +200,28 @@ export default function ExamPage({ showToast }) {
         {/* HEADER */}
         <div className="px-4 sm:px-0 mb-6 sm:mb-8">
           <div className="mb-4 sm:mb-6"><BackButton label="Back" /></div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight mb-1.5 transition-colors">Assessments</h1>
-          <p className="text-[13px] sm:text-sm font-medium text-zinc-500 dark:text-slate-400 transition-colors">Manage your schedules and track your performance.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 tracking-tight mb-1.5 transition-colors">Assessments</h1>
+          <p className="text-[13px] sm:text-sm font-medium text-zinc-500 transition-colors">Manage your schedules and track your performance.</p>
         </div>
 
         {/* RULES BANNER */}
-        <div className="mx-4 sm:mx-0 mb-6 sm:mb-8 bg-zinc-100 dark:bg-slate-900/50 text-zinc-600 dark:text-slate-400 p-5 sm:p-6 rounded-2xl border border-zinc-200 dark:border-slate-800 transition-colors">
-          <div className="flex items-center gap-3 mb-3 text-zinc-800 dark:text-white">
-            <i className="fa-solid fa-scale-balanced text-lg text-teal-600 dark:text-teal-400"></i>
+        <div className="mx-4 sm:mx-0 mb-6 sm:mb-8 bg-zinc-100 text-zinc-600 p-5 sm:p-6 rounded-2xl border border-zinc-200 transition-colors">
+          <div className="flex items-center gap-3 mb-3 text-zinc-800">
+            <i className="fa-solid fa-scale-balanced text-lg text-teal-600"></i>
             <h3 className="text-base sm:text-lg font-bold tracking-tight">Assessment Rules & Marking Scheme</h3>
           </div>
           <ul className="space-y-2.5 text-[13px] sm:text-sm font-medium leading-relaxed">
             <li className="flex items-start gap-2.5 transition-colors">
-              <span className="text-teal-600 dark:text-teal-400 mt-0.5"><i className="fa-solid fa-circle-check text-[10px]"></i></span>
-              <span><strong className="text-teal-700 dark:text-teal-400 font-bold">+1 Mark</strong> for every correct option you select.</span>
+              <span className="text-teal-600 mt-0.5"><i className="fa-solid fa-circle-check text-[10px]"></i></span>
+              <span><strong className="text-teal-700 font-bold">+1 Mark</strong> for every correct option you select.</span>
             </li>
             <li className="flex items-start gap-2.5 transition-colors">
-              <span className="text-rose-500 dark:text-rose-400 mt-0.5"><i className="fa-solid fa-circle-xmark text-[10px]"></i></span>
-              <span><strong className="text-rose-600 dark:text-rose-400 font-bold">-1 Mark (Penalty)</strong> for selecting an incorrect option or missing a correct option.</span>
+              <span className="text-rose-500 mt-0.5"><i className="fa-solid fa-circle-xmark text-[10px]"></i></span>
+              <span><strong className="text-rose-600 font-bold">-1 Mark (Penalty)</strong> for selecting an incorrect option or missing a correct option.</span>
             </li>
             <li className="flex items-start gap-2.5 transition-colors">
-              <span className="text-amber-500 dark:text-amber-400 mt-0.5"><i className="fa-solid fa-triangle-exclamation text-[10px]"></i></span>
-              <span><strong className="text-amber-600 dark:text-amber-400 font-bold">-1 Mark (Penalty)</strong> if a question is left completely unattempted (blank).</span>
+              <span className="text-amber-500 mt-0.5"><i className="fa-solid fa-triangle-exclamation text-[10px]"></i></span>
+              <span><strong className="text-amber-600 font-bold">-1 Mark (Penalty)</strong> if a question is left completely unattempted (blank).</span>
             </li>
           </ul>
         </div>
@@ -229,53 +229,53 @@ export default function ExamPage({ showToast }) {
         {/* 🌟 SINGLE LIST CONTAINER */}
         <div className="w-full">
           {loading ? (
-            <div className="py-20 flex flex-col items-center justify-center bg-white dark:bg-slate-900 border-y sm:border border-zinc-200 dark:border-slate-800 sm:rounded-2xl mx-0 sm:mx-0 shadow-sm transition-colors">
-              <div className="h-6 w-6 border-2 border-zinc-200 dark:border-slate-700 border-t-zinc-900 dark:border-t-teal-500 rounded-full animate-spin mb-4"></div>
+            <div className="py-20 flex flex-col items-center justify-center bg-white border-y sm:border border-zinc-200 sm:rounded-2xl mx-0 sm:mx-0 shadow-sm transition-colors">
+              <div className="h-6 w-6 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin mb-4"></div>
             </div>
           ) : exams.length === 0 ? (
-             <div className="text-center py-20 bg-white dark:bg-slate-900 border-y sm:border border-zinc-200 dark:border-slate-800 sm:rounded-2xl mx-0 sm:mx-0 shadow-sm transition-colors">
+             <div className="text-center py-20 bg-white border-y sm:border border-zinc-200 sm:rounded-2xl mx-0 sm:mx-0 shadow-sm transition-colors">
                <i className="fa-solid fa-calendar-xmark text-3xl mb-4 opacity-20 text-slate-400"></i>
-               <p className="text-sm font-bold uppercase tracking-widest text-zinc-400 dark:text-slate-500">No assessments scheduled.</p>
+               <p className="text-sm font-bold uppercase tracking-widest text-zinc-400">No assessments scheduled.</p>
              </div>
           ) : (
-            <div className="bg-white dark:bg-slate-900 border-y sm:border border-zinc-200 dark:border-slate-800 sm:rounded-2xl flex flex-col shadow-sm transition-colors">
+            <div className="bg-white border-y sm:border border-zinc-200 sm:rounded-2xl flex flex-col shadow-sm transition-colors">
               
               {/* TABLE LIST */}
-              <div className="divide-y divide-zinc-100 dark:divide-slate-800">
+              <div className="divide-y divide-zinc-100">
                 {exams.map((exam) => {
                   const userResult = results.find(r => r.examId === exam.id);
                   const statusBox = getExamStatusBox(exam, userResult, now, resultsReleased, isAdmin);
 
                   return (
-                    <div key={exam.id} className="flex items-center justify-between py-5 px-4 sm:px-8 hover:bg-zinc-50/80 dark:hover:bg-slate-800/50 transition-all duration-200 group">
+                    <div key={exam.id} className="flex items-center justify-between py-5 px-4 sm:px-8 hover:bg-zinc-50/80 transition-all duration-200 group">
                       
                       {/* LEFT: INFO */}
                       <div className="flex flex-col justify-center pr-4 overflow-hidden">
                         
                         {/* Category & Delete */}
                         <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-[10px] font-bold text-zinc-400 dark:text-slate-500 uppercase tracking-widest truncate">
+                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate">
                             {exam.category || 'General'}
                           </span>
                           {exam.isDraft && (
-                            <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-900/30 px-1.5 py-0.5 rounded transition-colors">
+                            <span className="text-[10px] font-bold text-rose-600 uppercase tracking-widest bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded transition-colors">
                               DRAFT
                             </span>
                           )}
                           {isAdmin && (
-                            <button onClick={() => handleDeleteExam(exam.id, exam.title)} className="text-zinc-300 dark:text-slate-700 hover:text-red-500 dark:hover:text-rose-400 transition-colors duration-200 ml-1">
+                            <button onClick={() => handleDeleteExam(exam.id, exam.title)} className="text-zinc-300 hover:text-red-500 transition-colors duration-200 ml-1">
                               <i className="fa-solid fa-trash-can text-[11px]"></i>
                             </button>
                           )}
                         </div>
                         
                         {/* Title */}
-                        <h3 className="text-[15px] sm:text-base font-bold text-zinc-900 dark:text-white leading-snug truncate tracking-tight transition-colors">
+                        <h3 className="text-[15px] sm:text-base font-bold text-zinc-900 leading-snug truncate tracking-tight transition-colors">
                           {exam.title}
                         </h3>
                         
                         {/* Date & Time */}
-                        <div className="text-[11px] sm:text-xs font-medium text-zinc-500 dark:text-slate-400 mt-1 truncate transition-colors">
+                        <div className="text-[11px] sm:text-xs font-medium text-zinc-500 mt-1 truncate transition-colors">
                           {exam.date} <span className="mx-1.5 opacity-40">•</span> {exam.time}
                         </div>
 
@@ -293,13 +293,13 @@ export default function ExamPage({ showToast }) {
                             {statusBox.type === 'COMPLETED' ? (
                               <button 
                                 onClick={() => navigate(`/exam/result/${exam.id}`)}
-                                className="flex items-center justify-center h-8 sm:h-9 px-4 sm:px-5 rounded-lg bg-teal-600 dark:bg-teal-500 hover:bg-teal-700 dark:hover:bg-teal-600 text-white font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-teal-500/10"
+                                className="flex items-center justify-center h-8 sm:h-9 px-4 sm:px-5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-teal-500/10"
                                 title={resultsReleased ? "View detailed results" : "View detailed results (Admin Only)"}
                               >
                                 <i className="fa-solid fa-eye mr-1.5"></i> View
                               </button>
                             ) : (
-                              <div className="flex items-center justify-center h-8 sm:h-9 px-3 sm:px-4 rounded-lg bg-zinc-100 dark:bg-slate-800 text-zinc-500 dark:text-slate-400 border border-zinc-200 dark:border-slate-700 text-[10px] font-bold uppercase tracking-widest transition-colors">
+                              <div className="flex items-center justify-center h-8 sm:h-9 px-3 sm:px-4 rounded-lg bg-zinc-100 text-zinc-500 border border-zinc-200 text-[10px] font-bold uppercase tracking-widest transition-colors">
                                 Pending
                               </div>
                             )}
@@ -309,7 +309,7 @@ export default function ExamPage({ showToast }) {
                           statusBox.type === 'ACTIVE' ? (
                             <button 
                               onClick={() => navigate(`/exam/engine/${exam.id}`)} 
-                              className={`flex items-center justify-center h-8 sm:h-9 px-4 sm:px-5 rounded-lg active:scale-95 transition-all shadow-lg ${statusBox.color === 'bg-zinc-900 text-white hover:bg-zinc-800 transition-colors duration-200 font-semibold text-[11px] sm:text-xs' ? 'bg-zinc-900 dark:bg-teal-600 text-white shadow-teal-500/10' : statusBox.color}`}
+                              className={`flex items-center justify-center h-8 sm:h-9 px-4 sm:px-5 rounded-lg active:scale-95 transition-all shadow-lg ${statusBox.color === 'bg-zinc-900 text-white hover:bg-zinc-800 transition-colors duration-200 font-semibold text-[11px] sm:text-xs' ? 'bg-zinc-900 text-white shadow-teal-500/10' : statusBox.color}`}
                             >
                               {statusBox.label}
                             </button>

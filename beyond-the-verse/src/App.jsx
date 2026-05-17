@@ -15,7 +15,7 @@ import ExamResult from './components/Exam/ExamResult';
 // 🌟 REUSABLE STYLES DICTIONARY (Level 0 Elevation)
 const styles = {
   // Main App Wrapper
-  appWrapper: "relative min-h-screen overflow-x-hidden transition-colors duration-300 selection:bg-teal-600 selection:text-white bg-[#f8fafc] text-slate-800 dark:bg-slate-950 dark:text-slate-100",
+  appWrapper: "relative min-h-screen overflow-x-hidden transition-colors duration-300 selection:bg-teal-600 selection:text-white bg-[#f8fafc] text-slate-800",
   
   // Background Ambient Glow (Level 0 Decorations)
   bgGradient: "fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none z-0",
@@ -29,8 +29,8 @@ const styles = {
 
   // Loader Styles
   loaderContainer: "w-full h-[60vh] flex flex-col justify-center items-center",
-  loaderSpinner: "fa-solid fa-circle-notch fa-spin text-4xl text-teal-600 mb-4 dark:text-teal-500",
-  loaderText: "text-slate-500 font-medium tracking-widest uppercase text-xs animate-pulse dark:text-slate-400"
+  loaderSpinner: "fa-solid fa-circle-notch fa-spin text-4xl text-teal-600 mb-4",
+  loaderText: "text-slate-500 font-medium tracking-widest uppercase text-xs animate-pulse"
 };
 
 // 🌟 PRO FIX 1: Code Splitting (Lazy Loading) 🌟

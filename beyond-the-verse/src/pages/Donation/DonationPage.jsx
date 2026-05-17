@@ -43,7 +43,7 @@ export default function DonationPage({ showToast }) {
   };
 
   return (
-    <div className="w-full min-h-screen bg-zinc-50 dark:bg-slate-950 pb-24 pt-4 sm:pt-10 selection:bg-zinc-200 dark:selection:bg-teal-500 selection:text-zinc-900 dark:selection:text-slate-950 font-sans relative transition-colors duration-300">
+    <div className="w-full min-h-screen bg-zinc-50 pb-24 pt-4 sm:pt-10 selection:bg-zinc-200 selection:text-zinc-900 font-sans relative transition-colors duration-300">
       
       {/* Main Wrapper */}
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in transition-all duration-300">
@@ -52,10 +52,10 @@ export default function DonationPage({ showToast }) {
         <div className="px-4 sm:px-0 mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <div className="mb-4 sm:mb-6"><BackButton label="Back" /></div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight mb-1.5">Support Our Mission</h1>
-            <p className="text-[13px] sm:text-sm font-medium text-zinc-500 dark:text-slate-400">Help us break boundaries between science and philosophy.</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 tracking-tight mb-1.5">Support Our Mission</h1>
+            <p className="text-[13px] sm:text-sm font-medium text-zinc-500">Help us break boundaries between science and philosophy.</p>
           </div>
-          <div className="hidden sm:flex items-center gap-2 text-zinc-400 dark:text-slate-500 bg-white dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest shadow-sm">
+          <div className="hidden sm:flex items-center gap-2 text-zinc-400 bg-white border border-zinc-200 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest shadow-sm">
             <i className="fa-solid fa-shield-halved"></i> Secure & Encrypted
           </div>
         </div>
@@ -64,7 +64,7 @@ export default function DonationPage({ showToast }) {
         <div className="w-full flex flex-col gap-6 sm:gap-8">
           
           {/* Top Progress Dashboard Card */}
-          <div className="bg-white dark:bg-slate-900 border-y sm:border border-zinc-200 dark:border-slate-800 sm:rounded-2xl p-6 sm:p-8 lg:p-10 shadow-sm relative overflow-hidden transition-colors">
+          <div className="bg-white border-y sm:border border-zinc-200 sm:rounded-2xl p-6 sm:p-8 lg:p-10 shadow-sm relative overflow-hidden transition-colors">
             {/* Subtle Top Background Glow */}
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-teal-600"></div>
             
@@ -79,25 +79,25 @@ export default function DonationPage({ showToast }) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
             
             {/* Donation Form Column */}
-            <div className="lg:col-span-7 bg-white dark:bg-slate-900 border-y sm:border border-zinc-200 dark:border-slate-800 sm:rounded-2xl p-6 sm:p-8 lg:p-10 shadow-sm transition-colors">
+            <div className="lg:col-span-7 bg-white border-y sm:border border-zinc-200 sm:rounded-2xl p-6 sm:p-8 lg:p-10 shadow-sm transition-colors">
               <div className="mb-8">
-                <h3 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-white mb-1.5 flex items-center gap-2">
+                <h3 className="text-lg sm:text-xl font-bold text-zinc-900 mb-1.5 flex items-center gap-2">
                   <i className="fa-solid fa-bolt text-teal-500"></i> Make a Contribution
                 </h3>
-                <p className="text-xs sm:text-[13px] text-zinc-500 dark:text-slate-400">Fill in your details and choose an amount to generate your secure payment QR.</p>
+                <p className="text-xs sm:text-[13px] text-zinc-500">Fill in your details and choose an amount to generate your secure payment QR.</p>
               </div>
               
               <DonationForm onInitiate={handleInitiateDonation} />
             </div>
 
             {/* Supporters List Column */}
-            <div className="lg:col-span-5 bg-white dark:bg-slate-900 border-y sm:border border-zinc-200 dark:border-slate-800 sm:rounded-2xl shadow-sm lg:sticky lg:top-24 overflow-hidden flex flex-col lg:max-h-[600px] transition-colors">
+            <div className="lg:col-span-5 bg-white border-y sm:border border-zinc-200 sm:rounded-2xl shadow-sm lg:sticky lg:top-24 overflow-hidden flex flex-col lg:max-h-[600px] transition-colors">
               <div className="p-6 sm:p-8 pb-0 sm:pb-0 mb-6 shrink-0">
                 <div>
-                  <h3 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-white mb-1.5 flex items-center gap-2">
+                  <h3 className="text-lg sm:text-xl font-bold text-zinc-900 mb-1.5 flex items-center gap-2">
                     <i className="fa-solid fa-users text-teal-600"></i> Supporters
                   </h3>
-                  <p className="text-xs sm:text-[13px] text-zinc-500 dark:text-slate-400">The amazing people who believe in us.</p>
+                  <p className="text-xs sm:text-[13px] text-zinc-500">The amazing people who believe in us.</p>
                 </div>
               </div>
               

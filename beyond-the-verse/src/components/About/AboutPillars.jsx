@@ -29,10 +29,10 @@ export default function AboutPillars() {
   ];
 
   return (
-    <div className="space-y-10 lg:space-y-12 pt-8 sm:pt-12 border-t border-slate-100 dark:border-slate-800 transition-colors">
+    <div className="space-y-10 lg:space-y-12 pt-8 sm:pt-12 border-t border-slate-100 transition-colors">
       
       <div className="text-center max-w-2xl mx-auto px-4">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl text-slate-800 dark:text-white font-cabinet font-black tracking-tight transition-colors">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl text-slate-800 font-cabinet font-black tracking-tight transition-colors">
           Our Guiding Pillars
         </h2>
       </div>
@@ -41,13 +41,13 @@ export default function AboutPillars() {
         {pillars.map((item, index) => (
           <div 
             key={index} 
-            className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center sm:items-start text-center sm:text-left transition-all hover:shadow-md"
+            className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center sm:items-start text-center sm:text-left transition-all hover:shadow-md"
           >
-            <div className={`h-12 w-12 sm:h-14 sm:w-14 ${item.bg} dark:bg-slate-800 ${item.color} ${item.border} dark:border-slate-700 border rounded-xl flex items-center justify-center text-xl sm:text-2xl mb-5 sm:mb-6 shadow-sm`}>
+            <div className={`h-12 w-12 sm:h-14 sm:w-14 ${item.bg} ${item.color} ${item.border} border rounded-xl flex items-center justify-center text-xl sm:text-2xl mb-5 sm:mb-6 shadow-sm`}>
               <i className={`fa-solid ${item.icon}`}></i>
             </div>
-            <h4 className="text-slate-800 dark:text-slate-100 text-lg sm:text-xl font-bold mb-3 tracking-tight transition-colors">{item.title}</h4>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium transition-colors">{item.text}</p>
+            <h4 className="text-slate-800 text-lg sm:text-xl font-bold mb-3 tracking-tight transition-colors">{item.title}</h4>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed font-medium transition-colors">{item.text}</p>
           </div>
         ))}
       </div>

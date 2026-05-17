@@ -6,33 +6,33 @@ import { getFAQs, submitUserQuestion } from "../../services/firebaseServices";
 // 🌟 REUSABLE STYLES DICTIONARY
 const styles = {
   // Base Section Wrappers
-  sectionWrapper: "w-full py-16 sm:py-24 lg:py-32 border-t border-slate-100 dark:border-slate-800/50 transition-colors duration-300",
-  faqSectionWrapper: "w-full py-16 sm:py-24 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800/50 transition-colors duration-300",
+  sectionWrapper: "w-full py-16 sm:py-24 lg:py-32 border-t border-slate-100 transition-colors duration-300",
+  faqSectionWrapper: "w-full py-16 sm:py-24 bg-white border-t border-slate-100 transition-colors duration-300",
   
   // Typography
-  heading: "text-3xl sm:text-5xl font-semibold text-slate-900 dark:text-white tracking-tight transition-colors",
-  paragraph: "text-slate-500 dark:text-slate-400 text-base sm:text-lg leading-relaxed font-normal max-w-xl transition-colors",
+  heading: "text-3xl sm:text-5xl font-semibold text-slate-900 tracking-tight transition-colors",
+  paragraph: "text-slate-500 text-base sm:text-lg leading-relaxed font-normal max-w-xl transition-colors",
   
   // Feature Cards (Elevated)
-  featureCard: "p-6 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-800/50 transition-all cursor-default hover:border-slate-400 dark:hover:border-slate-600",
+  featureCard: "p-6 rounded-2xl border border-slate-200 bg-white transition-all cursor-default hover:border-slate-400",
   featureTitle: "text-[10px] font-bold uppercase tracking-wide mb-2",
-  featureDesc: "text-slate-500 dark:text-slate-400 text-sm leading-relaxed",
+  featureDesc: "text-slate-500 text-sm leading-relaxed",
 
   // FAQ Accordion
-  faqBadge: "inline-flex items-center gap-2 px-3 py-1 bg-slate-50 border border-slate-200 rounded-md text-[9px] font-bold uppercase tracking-widest text-teal-600 dark:bg-teal-900/20 dark:border-teal-800 dark:text-teal-400 mb-4 transition-colors",
+  faqBadge: "inline-flex items-center gap-2 px-3 py-1 bg-slate-50 border border-slate-200 rounded-md text-[9px] font-bold uppercase tracking-widest text-teal-600 mb-4 transition-colors",
   faqItemBase: "border transition-all rounded-xl overflow-hidden",
-  faqItemClosed: "bg-white border-slate-200 hover:border-slate-300 dark:bg-slate-900 dark:border-slate-800 dark:hover:border-slate-700",
-  faqItemOpen: "bg-slate-50 border-slate-300 dark:bg-slate-800 border-slate-700",
-  faqQuestionOpen: "text-slate-900 dark:text-white",
-  faqQuestionClosed: "text-slate-600 dark:text-slate-400",
-  faqAnswer: "px-5 pb-5 text-slate-500 dark:text-slate-400 text-sm leading-relaxed border-t border-slate-100/50 dark:border-slate-700/50 pt-3 animate-fade-in",
+  faqItemClosed: "bg-white border-slate-200 hover:border-slate-300",
+  faqItemOpen: "bg-slate-50 border-slate-300 border-slate-700",
+  faqQuestionOpen: "text-slate-900",
+  faqQuestionClosed: "text-slate-600",
+  faqAnswer: "px-5 pb-5 text-slate-500 text-sm leading-relaxed border-t border-slate-100/50 pt-3 animate-fade-in",
 
   // Form (Elevated)
-  formCard: "bg-slate-50 border border-slate-200 rounded-3xl p-8 sticky top-24 dark:bg-slate-900 dark:border-slate-800 transition-colors",
-  formTitle: "text-lg font-bold text-slate-900 dark:text-white mb-2",
-  formSub: "text-slate-500 dark:text-slate-400 text-xs mb-6",
-  textarea: "w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-slate-800 placeholder:text-slate-400 outline-none focus:border-teal-500 transition-all text-sm resize-none dark:bg-slate-950 dark:border-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:border-teal-400",
-  submitBtn: "w-full font-bold py-3.5 rounded-xl text-xs uppercase tracking-widest cursor-pointer transition-all active:scale-95 disabled:opacity-50 bg-slate-900 hover:bg-black text-white dark:bg-teal-600 dark:hover:bg-teal-500"
+  formCard: "bg-slate-50 border border-slate-200 rounded-3xl p-8 sticky top-24 transition-colors",
+  formTitle: "text-lg font-bold text-slate-900 mb-2",
+  formSub: "text-slate-500 text-xs mb-6",
+  textarea: "w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-slate-800 placeholder:text-slate-400 outline-none focus:border-teal-500 transition-all text-sm resize-none",
+  submitBtn: "w-full font-bold py-3.5 rounded-xl text-xs uppercase tracking-widest cursor-pointer transition-all active:scale-95 disabled:opacity-50 bg-slate-900 hover:bg-black text-white"
 };
 
 export default function StorySection({ isAuthenticated, onDonate }) {
@@ -91,7 +91,7 @@ export default function StorySection({ isAuthenticated, onDonate }) {
       path: "/community",
       requiresAuth: true,
       // Solid Slate-950 (Level 0)
-      theme: { bg: "bg-white dark:bg-slate-950", border: "border-indigo-100 dark:border-indigo-900/50", text: "text-indigo-600 dark:text-indigo-400", accent: "bg-indigo-600 dark:bg-indigo-600 hover:opacity-90" }
+      theme: { bg: "bg-white", border: "border-indigo-100", text: "text-indigo-600", accent: "bg-indigo-600 hover:opacity-90" }
     },
     {
       id: "academy",
@@ -106,7 +106,7 @@ export default function StorySection({ isAuthenticated, onDonate }) {
       path: "/exam",
       requiresAuth: true,
       // Solid Slate-900 (Level 1 Elevated)
-      theme: { bg: "bg-slate-50 dark:bg-slate-900", border: "border-teal-100 dark:border-teal-900/50", text: "text-teal-600 dark:text-teal-400", accent: "bg-teal-600 dark:bg-teal-600 hover:opacity-90" }
+      theme: { bg: "bg-slate-50", border: "border-teal-100", text: "text-teal-600", accent: "bg-teal-600 hover:opacity-90" }
     },
     {
       id: "mission",
@@ -121,7 +121,7 @@ export default function StorySection({ isAuthenticated, onDonate }) {
       path: "/about",
       requiresAuth: false,
       // Solid Slate-950 (Level 0)
-      theme: { bg: "bg-white dark:bg-slate-950", border: "border-amber-100 dark:border-amber-900/50", text: "text-amber-600 dark:text-amber-400", accent: "bg-amber-500 dark:bg-amber-600 hover:opacity-90" }
+      theme: { bg: "bg-white", border: "border-amber-100", text: "text-amber-600", accent: "bg-amber-500 hover:opacity-90" }
     },
     {
       id: "support",
@@ -136,7 +136,7 @@ export default function StorySection({ isAuthenticated, onDonate }) {
       path: "/donation",
       requiresAuth: false,
       // Solid Slate-900 (Level 1 Elevated)
-      theme: { bg: "bg-slate-50 dark:bg-slate-900", border: "border-rose-100 dark:border-rose-900/50", text: "text-rose-600 dark:text-rose-400", accent: "bg-rose-600 dark:bg-rose-600 hover:opacity-90" }
+      theme: { bg: "bg-slate-50", border: "border-rose-100", text: "text-rose-600", accent: "bg-rose-600 hover:opacity-90" }
     }
   ];
 
@@ -151,7 +151,7 @@ export default function StorySection({ isAuthenticated, onDonate }) {
               {/* Text Area */}
               <div className="w-full lg:w-1/2 space-y-6">
                 <div className="space-y-4">
-                  <div className={`inline-flex items-center gap-2 px-3 py-1 bg-white dark:bg-slate-900 border rounded-lg text-[10px] font-bold uppercase tracking-[0.2em] transition-colors ${section.theme.border} ${section.theme.text}`}>
+                  <div className={`inline-flex items-center gap-2 px-3 py-1 bg-white border rounded-lg text-[10px] font-bold uppercase tracking-[0.2em] transition-colors ${section.theme.border} ${section.theme.text}`}>
                     <i className={`fa-solid ${section.icon}`}></i> Part 0{idx + 1}
                   </div>
                   <h3 className={styles.heading}>
@@ -198,18 +198,18 @@ export default function StorySection({ isAuthenticated, onDonate }) {
                   <i className="fa-solid fa-question"></i> FAQ
                 </div>
                 <h3 className={styles.heading}>Common Questions</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm mt-2 transition-colors">Find quick answers about how we work.</p>
+                <p className="text-slate-500 text-sm mt-2 transition-colors">Find quick answers about how we work.</p>
               </div>
 
               <div className="space-y-3">
                 {loadingFaqs ? (
-                  <div className="text-slate-300 dark:text-slate-700 text-[10px] font-bold uppercase tracking-widest animate-pulse">Loading...</div>
+                  <div className="text-slate-300 text-[10px] font-bold uppercase tracking-widest animate-pulse">Loading...</div>
                 ) : (
                   faqs.map((faq, idx) => (
                     <div key={idx} className={`${styles.faqItemBase} ${openIndex === idx ? styles.faqItemOpen : styles.faqItemClosed}`}>
                       <button onClick={() => setOpenIndex(openIndex === idx ? null : idx)} className="w-full text-left px-5 py-4 flex justify-between items-center outline-none cursor-pointer">
                         <span className={`text-[15px] font-medium ${openIndex === idx ? styles.faqQuestionOpen : styles.faqQuestionClosed}`}>{faq.q}</span>
-                        <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${openIndex === idx ? "rotate-180 text-teal-600 dark:text-teal-400" : "text-slate-300 dark:text-slate-600"}`}></i>
+                        <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${openIndex === idx ? "rotate-180 text-teal-600" : "text-slate-300"}`}></i>
                       </button>
                       {openIndex === idx && <div className={styles.faqAnswer}>{faq.a}</div>}
                     </div>
@@ -233,7 +233,7 @@ export default function StorySection({ isAuthenticated, onDonate }) {
                   <button disabled={isSubmitting || !userQuestion.trim()} className={styles.submitBtn}>
                     {isSubmitting ? "Sending..." : "Submit Question"}
                   </button>
-                  {submitStatus === "success" && <div className="text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase mt-4 text-center"><i className="fa-solid fa-check"></i> Sent successfully!</div>}
+                  {submitStatus === "success" && <div className="text-emerald-600 text-[10px] font-bold uppercase mt-4 text-center"><i className="fa-solid fa-check"></i> Sent successfully!</div>}
                 </form>
               </div>
             </div>

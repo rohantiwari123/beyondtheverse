@@ -3,23 +3,23 @@ import React from 'react';
 // 🌟 REUSABLE STYLES DICTIONARY (Dark Mode Mapping)
 const styles = {
   // Base & Gradients
-  wrapper: "absolute inset-0 overflow-hidden pointer-events-none z-0 bg-white dark:bg-slate-950 transition-colors duration-500",
-  gradientBase: "absolute inset-0 bg-gradient-to-tr transition-colors duration-500 from-slate-50 via-white to-teal-50/50 dark:from-slate-950 dark:via-slate-950 dark:to-teal-900/10",
+  wrapper: "absolute inset-0 overflow-hidden pointer-events-none z-0 bg-white transition-colors duration-500",
+  gradientBase: "absolute inset-0 bg-gradient-to-tr transition-colors duration-500 from-slate-50 via-white to-teal-50/50",
   
   // Neural Grid (currentColor trick used here via text color)
-  neuralGrid: "absolute inset-0 opacity-[0.15] dark:opacity-[0.05] animate-breathe transition-opacity duration-500 text-teal-600 dark:text-teal-400",
+  neuralGrid: "absolute inset-0 opacity-[0.15] animate-breathe transition-opacity duration-500 text-teal-600",
   
   // Glowing Orbs
-  orb1: "absolute top-[10%] left-[-5%] w-[40vw] h-[40vw] rounded-full blur-[100px] animate-float-slow transition-colors duration-500 bg-teal-200/20 dark:bg-teal-900/20",
-  orb2: "absolute bottom-[10%] right-[-5%] w-[35vw] h-[35vw] rounded-full blur-[120px] animate-float-delayed transition-colors duration-500 bg-emerald-100/30 dark:bg-emerald-900/10",
+  orb1: "absolute top-[10%] left-[-5%] w-[40vw] h-[40vw] rounded-full blur-[100px] animate-float-slow transition-colors duration-500 bg-teal-200/20",
+  orb2: "absolute bottom-[10%] right-[-5%] w-[35vw] h-[35vw] rounded-full blur-[120px] animate-float-delayed transition-colors duration-500 bg-emerald-100/30",
   
   // Floating Particles
-  particle1: "absolute bottom-0 left-[15%] w-1 h-1 rounded-full animate-drift transition-colors bg-teal-400 dark:bg-teal-600",
-  particle2: "absolute bottom-0 left-[45%] w-1.5 h-1.5 rounded-full animate-drift transition-colors bg-emerald-400 dark:bg-emerald-600",
-  particle3: "absolute bottom-0 left-[75%] w-1 h-1 rounded-full animate-drift transition-colors bg-teal-300 dark:bg-teal-700",
+  particle1: "absolute bottom-0 left-[15%] w-1 h-1 rounded-full animate-drift transition-colors bg-teal-400",
+  particle2: "absolute bottom-0 left-[45%] w-1.5 h-1.5 rounded-full animate-drift transition-colors bg-emerald-400",
+  particle3: "absolute bottom-0 left-[75%] w-1 h-1 rounded-full animate-drift transition-colors bg-teal-300",
 
   // SVG Logic Hub (currentColor trick)
-  svgHub: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] max-w-[800px] max-h-[800px] opacity-[0.08] dark:opacity-[0.04] animate-rotate-slow transition-opacity duration-500 text-teal-600 dark:text-teal-400"
+  svgHub: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] max-w-[800px] max-h-[800px] opacity-[0.08] animate-rotate-slow transition-opacity duration-500 text-teal-600"
 };
 
 export default function HeroBackground() {

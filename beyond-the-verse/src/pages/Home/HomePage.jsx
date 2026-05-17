@@ -6,30 +6,30 @@ import HeroBackground from './HeroBackground';
 // 🌟 REUSABLE STYLES DICTIONARY (Dark Mode Integrated)
 const styles = {
   // 🌟 Main Layout (Snap Scroll Logic)
-  pageWrapper: "w-full h-screen overflow-y-auto snap-y snap-proximity scroll-smooth bg-white text-slate-900 selection:bg-teal-900 selection:text-white font-inter no-scrollbar transition-colors duration-300  dark:text-slate-100",
+  pageWrapper: "w-full h-screen overflow-y-auto snap-y snap-proximity scroll-smooth bg-white text-slate-900 selection:bg-teal-900 selection:text-white font-inter no-scrollbar transition-colors duration-300",
   
   // 🌟 Section 1: Hero
   heroSection: "relative w-full h-screen flex flex-col justify-center items-center px-4 sm:px-8 z-10 snap-start shrink-0",
   heroContent: "max-w-4xl mx-auto text-center flex flex-col items-center justify-center",
   
   // Welcome Badge
-  welcomeBadge: "animate-fade-up px-6 py-2 backdrop-blur-md border rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] mb-8 shadow-sm relative z-20 transition-colors bg-white/60 border-slate-200/80 text-teal-700 dark:bg-slate-900/60 dark:border-slate-800/80 dark:text-teal-400",
+  welcomeBadge: "animate-fade-up px-6 py-2 backdrop-blur-md border rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] mb-8 shadow-sm relative z-20 transition-colors bg-white/60 border-slate-200/80 text-teal-700",
   
   // Typography Logo
   logoContainer: "animate-fade-up delay-100 flex flex-col items-center justify-center gap-1 sm:gap-2 select-none relative z-20",
-  logoFirst: "text-6xl sm:text-8xl lg:text-[8rem] font-cabinet font-black tracking-tighter leading-[0.9] transition-colors text-slate-900 dark:text-white",
-  logoMiddle: "text-4xl sm:text-6xl lg:text-[5rem] lowercase font-serif italic font-bold tracking-tight leading-[0.9] transition-colors text-slate-400 dark:text-slate-500",
-  logoLast: "text-6xl sm:text-8xl lg:text-[8rem] font-cabinet font-black tracking-tighter leading-[0.9] transition-colors text-teal-600 dark:text-teal-400",
+  logoFirst: "text-6xl sm:text-8xl lg:text-[8rem] font-cabinet font-black tracking-tighter leading-[0.9] transition-colors text-slate-900",
+  logoMiddle: "text-4xl sm:text-6xl lg:text-[5rem] lowercase font-serif italic font-bold tracking-tight leading-[0.9] transition-colors text-slate-400",
+  logoLast: "text-6xl sm:text-8xl lg:text-[8rem] font-cabinet font-black tracking-tighter leading-[0.9] transition-colors text-teal-600",
   
   // Subtitle
-  subtitle: "animate-fade-up delay-200 mt-10 text-[10px] sm:text-[12px] uppercase tracking-[0.4em] font-semibold relative z-20 transition-colors text-slate-500 dark:text-slate-400",
-  subtitleDot: "mx-2 sm:mx-3 text-slate-300 dark:text-slate-700",
+  subtitle: "animate-fade-up delay-200 mt-10 text-[10px] sm:text-[12px] uppercase tracking-[0.4em] font-semibold relative z-20 transition-colors text-slate-500",
+  subtitleDot: "mx-2 sm:mx-3 text-slate-300",
 
   // Action Button
-  exploreBtn: "animate-fade-up delay-300 mt-12 px-8 py-3.5 rounded-full text-[11px] sm:text-xs font-semibold active:scale-95 transition-all duration-300 flex items-center gap-3 relative z-30 shadow-lg shadow-teal-500/10 bg-slate-950 text-white hover:bg-teal-600 dark:bg-teal-600 dark:hover:bg-teal-700",
+  exploreBtn: "animate-fade-up delay-300 mt-12 px-8 py-3.5 rounded-full text-[11px] sm:text-xs font-semibold active:scale-95 transition-all duration-300 flex items-center gap-3 relative z-30 shadow-lg shadow-teal-500/10 bg-slate-950 text-white hover:bg-teal-600",
 
   // 🌟 Section 2: Story
-  storySection: "relative z-10 snap-start min-h-screen transition-colors duration-300 bg-white dark:bg-slate-950",
+  storySection: "relative z-10 snap-start min-h-screen transition-colors duration-300 bg-white",
 };
 
 export default function HomePage({ onNavigateToDonate }) {

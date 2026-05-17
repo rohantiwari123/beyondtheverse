@@ -3,7 +3,7 @@ import LibrarySection from '../../components/Library/LibrarySection';
 export default function LibraryPage() {
   return (
     // 🌟 Minimal selection color & Edge-to-edge layout
-    <div className="relative flex flex-col min-h-screen w-full bg-white dark:bg-slate-950 font-sans selection:bg-slate-900 dark:selection:bg-teal-500 selection:text-white dark:selection:text-slate-950 overflow-x-hidden transition-colors duration-300">
+    <div className="relative flex flex-col min-h-screen w-full bg-white font-sans selection:bg-slate-900 selection:text-white overflow-x-hidden transition-colors duration-300">
       
       
       {/* 🌟 Main Content Area */}

@@ -4,27 +4,27 @@ import { Link } from 'react-router-dom';
 // 🌟 REUSABLE STYLES DICTIONARY (Light & Dark Theme Mapped)
 const styles = {
   // Main Containers
-  footerWrapper: "relative pt-16 pb-8 overflow-hidden transition-colors duration-300 bg-white border-t border-slate-200 dark:bg-slate-950 dark:border-slate-900",
-  decoratorLine: "absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-teal-500/30 to-transparent dark:via-teal-500/50",
-  decoratorGlow: "absolute -bottom-24 -right-24 w-96 h-96 bg-teal-500/5 rounded-full blur-[100px] pointer-events-none dark:bg-teal-500/10",
+  footerWrapper: "relative pt-16 pb-8 overflow-hidden transition-colors duration-300 bg-white border-t border-slate-200",
+  decoratorLine: "absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-teal-500/30 to-transparent",
+  decoratorGlow: "absolute -bottom-24 -right-24 w-96 h-96 bg-teal-500/5 rounded-full blur-[100px] pointer-events-none",
   
   // Text & Brand
-  brandTitle: "text-xl font-bold tracking-tight text-slate-900 dark:text-white",
-  brandAccent: "text-teal-600 dark:text-teal-400",
-  description: "text-sm leading-relaxed max-w-sm text-slate-600 dark:text-slate-400",
-  sectionTitle: "text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-white",
+  brandTitle: "text-xl font-bold tracking-tight text-slate-900",
+  brandAccent: "text-teal-600",
+  description: "text-sm leading-relaxed max-w-sm text-slate-600",
+  sectionTitle: "text-sm font-bold uppercase tracking-widest text-slate-900",
   
   // Buttons & Links
-  socialBtn: "h-9 w-9 rounded-lg flex items-center justify-center transition-all bg-slate-50 border border-slate-200 text-slate-600 hover:bg-teal-50 hover:text-teal-600 hover:border-teal-300 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-teal-900/30 dark:hover:text-teal-400 dark:hover:border-teal-700",
-  linkItem: "text-sm transition-colors flex items-center gap-2 group text-slate-600 hover:text-teal-600 dark:text-slate-400 dark:hover:text-teal-400",
-  linkDot: "h-1 w-1 rounded-full transition-colors bg-slate-300 group-hover:bg-teal-500 dark:bg-slate-700 dark:group-hover:bg-teal-400",
+  socialBtn: "h-9 w-9 rounded-lg flex items-center justify-center transition-all bg-slate-50 border border-slate-200 text-slate-600 hover:bg-teal-50 hover:text-teal-600 hover:border-teal-300",
+  linkItem: "text-sm transition-colors flex items-center gap-2 group text-slate-600 hover:text-teal-600",
+  linkDot: "h-1 w-1 rounded-full transition-colors bg-slate-300 group-hover:bg-teal-500",
   
   // Bottom Bar
-  bottomBar: "pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-6 border-slate-200 dark:border-slate-800/80",
-  bottomText: "text-xs text-slate-500 dark:text-slate-400",
-  bottomLink: "hover:text-slate-900 transition-colors dark:hover:text-white",
-  liveBadge: "flex items-center gap-2 px-3 py-1 rounded-full border bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-800",
-  liveBadgeText: "text-[10px] font-medium text-slate-500 dark:text-slate-400"
+  bottomBar: "pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-6 border-slate-200",
+  bottomText: "text-xs text-slate-500",
+  bottomLink: "hover:text-slate-900 transition-colors",
+  liveBadge: "flex items-center gap-2 px-3 py-1 rounded-full border bg-slate-50 border-slate-200",
+  liveBadgeText: "text-[10px] font-medium text-slate-500"
 };
 
 export default function Footer() {
@@ -117,7 +117,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className={styles.bottomBar}>
           <div className={styles.bottomText}>
-            © {currentYear} <span className="font-medium text-slate-800 dark:text-slate-200">Beyond The Verse</span>. All rights reserved.
+            © {currentYear} <span className="font-medium text-slate-800">Beyond The Verse</span>. All rights reserved.
           </div>
           <div className={`flex items-center gap-6 ${styles.bottomText}`}>
             <Link to="/security" className={styles.bottomLink}>Security</Link>

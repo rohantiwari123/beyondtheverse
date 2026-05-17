@@ -17,7 +17,8 @@ const UI_THEME = {
   
   // Buttons
   btnPrimary: "bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold uppercase tracking-wide transition-all disabled:opacity-50 active:scale-95 flex items-center justify-center gap-2",
-  btnDark: "bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold uppercase tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2 shadow-sm",
+  btnBlack: "bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold uppercase tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2 shadow-sm",
+
   btnDangerText: "text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors flex items-center justify-center",
   
   // Modals

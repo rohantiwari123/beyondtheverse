@@ -179,9 +179,9 @@ export default function PostCard({ post, showToast, isSinglePost }) {
     finally { setIsSubmitting(false); }
   };
 
-  const bgClass = isAdminPost ? "bg-amber-50/50 dark:bg-amber-950/20" : "bg-white dark:bg-slate-900";
-  const borderClass = isAdminPost ? "border-amber-200 dark:border-amber-900/50" : "border-slate-100 dark:border-slate-800 sm:border-slate-200";
-  const pinnedClass = post.isPinned ? "bg-teal-50/30 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900/50" : "";
+  const bgClass = isAdminPost ? "bg-amber-50/50" : "bg-white";
+  const borderClass = isAdminPost ? "border-amber-200" : "border-slate-100 sm:border-slate-200";
+  const pinnedClass = post.isPinned ? "bg-teal-50/30 border-teal-200" : "";
 
   return (
     <div className={`w-full border-y sm:border sm:rounded-2xl md:rounded-[2.5rem] lg:rounded-[3rem] mb-0 sm:mb-6 md:mb-8 pt-5 pb-4 sm:pt-8 sm:pb-6 px-4 sm:px-8 lg:px-10 transition-all duration-500 relative ${bgClass} ${borderClass} ${pinnedClass} shadow-sm`}>
@@ -204,27 +204,27 @@ export default function PostCard({ post, showToast, isSinglePost }) {
           <div className="flex flex-col min-w-0">
             <div className="flex items-baseline gap-1.5 sm:gap-2 flex-wrap">
               <Link to={`/profile/${post.userId}`}>
-                <h4 className={`text-base sm:text-lg font-bold truncate hover:underline transition-colors ${isAdminPost ? 'text-amber-900 dark:text-amber-400 hover:text-amber-700' : 'text-slate-900 dark:text-slate-100 hover:text-teal-700 dark:hover:text-teal-400'}`}>
+                <h4 className={`text-base sm:text-lg font-bold truncate hover:underline transition-colors ${isAdminPost ? 'text-amber-900 hover:text-amber-700' : 'text-slate-900 hover:text-teal-700'}`}>
                   {currentDisplayName}
                 </h4>
               </Link>
               {currentDisplayUsername && (
                 <Link to={`/profile/${post.userId}`} className="shrink-0">
-                  <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 hover:underline">
+                  <span className="text-xs sm:text-sm text-slate-500 hover:text-teal-600 hover:underline">
                     @{currentDisplayUsername}
                   </span>
                 </Link>
               )}
-              <span className="text-slate-300 dark:text-slate-700 text-xs sm:text-sm hidden sm:inline">•</span>
-              <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{formatDateTime(post.createdAt)}</span>
+              <span className="text-slate-300 text-xs sm:text-sm hidden sm:inline">•</span>
+              <span className="text-xs sm:text-sm text-slate-500 whitespace-nowrap">{formatDateTime(post.createdAt)}</span>
             </div>
             
             <div className="flex items-center gap-1.5 sm:gap-2 mt-1 flex-wrap">
-              <span className="font-bold text-[10px] sm:text-xs text-slate-600 dark:text-slate-300 bg-slate-100/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-md uppercase tracking-widest">
+              <span className="font-bold text-[10px] sm:text-xs text-slate-600 bg-slate-100/80 border border-slate-200 px-2 py-0.5 rounded-md uppercase tracking-widest">
                 {post.category}
               </span>
               {isAdminPost && (
-                <span className="bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] sm:text-xs font-bold uppercase px-1.5 py-0.5 rounded-md border border-amber-200 dark:border-amber-800 tracking-widest">
+                <span className="bg-amber-50 text-amber-700 text-[10px] sm:text-xs font-bold uppercase px-1.5 py-0.5 rounded-md border border-amber-200 tracking-widest">
                   Admin
                 </span>
               )}
@@ -234,30 +234,30 @@ export default function PostCard({ post, showToast, isSinglePost }) {
         </div>
 
         <div className="relative">
-          <button onClick={() => setShowMenu(!showMenu)} className="text-slate-300 dark:text-slate-600 hover:text-slate-900 dark:hover:text-slate-100 p-2 transition-colors">
+          <button onClick={() => setShowMenu(!showMenu)} className="text-slate-300 hover:text-slate-900 p-2 transition-colors">
             <i className="fa-solid fa-ellipsis-vertical sm:text-lg"></i>
           </button>
           {showMenu && (
-            <div className="absolute right-0 top-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl w-36 py-1.5 z-30 animate-fade-in shadow-xl">
+            <div className="absolute right-0 top-10 bg-white border border-slate-200 rounded-xl w-36 py-1.5 z-30 animate-fade-in shadow-xl">
               {isAdmin && (
-                <button onClick={handlePin} className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                <button onClick={handlePin} className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50 transition-colors">
                   {post.isPinned ? 'Unpin' : 'Pin Post'}
                 </button>
               )}
               {(isOwner || isAdmin) && (
                 <>
                   {isOwner && (
-                    <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <button onClick={() => { setIsEditing(true); setShowMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-700 hover:bg-slate-50 transition-colors">
                       Edit Thought
                     </button>
                   )}
-                  <button onClick={() => { setShowMenu(false); setShowDeleteModal(true); }} className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors">
+                  <button onClick={() => { setShowMenu(false); setShowDeleteModal(true); }} className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-rose-600 hover:bg-rose-50 transition-colors">
                     Delete
                   </button>
                 </>
               )}
               {!isOwner && (
-                <button onClick={() => { showToast("Reported"); setShowMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
+                <button onClick={() => { showToast("Reported"); setShowMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold uppercase tracking-widest text-amber-600 hover:bg-amber-50 transition-colors">
                   Report
                 </button>
               )}
@@ -272,56 +272,56 @@ export default function PostCard({ post, showToast, isSinglePost }) {
             <textarea
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-base sm:text-lg text-slate-900 dark:text-slate-100 focus:border-teal-500 focus:bg-white dark:focus:bg-slate-900 outline-none transition-all h-48 sm:h-64 resize-none"
+              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-base sm:text-lg text-slate-900 focus:border-teal-500 focus:bg-white outline-none transition-all h-48 sm:h-64 resize-none"
               autoFocus
             />
             <div className="flex justify-end gap-2 px-1">
-              <button onClick={() => { setIsEditing(false); setEditText(post.text); }} className="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 py-2 rounded-lg transition-colors">Cancel</button>
-              <button onClick={handleEditSubmit} disabled={!editText.trim() || isSavingEdit} className="bg-slate-900 dark:bg-teal-600 text-white font-bold text-xs sm:text-sm px-6 py-2.5 rounded-lg disabled:opacity-30 uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-teal-500/10">Save Change</button>
+              <button onClick={() => { setIsEditing(false); setEditText(post.text); }} className="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-100 px-4 py-2 rounded-lg transition-colors">Cancel</button>
+              <button onClick={handleEditSubmit} disabled={!editText.trim() || isSavingEdit} className="bg-slate-900 text-white font-bold text-xs sm:text-sm px-6 py-2.5 rounded-lg disabled:opacity-30 uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-teal-500/10">Save Change</button>
             </div>
           </div>
         ) : (
           <div className="max-h-[60vh] md:max-h-[500px] overflow-y-auto pr-3 -mr-3 scrollbar-custom">
-            <p className={`text-slate-900 dark:text-slate-100 whitespace-pre-wrap text-justify break-words break-all transition-all ${getTextSizeClass(post.text)}`}>
+            <p className={`text-slate-900 whitespace-pre-wrap text-justify break-words break-all transition-all ${getTextSizeClass(post.text)}`}>
               {post.text}
             </p>
           </div>
         )}
       </div>
 
-      <div className={`flex items-center justify-between pt-4 border-t ${isAdminPost ? 'border-amber-100 dark:border-amber-900/30' : 'border-slate-50 dark:border-slate-800'} transition-colors`}>
+      <div className={`flex items-center justify-between pt-4 border-t ${isAdminPost ? 'border-amber-100' : 'border-slate-50'} transition-colors`}>
 
         <div className={`flex items-center gap-5 sm:gap-8 lg:gap-10 ${hasInteracted ? 'pointer-events-none' : ''}`}>
           <button onClick={() => handleGateClick('support')} className={`flex items-center gap-1.5 sm:gap-2 transition-all ${hasInteracted
-              ? (userInteractionType === 'support' ? 'text-emerald-600' : 'text-slate-200 dark:text-slate-800')
-              : (activeGate === 'support' ? 'text-emerald-600' : 'text-slate-400 dark:text-slate-600 hover:text-emerald-600')
+              ? (userInteractionType === 'support' ? 'text-emerald-600' : 'text-slate-200')
+              : (activeGate === 'support' ? 'text-emerald-600' : 'text-slate-400 hover:text-emerald-600')
             }`}>
             <i className={`${hasInteracted && userInteractionType === 'support' ? 'fa-solid' : 'fa-regular'} fa-circle-check text-xl sm:text-2xl`}></i>
             <span className="text-xs sm:text-sm font-bold">{supportCount || ''}</span>
           </button>
 
           <button onClick={() => handleGateClick('counter')} className={`flex items-center gap-1.5 sm:gap-2 transition-all ${hasInteracted
-              ? (userInteractionType === 'counter' ? 'text-rose-600' : 'text-slate-200 dark:text-slate-800')
-              : (activeGate === 'counter' ? 'text-rose-600' : 'text-slate-400 dark:text-slate-600 hover:text-rose-600')
+              ? (userInteractionType === 'counter' ? 'text-rose-600' : 'text-slate-200')
+              : (activeGate === 'counter' ? 'text-rose-600' : 'text-slate-400 hover:text-rose-600')
             }`}>
             <i className="fa-solid fa-bolt text-xl sm:text-2xl"></i>
             <span className="text-xs sm:text-sm font-bold">{counterCount || ''}</span>
           </button>
 
           <button onClick={() => handleGateClick('doubt')} className={`flex items-center gap-1.5 sm:gap-2 transition-all ${hasInteracted
-              ? (userInteractionType === 'doubt' ? 'text-amber-600' : 'text-slate-200 dark:text-slate-800')
-              : (activeGate === 'doubt' ? 'text-amber-600' : 'text-slate-400 dark:text-slate-600 hover:text-amber-600')
+              ? (userInteractionType === 'doubt' ? 'text-amber-600' : 'text-slate-200')
+              : (activeGate === 'doubt' ? 'text-amber-600' : 'text-slate-400 hover:text-amber-600')
             }`}>
             <i className="fa-solid fa-magnifying-glass text-xl sm:text-2xl"></i>
             <span className="text-xs sm:text-sm font-bold">{doubtCount || ''}</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-4 sm:gap-6 text-slate-300 dark:text-slate-700">
-          <button onClick={handleShare} className="hover:text-slate-900 dark:hover:text-slate-100 transition-all active:scale-90">
+        <div className="flex items-center gap-4 sm:gap-6 text-slate-300">
+          <button onClick={handleShare} className="hover:text-slate-900 transition-all active:scale-90">
             <i className="fa-solid fa-arrow-up-from-bracket sm:text-lg"></i>
           </button>
-          <button onClick={handleBookmark} className={`transition-all active:scale-90 ${isBookmarked ? 'text-slate-900 dark:text-teal-400' : 'hover:text-slate-900 dark:hover:text-slate-100'}`}>
+          <button onClick={handleBookmark} className={`transition-all active:scale-90 ${isBookmarked ? 'text-slate-900' : 'hover:text-slate-900'}`}>
             <i className={`${isBookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark sm:text-lg`}></i>
           </button>
         </div>
@@ -334,15 +334,15 @@ export default function PostCard({ post, showToast, isSinglePost }) {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder={`Why do you ${activeGate} this thought? State your logic...`}
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-2xl p-4 sm:p-5 text-sm sm:text-base text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:border-slate-900 dark:focus:border-teal-500 focus:bg-white dark:focus:bg-slate-900 outline-none transition-all h-32 sm:h-40 resize-none shadow-inner"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white outline-none transition-all h-32 sm:h-40 resize-none shadow-inner"
               autoFocus
             />
             <div className="flex justify-end items-center mt-3 gap-2">
-              <button onClick={() => { setActiveGate(null); setReason(""); }} className="px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">Cancel</button>
+              <button onClick={() => { setActiveGate(null); setReason(""); }} className="px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-100 rounded-lg transition-all">Cancel</button>
               <button
                 onClick={handleSubmitReason}
                 disabled={!reason.trim() || isSubmitting}
-                className="bg-slate-900 dark:bg-teal-600 text-white px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest disabled:opacity-20 active:scale-95 transition-all shadow-lg shadow-teal-500/10"
+                className="bg-slate-900 text-white px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest disabled:opacity-20 active:scale-95 transition-all shadow-lg shadow-teal-500/10"
               >
                 {isSubmitting ? "..." : "Post Reflection"}
               </button>
@@ -352,10 +352,10 @@ export default function PostCard({ post, showToast, isSinglePost }) {
       )}
 
       {topLevelInteractions.length > 0 && (
-        <div className={`mt-6 pt-4 border-t ${isAdminPost ? 'border-amber-100 dark:border-amber-900/30' : 'border-slate-50 dark:border-slate-800'} transition-colors`}>
+        <div className={`mt-6 pt-4 border-t ${isAdminPost ? 'border-amber-100' : 'border-slate-50'} transition-colors`}>
           <button
             onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 transition-all"
+            className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-all"
           >
             {showComments ? 'Hide Reflections' : `View ${topLevelInteractions.length} Reflections`}
             <i className={`fa-solid fa-chevron-${showComments ? 'up' : 'down'} text-[10px] sm:text-xs`}></i>

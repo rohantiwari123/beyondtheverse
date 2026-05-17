@@ -19,26 +19,15 @@
   --font-mono: "JetBrains Mono", monospace;
 }
 
-/* 🌟 TAILWIND V4 CLASS-BASED DARK MODE FIX 🌟 */
-@custom-variant dark (&:where(.dark, .dark *));
-
 @layer base {
   html {
     @apply transition-colors duration-300;
-  }
-
-  html.dark {
-    color-scheme: dark;
   }
 
   body {
     @apply text-slate-900 bg-slate-50 antialiased;
     margin: 0;
     padding: 0;
-  }
-
-  html.dark body {
-    @apply text-slate-100 bg-slate-700;
   }
 
   button, input, textarea, select {
@@ -59,20 +48,20 @@
 
   /* 🌟 Level 1 Elevation: Unified Input Designs */
   .input-base {
-    @apply w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:bg-white outline-none transition-all dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 dark:focus:border-teal-400 dark:focus:ring-teal-400/20;
+    @apply w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:bg-white outline-none transition-all
   }
   
   .input-with-icon {
-    @apply w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:bg-white outline-none transition-all shadow-sm dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 dark:focus:border-teal-400;
+    @apply w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:bg-white outline-none transition-all shadow-sm
   }
   
   .textarea-base {
-    @apply w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:bg-white outline-none transition-all resize-y dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 dark:focus:border-teal-400;
+    @apply w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:bg-white outline-none transition-all resize-y
   }
 
   /* 🌟 Level 2 Elevation: Unified Card Design */
   .card-base {
-    @apply bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow dark:bg-slate-800/80 dark:border-slate-700;
+    @apply bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow
   }
 }
 
@@ -84,11 +73,6 @@
 ::-webkit-scrollbar-track { background: #f1f5f9; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; border: 2px solid #f1f5f9; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-/* 🌟 Dark Mode Scrollbar */
-.dark ::-webkit-scrollbar-track { background: #020617; }
-.dark ::-webkit-scrollbar-thumb { background: #334155; border: 2px solid #020617; }
-.dark ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar { display: none; }

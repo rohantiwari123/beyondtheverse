@@ -1,78 +1,55 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useTheme } from "../../context/ThemeContext";
 import { subscribeToUserNotifications, markNotificationAsRead, requestPushNotificationPermission } from '../../services/firebaseServices';
 import { formatDateTime } from '../../utils/dateFormatter';
 
-// 🌟 REUSABLE STYLES DICTIONARY (Light & Dark Theme Elevated)
 const styles = {
-  // 🌟 Base Layout
-// 🌟 Base Layout (Header elevated to Level 1 in Dark Mode)
-header: "bg-white/95 backdrop-blur-xl fixed top-0 left-0 right-0 z-[100] border-b w-full overflow-visible transition-colors duration-300 border-slate-200 dark:bg-slate-800 dark:border-slate-600",  spacer: "h-14 sm:h-16 w-full shrink-0",
-
-  // 🌟 Logo & Brand
+  header: "bg-white/95 backdrop-blur-xl fixed top-0 left-0 right-0 z-[100] border-b w-full overflow-visible transition-colors duration-300 border-slate-200",  
+  spacer: "h-14 sm:h-16 w-full shrink-0",
   logoContainer: "flex items-baseline gap-1",
-  brandFirst: "text-[22px] sm:text-[26px] lg:text-[34px] font-cabinet font-black tracking-tighter leading-none text-slate-900 dark:text-white",
-  brandMiddle: "text-[16px] sm:text-[20px] lg:text-[24px] lowercase tracking-tighter leading-[0.85] font-serif italic font-bold text-slate-400 dark:text-slate-500",
-  brandLast: "text-[20px] sm:text-[24px] lg:text-[28px] font-cabinet font-black tracking-tight leading-none text-teal-600 dark:text-teal-400",
-  brandTagline: "hidden xs:flex items-center gap-1.5 text-[6.5px] sm:text-[7px] lg:text-[8px] uppercase mt-1.5 sm:mt-2 truncate tracking-[0.35em] font-medium font-sans text-slate-400 dark:text-slate-500",
-
-  // 🌟 Desktop Navigation
+  brandFirst: "text-[22px] sm:text-[26px] lg:text-[34px] font-cabinet font-black tracking-tighter leading-none text-slate-900",
+  brandMiddle: "text-[16px] sm:text-[20px] lg:text-[24px] lowercase tracking-tighter leading-[0.85] font-serif italic font-bold text-slate-400",
+  brandLast: "text-[20px] sm:text-[24px] lg:text-[28px] font-cabinet font-black tracking-tight leading-none text-teal-600",
+  brandTagline: "hidden xs:flex items-center gap-1.5 text-[6.5px] sm:text-[7px] lg:text-[8px] uppercase mt-1.5 sm:mt-2 truncate tracking-[0.35em] font-medium font-sans text-slate-400",
   navContainer: "hidden xl:flex flex-1 justify-center px-4",
   navLinkWrapper: "flex items-center gap-1 xl:gap-2",
   navLinkBase: "px-3 py-2 rounded-lg text-[12px] xl:text-[13px] transition-all whitespace-nowrap",
-  navLinkActive: "font-bold text-teal-700 bg-teal-50/50 dark:text-teal-400 dark:bg-teal-900/20",
-  navLinkInactive: "text-slate-500 hover:text-slate-800 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800/50",
-
-  // 🌟 Action Buttons (Theme, Notifications, Admin, Settings)
+  navLinkActive: "font-bold text-teal-700 bg-teal-50/50",
+  navLinkInactive: "text-slate-500 hover:text-slate-800 hover:bg-slate-50",
   actionBtnBase: "h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border",
-  actionBtnActive: "bg-teal-50 text-teal-600 border-teal-200 dark:bg-teal-900/30 dark:text-teal-400 dark:border-teal-800",
-  actionBtnInactive: "border-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100",
-
-  // 🌟 Profile Button
+  actionBtnActive: "bg-teal-50 text-teal-600 border-teal-200",
+  actionBtnInactive: "border-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-800",
   profileBtnBase: "flex items-center justify-center w-8 h-8 xl:w-9 xl:h-9 rounded-full transition-all border",
-  profileBtnActive: "border-teal-500 shadow-sm shadow-teal-500/20 dark:border-teal-400 dark:shadow-teal-900/30",
-  profileBtnInactive: "border-transparent hover:border-slate-200 dark:hover:border-slate-700",
-  profileImg: "w-full h-full rounded-full object-cover border border-slate-200 dark:border-slate-700",
+  profileBtnActive: "border-teal-500 shadow-sm shadow-teal-500/20",
+  profileBtnInactive: "border-transparent hover:border-slate-200",
+  profileImg: "w-full h-full rounded-full object-cover border border-slate-200",
   profileFallbackActive: "bg-teal-500 text-white",
-  profileFallbackInactive: "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
-
-  // 🌟 Authentication Buttons (Desktop)
-  logoutBtn: "bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 rounded-lg text-[11px] xl:text-xs hover:bg-rose-100 transition-all ml-1 dark:bg-rose-900/10 dark:text-rose-400 dark:border-rose-900/30 dark:hover:bg-rose-900/30",
-  loginBtn: "bg-teal-600 text-white px-4 py-1.5 rounded-lg text-[11px] xl:text-xs hover:bg-teal-700 transition-all shadow-sm ml-1 dark:bg-teal-600 dark:hover:bg-teal-500",
-
-  // 🌟 Notifications Dropdown (Level 2 Elevation)
-  notifDropdown: "absolute right-0 mt-2 w-[280px] sm:w-[320px] bg-white border rounded-2xl shadow-xl z-50 overflow-hidden animate-fade-in origin-top-right border-slate-200 dark:bg-slate-900 dark:border-slate-800",
-  notifHeader: "flex items-center justify-between px-4 py-3.5 border-b bg-slate-50/80 border-slate-100 dark:bg-slate-900/80 dark:border-slate-800",
-  notifItemUnread: "p-4 border-b cursor-pointer transition-colors flex gap-3.5 border-slate-50 bg-teal-50/40 hover:bg-slate-50 dark:border-slate-800 dark:bg-teal-900/20 dark:hover:bg-slate-800/50",
-  notifItemRead: "p-4 border-b cursor-pointer transition-colors flex gap-3.5 border-slate-50 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800/50",
-
-  // 🌟 Mobile Drawer (Level 1 Elevation)
-  mobileOverlay: "fixed inset-0 backdrop-blur-sm transition-opacity z-[100] xl:hidden bg-slate-900/60 dark:bg-slate-950/80",
-  mobileDrawer: "fixed top-0 right-0 h-screen w-[280px] sm:w-[320px] bg-white z-[110] xl:hidden flex flex-col transition-transform duration-300 ease-in-out border-l border-slate-200 dark:bg-slate-900 dark:border-slate-800",
-  mobileHeader: "flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800",
-  mobileCloseBtn: "h-8 w-8 flex items-center justify-center bg-slate-50 text-slate-400 rounded-full dark:bg-slate-800 dark:text-slate-500",
-  mobileThemeSection: "px-5 py-4 border-b bg-slate-50/50 flex justify-between items-center border-slate-100 dark:bg-slate-900/50 dark:border-slate-800",
-  mobileThemeBtn: "flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border shadow-sm active:scale-95 transition-transform border-slate-200 dark:bg-slate-800 dark:border-slate-700",
-
-  // 🌟 Mobile Navigation Links
+  profileFallbackInactive: "bg-slate-200 text-slate-600",
+  logoutBtn: "bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 rounded-lg text-[11px] xl:text-xs hover:bg-rose-100 transition-all ml-1",
+  loginBtn: "bg-teal-600 text-white px-4 py-1.5 rounded-lg text-[11px] xl:text-xs hover:bg-teal-700 transition-all shadow-sm ml-1",
+  notifDropdown: "absolute right-0 mt-2 w-[280px] sm:w-[320px] bg-white border rounded-2xl shadow-xl z-50 overflow-hidden animate-fade-in origin-top-right border-slate-200",
+  notifHeader: "flex items-center justify-between px-4 py-3.5 border-b bg-slate-50/80 border-slate-100",
+  notifItemUnread: "p-4 border-b cursor-pointer transition-colors flex gap-3.5 border-slate-50 bg-teal-50/40 hover:bg-slate-50",
+  notifItemRead: "p-4 border-b cursor-pointer transition-colors flex gap-3.5 border-slate-50 bg-white hover:bg-slate-50",
+  mobileOverlay: "fixed inset-0 backdrop-blur-sm transition-opacity z-[100] xl:hidden bg-slate-900/60",
+  mobileDrawer: "fixed top-0 right-0 h-screen w-[280px] sm:w-[320px] bg-white z-[110] xl:hidden flex flex-col transition-transform duration-300 ease-in-out border-l border-slate-200",
+  mobileHeader: "flex items-center justify-between p-5 border-b border-slate-100",
+  mobileCloseBtn: "h-8 w-8 flex items-center justify-center bg-slate-50 text-slate-400 rounded-full",
   mobileLinkBase: "flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all",
-  mobileLinkActive: "bg-teal-50 text-teal-700 dark:bg-teal-900/20 dark:text-teal-400",
-  mobileLinkInactive: "text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/50",
-  mobileAdminActive: "bg-slate-900 text-white dark:bg-slate-800 dark:text-teal-400",
-  mobileAdminInactive: "bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/10 dark:text-amber-400 dark:hover:bg-amber-900/20",
-
-  // 🌟 Mobile Bottom Actions
-  mobileBottomContainer: "p-4 pb-8 border-t flex flex-col gap-3 border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-950/50",
-  mobileProfileCardActive: "bg-white border-teal-200 shadow-sm dark:bg-slate-900 dark:border-teal-800",
-  mobileProfileCardInactive: "bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-800",
+  mobileLinkActive: "bg-teal-50 text-teal-700",
+  mobileLinkInactive: "text-slate-600 hover:bg-slate-50",
+  mobileAdminActive: "bg-slate-900 text-white",
+  mobileAdminInactive: "bg-amber-50 text-amber-700 hover:bg-amber-100",
+  mobileBottomContainer: "p-4 pb-8 border-t flex flex-col gap-3 border-slate-100 bg-slate-50",
+  mobileProfileCardActive: "bg-white border-teal-200 shadow-sm",
+  mobileProfileCardInactive: "bg-white border-slate-200",
   mobileProfileImgActive: "bg-teal-500 text-white border-teal-600",
-  mobileProfileImgInactive: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700",
-  mobileSettingsBtnActive: "text-teal-600 bg-teal-50/50 dark:text-teal-400 dark:bg-teal-900/20",
-  mobileSettingsBtnInactive: "text-slate-400 dark:text-slate-500",
-  mobileLogoutBtn: "w-full bg-white text-rose-600 py-2.5 rounded-xl text-xs border active:bg-rose-50 transition-colors shadow-sm font-bold uppercase tracking-wider border-rose-100 dark:bg-slate-900 dark:text-rose-400 dark:border-rose-900/30 dark:active:bg-slate-800",
-  mobileLoginBtn: "w-full bg-teal-600 text-white py-2.5 rounded-xl text-center text-xs font-bold uppercase tracking-wider shadow-lg shadow-teal-500/20 dark:hover:bg-teal-500",
+  mobileProfileImgInactive: "bg-slate-100 text-slate-600 border-slate-200",
+  mobileSettingsBtnActive: "text-teal-600 bg-teal-50/50",
+  mobileSettingsBtnInactive: "text-slate-400",
+  mobileLogoutBtn: "w-full bg-white text-rose-600 py-2.5 rounded-xl text-xs border active:bg-rose-50 transition-colors shadow-sm font-bold uppercase tracking-wider border-rose-100",
+  mobileLoginBtn: "w-full bg-teal-600 text-white py-2.5 rounded-xl text-center text-xs font-bold uppercase tracking-wider shadow-lg shadow-teal-500/20",
 };
 
 export default function Header() {
@@ -80,9 +57,7 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, isAdmin, userName, userProfilePic, userId, logout } = useAuth();
-  const { isDarkMode, toggleDarkMode } = useTheme();
 
-  // Notification States
   const [notifications, setNotifications] = useState([]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   
@@ -144,7 +119,6 @@ export default function Header() {
       <header className={styles.header}>
         <div className="w-full px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center">
 
-          {/* 1. LEFT ZONE: TYPOGRAPHIC LOGO */}
           <div className="flex items-center justify-start min-w-max lg:w-1/4">
             <Link to="/" className="flex flex-col justify-center items-start select-none">
               <div className={styles.logoContainer}>
@@ -158,7 +132,6 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* 2. CENTER ZONE: NAVIGATION */}
           <nav className={styles.navContainer}>
             <div className={styles.navLinkWrapper}>
               {navLinks.map((link) => (
@@ -173,19 +146,8 @@ export default function Header() {
             </div>
           </nav>
 
-          {/* 3. RIGHT ZONE: ACTIONS */}
           <div className="flex items-center justify-end flex-1 lg:w-1/4 gap-2">
 
-            {/* DARK MODE TOGGLE */}
-            <button
-              onClick={toggleDarkMode}
-              className={`${styles.actionBtnBase} ${styles.actionBtnInactive}`}
-              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            >
-              <i className={`fa-solid ${isDarkMode ? 'fa-sun text-amber-500' : 'fa-moon text-indigo-500'} text-[15px] xl:text-base`}></i>
-            </button>
-
-            {/* UNIVERSAL NOTIFICATION BELL */}
             {isAuthenticated && (
               <div className="relative">
                 <button
@@ -194,63 +156,60 @@ export default function Header() {
                 >
                   <i className="fa-regular fa-bell text-[15px] xl:text-base"></i>
                   {unreadCount > 0 && (
-                    <span className="absolute top-1 xl:top-1.5 right-1.5 h-2 w-2 bg-rose-500 rounded-full animate-pulse border border-white dark:border-slate-900"></span>
+                    <span className="absolute top-1 xl:top-1.5 right-1.5 h-2 w-2 bg-rose-500 rounded-full animate-pulse border border-white"></span>
                   )}
                 </button>
 
-                {/* Dropdown Menu */}
                 {showNotifDropdown && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowNotifDropdown(false)}></div>
                     <div className={styles.notifDropdown}>
                       <div className={styles.notifHeader}>
-                        <span className="text-slate-800 dark:text-slate-100 text-[13px] uppercase font-bold">Notifications</span>
-                        {unreadCount > 0 && <span className="bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 text-[9px] font-bold uppercase px-2 py-1 rounded-md border border-teal-200 dark:border-teal-800">{unreadCount} New</span>}
+                        <span className="text-slate-800 text-[13px] uppercase font-bold">Notifications</span>
+                        {unreadCount > 0 && <span className="bg-teal-100 text-teal-700 text-[9px] font-bold uppercase px-2 py-1 rounded-md border border-teal-200">{unreadCount} New</span>}
                       </div>
 
                       <div className="max-h-[350px] overflow-y-auto hide-scrollbar">
                         {notifications.length === 0 ? (
-                          <div className="p-8 text-center text-slate-400 dark:text-slate-500">
+                          <div className="p-8 text-center text-slate-400">
                             <i className="fa-regular fa-bell-slash text-2xl mb-2 opacity-50"></i>
                             <p className="text-[11px] uppercase">Quiet in the verse</p>
                           </div>
                         ) : (
                           <>
-                            {/* UNREAD NOTIFICATIONS */}
                             {unreadNotifs.length > 0 && (
                               <div className="px-4 py-2.5 mt-1">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-teal-600 dark:text-teal-400">New</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-teal-600">New</span>
                               </div>
                             )}
                             {unreadNotifs.map(notif => (
                               <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={styles.notifItemUnread}>
-                                <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 border bg-white dark:bg-slate-800 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-800 shadow-sm">
+                                <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 border bg-white text-teal-600 border-teal-200 shadow-sm">
                                   <i className="fa-solid fa-bolt text-[10px]"></i>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-[13px] truncate text-slate-800 dark:text-slate-100 font-medium">{notif.title}</p>
-                                  <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-1">{notif.message}</p>
-                                  <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-2 uppercase">{formatDateTime(notif.timestamp)}</p>
+                                  <p className="text-[13px] truncate text-slate-800 font-medium">{notif.title}</p>
+                                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">{notif.message}</p>
+                                  <p className="text-[9px] text-slate-400 mt-2 uppercase">{formatDateTime(notif.timestamp)}</p>
                                 </div>
                                 <div className="h-1.5 w-1.5 rounded-full bg-teal-500 mt-2 shrink-0"></div>
                               </div>
                             ))}
 
-                            {/* READ NOTIFICATIONS */}
                             {readNotifs.length > 0 && (
-                              <div className="px-4 py-2.5 mt-1 border-t border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-900">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Earlier</span>
+                              <div className="px-4 py-2.5 mt-1 border-t border-slate-50 bg-white">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Earlier</span>
                               </div>
                             )}
                             {readNotifs.map(notif => (
                               <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={styles.notifItemRead}>
-                                <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 border bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700">
+                                <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 border bg-slate-50 text-slate-400 border-slate-200">
                                   <i className="fa-solid fa-bolt text-[10px]"></i>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-[13px] truncate text-slate-600 dark:text-slate-400">{notif.title}</p>
-                                  <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-1">{notif.message}</p>
-                                  <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-2 uppercase">{formatDateTime(notif.timestamp)}</p>
+                                  <p className="text-[13px] truncate text-slate-600">{notif.title}</p>
+                                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">{notif.message}</p>
+                                  <p className="text-[9px] text-slate-400 mt-2 uppercase">{formatDateTime(notif.timestamp)}</p>
                                 </div>
                               </div>
                             ))}
@@ -263,12 +222,11 @@ export default function Header() {
               </div>
             )}
 
-            {/* Desktop Icons Group */}
             <div className="hidden lg:flex items-center gap-1.5 xl:gap-2">
               {isAuthenticated && userName && (
                 <>
                   {isAdmin && (
-                    <Link to="/admin" className={`${styles.actionBtnBase} ${isPathActive('/admin') ? "bg-slate-900 text-white border-slate-900 dark:bg-slate-800 dark:border-slate-700" : styles.actionBtnInactive}`} title="Admin Dashboard">
+                    <Link to="/admin" className={`${styles.actionBtnBase} ${isPathActive('/admin') ? "bg-slate-900 text-white border-slate-900" : styles.actionBtnInactive}`} title="Admin Dashboard">
                       <i className="fa-solid fa-shield-halved text-xs xl:text-sm"></i>
                     </Link>
                   )}
@@ -298,9 +256,8 @@ export default function Header() {
               )}
             </div>
 
-            {/* Mobile Menu Toggle */}
             <div className="flex xl:hidden">
-              <button onClick={() => setIsMobileMenuOpen(true)} className="h-9 w-9 flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg active:scale-95 transition-transform">
+              <button onClick={() => setIsMobileMenuOpen(true)} className="h-9 w-9 flex items-center justify-center bg-slate-100 text-slate-700 rounded-lg active:scale-95 transition-transform">
                 <i className="fa-solid fa-bars text-sm"></i>
               </button>
             </div>
@@ -310,25 +267,16 @@ export default function Header() {
 
       <div className={styles.spacer}></div>
 
-      {/* MOBILE DRAWER */}
       <div className={`${styles.mobileOverlay} ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMobileMenuOpen(false)}></div>
 
       <div className={`${styles.mobileDrawer} ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className={styles.mobileHeader}>
           <div className="flex items-center gap-2">
-            <i className="fa-solid fa-atom text-teal-600 dark:text-teal-400 text-lg"></i>
-            <span className="text-slate-800 dark:text-slate-100 uppercase font-bold text-sm tracking-tight">Menu</span>
+            <i className="fa-solid fa-atom text-teal-600 text-lg"></i>
+            <span className="text-slate-800 uppercase font-bold text-sm tracking-tight">Menu</span>
           </div>
           <button onClick={() => setIsMobileMenuOpen(false)} className={styles.mobileCloseBtn}>
             <i className="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-
-        <div className={styles.mobileThemeSection}>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Appearance</span>
-          <button onClick={toggleDarkMode} className={styles.mobileThemeBtn}>
-            <i className={`fa-solid ${isDarkMode ? 'fa-sun text-amber-500' : 'fa-moon text-indigo-500'} text-xs`}></i>
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{isDarkMode ? 'Light' : 'Dark'}</span>
           </button>
         </div>
 
@@ -360,11 +308,11 @@ export default function Header() {
                   )}
                 </div>
                 <div className="overflow-hidden flex-1">
-                  <p className={`text-[9px] uppercase ${isPathActive('/profile') ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400 dark:text-slate-500'}`}>Profile</p>
-                  <p className="text-[13px] text-slate-800 dark:text-slate-100 truncate font-medium">{userName}</p>
+                  <p className={`text-[9px] uppercase ${isPathActive('/profile') ? 'text-teal-600' : 'text-slate-400'}`}>Profile</p>
+                  <p className="text-[13px] text-slate-800 truncate font-medium">{userName}</p>
                 </div>
               </Link>
-              <div className="flex items-center gap-1 border-l border-slate-100 dark:border-slate-800 pl-1">
+              <div className="flex items-center gap-1 border-l border-slate-100 pl-1">
                 <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${isPathActive('/settings') ? styles.mobileSettingsBtnActive : styles.mobileSettingsBtnInactive}`}>
                   <i className="fa-solid fa-gear text-sm"></i>
                 </Link>
