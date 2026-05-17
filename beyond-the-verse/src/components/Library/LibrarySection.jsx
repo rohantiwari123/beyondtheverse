@@ -10,6 +10,7 @@ import LibraryToolbar from "./LibraryToolbar";
 import LibraryEmptyState from "./LibraryEmptyState";
 import LibraryItemCard from "./LibraryItemCard";
 import LibraryModal from "./LibraryModal";
+import { LibrarySkeleton } from "../../components/common/Skeleton";
 import LoginOverlay from "../../components/common/LoginOverlay"; 
 import Toast from "../../components/common/Toast"; 
 
@@ -143,7 +144,7 @@ export default function LibrarySection() {
 
   // --- RESPONSIVE JSX ---
   return (
-    <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12 min-h-[85vh] flex flex-col font-sans relative overflow-x-hidden">
+    <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12 min-h-[85vh] flex flex-col font-sans relative overflow-x-hidden transition-colors duration-300">
       
       {/* 🌟 Toast - Position fixed by its own component */}
       <Toast toast={toast} />
@@ -172,9 +173,13 @@ export default function LibrarySection() {
         
         <div className={`transition-all duration-300 h-full ${!currentUser ? "pointer-events-none opacity-20 blur-sm select-none" : ""}`}>
           {isLoading ? (
-            <div className="absolute inset-0 flex justify-center items-center flex-col gap-4 min-h-[40vh]">
-              <i className="fa-solid fa-spinner fa-spin text-3xl sm:text-4xl text-teal-600"></i>
-              <p className="text-slate-400 text-sm sm:text-base font-medium animate-pulse tracking-wide">Fetching wisdom...</p>
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-5 lg:gap-6 mt-2 animate-fade-in">
+              <LibrarySkeleton />
+              <LibrarySkeleton />
+              <LibrarySkeleton />
+              <LibrarySkeleton />
+              <LibrarySkeleton />
+              <LibrarySkeleton />
             </div>
           ) : currentItems.length === 0 ? (
             <div className="py-12 sm:py-20">

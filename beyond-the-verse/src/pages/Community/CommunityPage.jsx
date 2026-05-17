@@ -3,6 +3,7 @@ import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore'
 import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import PostCard from '../../components/Community/PostCard';
+import { PostSkeleton } from '../../components/common/Skeleton';
 
 import { createPost, saveCategories } from '../../services/firebaseServices';
 // 🌟 1. YAHAN LOGIN OVERLAY IMPORT KIYA HAI (Path check kar lena)
@@ -96,7 +97,7 @@ export default function CommunityPage({ showToast }) {
 
   return (
     // 🌟 RELATIVE CLASS ADD KI TAQI OVERLAY PURE PAGE PAR LAGE
-    <div className="min-h-screen bg-slate-50 pt-2 md:pt-8 pb-20 relative">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-2 md:pt-8 pb-20 relative transition-colors duration-300">
       
       {/* 🌟 NEW LOGIN OVERLAY (Agar user logged in nahi hai) */}
       {!isAuthenticated && (
@@ -116,7 +117,7 @@ export default function CommunityPage({ showToast }) {
         
         {/* POST COMPOSER (Sirf tab render hoga jab user logged in ho) */}
         {isAuthenticated && (
-          <div className="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-4 md:p-6 relative z-10 w-full">
+          <div className="bg-white dark:bg-slate-900 border-y sm:border border-slate-200 dark:border-slate-800 sm:rounded-2xl p-4 md:p-6 relative z-10 w-full shadow-sm transition-colors">
             <form onSubmit={handlePostSubmit}>
               <div className="flex gap-3 md:gap-4 mb-4">
                 
@@ -134,18 +135,18 @@ export default function CommunityPage({ showToast }) {
                     value={newPost}
                     onChange={(e) => setNewPost(e.target.value)}
                     placeholder="Share your thoughts, logic, or reflections..."
-                    className="w-full bg-transparent border-0 outline-none focus:ring-0 focus:outline-none focus:border-transparent p-0 pt-2 md:pt-3 text-lg md:text-xl text-slate-900 placeholder:text-slate-400 resize-y min-h-[120px] md:min-h-[160px] overflow-y-auto leading-[1.7]"
+                    className="w-full bg-transparent border-0 outline-none focus:ring-0 focus:outline-none focus:border-transparent p-0 pt-2 md:pt-3 text-lg md:text-xl text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-600 resize-y min-h-[120px] md:min-h-[160px] overflow-y-auto leading-[1.7]"
                   />
                 </div>
               </div>
               
-              <div className="pt-4 border-t border-slate-100 flex flex-col gap-4">
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 overflow-x-auto no-scrollbar pb-2 -mb-2">
                     <div className="flex gap-2 w-max">
                       {categories.map(cat => (
-                        <div key={cat} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-[11px] transition-all shrink-0 ${category === cat ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}>
-                          <button type="button" onClick={() => !isEditingCategories && setCategory(cat)} className="focus:outline-none">{cat}</button>
+                        <div key={cat} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-[11px] transition-all shrink-0 ${category === cat ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-md' : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                          <button type="button" onClick={() => !isEditingCategories && setCategory(cat)} className="focus:outline-none font-bold">{cat}</button>
                           {isAdmin && isEditingCategories && (
                             <button type="button" onClick={() => handleDeleteCategory(cat)} className="ml-1 text-rose-400 hover:text-rose-600 transition-colors">
                               <i className="fa-solid fa-xmark text-[10px]"></i>
@@ -156,21 +157,21 @@ export default function CommunityPage({ showToast }) {
                     </div>
                   </div>
                   {isAdmin && (
-                    <button type="button" onClick={() => setIsEditingCategories(!isEditingCategories)} className={`h-8 w-8 shrink-0 rounded-full flex items-center justify-center transition-colors border ${isEditingCategories ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'}`} title="Manage Categories">
+                    <button type="button" onClick={() => setIsEditingCategories(!isEditingCategories)} className={`h-8 w-8 shrink-0 rounded-full flex items-center justify-center transition-colors border ${isEditingCategories ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}`} title="Manage Categories">
                       <i className={`fa-solid ${isEditingCategories ? 'fa-check' : 'fa-pen'} text-[10px]`}></i>
                     </button>
                   )}
                 </div>
 
                 {isAdmin && isEditingCategories && (
-                  <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 animate-fade-in">
-                    <input type="text" value={newCatText} onChange={(e) => setNewCatText(e.target.value)} placeholder="Add new category..." className="bg-transparent flex-1 text-xs outline-none px-2 text-slate-700 placeholder:text-slate-400" onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCategory())} />
-                    <button type="button" onClick={handleAddCategory} disabled={!newCatText.trim()} className="bg-teal-600 text-white px-4 py-1.5 rounded-lg text-[10px] hover:bg-teal-700 disabled:opacity-50 transition-colors">Add</button>
+                  <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200 dark:border-slate-700 animate-fade-in">
+                    <input type="text" value={newCatText} onChange={(e) => setNewCatText(e.target.value)} placeholder="Add new category..." className="bg-transparent flex-1 text-xs outline-none px-2 text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-600" onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCategory())} />
+                    <button type="button" onClick={handleAddCategory} disabled={!newCatText.trim()} className="bg-teal-600 text-white px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-teal-700 disabled:opacity-50 transition-colors">Add</button>
                   </div>
                 )}
 
                 <div className="flex justify-end pt-2">
-                  <button type="submit" disabled={!newPost.trim() || isSubmitting || isEditingCategories} className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-10 py-3 rounded-full text-sm disabled:bg-slate-200 disabled:text-slate-400 transition-colors">
+                  <button type="submit" disabled={!newPost.trim() || isSubmitting || isEditingCategories} className="w-full sm:w-auto bg-teal-600 dark:bg-teal-500 hover:bg-teal-700 dark:hover:bg-teal-600 text-white px-10 py-3 rounded-full text-sm font-bold uppercase tracking-widest disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 transition-all active:scale-95 shadow-lg shadow-teal-500/20">
                     {isSubmitting ? "Posting..." : "Post"}
                   </button>
                 </div>
@@ -182,17 +183,19 @@ export default function CommunityPage({ showToast }) {
         {/* POSTS FEED */}
         <div className="flex flex-col gap-3 sm:gap-4 md:gap-6 w-full">
           {posts.length === 0 ? (
-            <div className="py-20 flex flex-col items-center justify-center text-slate-400">
-              <div className="h-8 w-8 border-4 border-slate-200 border-t-slate-500 rounded-full animate-spin mb-4"></div>
-              <span className="text-[10px] text-slate-400">Loading Feed</span>
+            <div className="flex flex-col gap-4">
+              <PostSkeleton />
+              <PostSkeleton />
+              <PostSkeleton />
             </div>
           ) : posts.filter(post => post.category === category).length === 0 ? (
-            <div className="py-20 flex flex-col items-center justify-center text-slate-400">
-              <span className="text-[12px] text-slate-400">No posts in this category yet. Be the first to post!</span>
+            <div className="py-20 flex flex-col items-center justify-center text-slate-400 dark:text-slate-600">
+              <i className="fa-solid fa-inbox text-4xl mb-4 opacity-20"></i>
+              <span className="text-[12px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">No thoughts in this verse yet.</span>
             </div>
           ) : (
             posts.filter(post => post.category === category).map((post) => (
-              <div key={post.id} className="border-slate-200 overflow-hidden w-full">
+              <div key={post.id} className="w-full">
                 <PostCard post={post} showToast={showToast} />
               </div>
             ))

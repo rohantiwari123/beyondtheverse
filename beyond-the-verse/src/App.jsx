@@ -85,7 +85,7 @@ export default function App() {
 
 
   return (
-    <div className="relative selection:bg-teal-600 selection:text-white min-h-screen bg-[#f8fafc] text-slate-800 overflow-x-hidden ">      
+    <div className="relative selection:bg-teal-600 selection:text-white min-h-screen bg-[#f8fafc] dark:bg-slate-950 text-slate-800 dark:text-slate-100 overflow-x-hidden transition-colors duration-300">      
       {/* Background Decorations */}
       <div className="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none z-0"></div>
       <div className="fixed -top-32 -left-32 w-96 h-96 bg-teal-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
@@ -99,10 +99,10 @@ export default function App() {
       {/* Main Content Area */}
       <main className={`relative z-10 w-full`}>
         {/* 🌟 PRO FIX 3: Suspense Wrapper 🌟 */}
-        {/* Routes को Suspense के अंदर रखना ज़रूरी है ताकि Lazy loading काम कर सके */}
         <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/login" element={!isAuthenticated ? <LoginPage showToast={showToast} /> : <Navigate to="/" />} />
+          <div key={location.pathname} className="page-fade-in">
+            <Routes location={location}>
+              <Route path="/login" element={!isAuthenticated ? <LoginPage showToast={showToast} /> : <Navigate to="/" />} />
             <Route path="/signup" element={!isAuthenticated ? <LoginPage showToast={showToast} initialAuthMode="signup" /> : <Navigate to="/" />} />
 
             <Route path="/" element={<HomePage onNavigateToDonate={() => navigate('/donate')} />} />
@@ -142,7 +142,8 @@ export default function App() {
             <Route path="/faq" element={<FAQPage />} />
             
             <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+            </Routes>
+          </div>
         </Suspense>
       </main>
 

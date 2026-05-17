@@ -65,6 +65,11 @@ export default function ContactPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
+              {/* 🛡️ SECURITY: Honeypot field (Hidden from humans, bots will fill it) */}
+              <div className="hidden" aria-hidden="true">
+                <input type="text" name="website_verification_code" tabIndex="-1" autoComplete="off" />
+              </div>
+
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Full Name</label>
                 <input required type="text" placeholder="Your Name" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-teal-500 focus:bg-white transition-all text-sm" />

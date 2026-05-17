@@ -7,6 +7,7 @@ import App from './App.jsx';
 
 // 🌟 NAYA: AuthProvider import kiya (Yahi sabse zaroori hai!)
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 // 🌟 Advanced Error Boundary 🌟
 class ErrorBoundary extends React.Component {
@@ -65,7 +66,9 @@ createRoot(document.getElementById('root')).render(
       <BrowserRouter basename="/beyondtheverse">
         {/* 🌟 NAYA: Puri App ko AuthProvider ke andar lapet diya hai! 🌟 */}
         <AuthProvider>
-          <App />
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

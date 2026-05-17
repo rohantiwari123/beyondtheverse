@@ -19,12 +19,26 @@
   --font-mono: "JetBrains Mono", monospace;
 }
 
+/* 🌟 TAILWIND V4 CLASS-BASED DARK MODE FIX 🌟 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
-  html, body {
-    font-family: var(--font-sans) !important;
+  html {
+    @apply transition-colors duration-300;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
     @apply text-slate-900 bg-slate-50 antialiased;
     margin: 0;
     padding: 0;
+  }
+
+  html.dark body {
+    @apply text-slate-100 bg-slate-950;
   }
 
   button, input, textarea, select {
@@ -33,37 +47,30 @@
 }
 
 @layer components {
-  /* Unified Input Designs */
-  .input-base {
-    @apply w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:bg-white outline-none transition-all;
-  }
-  .input-with-icon {
-    @apply w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:bg-white outline-none transition-all shadow-sm;
-  }
-  .textarea-base {
-    @apply w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:bg-white outline-none transition-all resize-y;
+  /* Page Transition */
+  .page-fade-in {
+    animation: fadeIn 0.4s ease-out;
   }
 
-  /* Unified Button Designs */
-  .btn-primary {
-    @apply font-bold py-3.5 px-6 rounded-xl sm:rounded-2xl text-sm sm:text-base transition-all active:scale-95 flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed;
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  .btn-secondary {
-    @apply font-bold py-3.5 px-6 rounded-xl sm:rounded-2xl text-sm sm:text-base transition-all active:scale-95 flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200;
+
+  /* Unified Input Designs */
+  .input-base {
+    @apply w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:bg-white outline-none transition-all dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 dark:focus:border-teal-400 dark:focus:ring-teal-400/20;
   }
-  .btn-danger {
-    @apply font-bold py-3.5 px-6 rounded-xl sm:rounded-2xl text-sm sm:text-base transition-all active:scale-95 flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100;
+  .input-with-icon {
+    @apply w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:bg-white outline-none transition-all shadow-sm dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 dark:focus:border-teal-400;
   }
-  .btn-danger-solid {
-    @apply font-bold py-3.5 px-6 rounded-xl sm:rounded-2xl text-sm sm:text-base transition-all active:scale-95 flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-  .btn-dark {
-    @apply font-bold py-3.5 px-6 rounded-xl sm:rounded-2xl text-sm sm:text-base transition-all active:scale-95 flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed;
+  .textarea-base {
+    @apply w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:bg-white outline-none transition-all resize-y dark:bg-slate-900 dark:border-slate-800 dark:text-slate-200 dark:focus:border-teal-400;
   }
 
   /* Unified Card Design */
   .card-base {
-    @apply bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow;
+    @apply bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow dark:bg-slate-900 dark:border-slate-800;
   }
 }
 

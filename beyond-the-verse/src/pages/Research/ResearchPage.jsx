@@ -6,6 +6,7 @@ import ResearchForm from "../../components/Research/ResearchForm";
 import ResearchList from "../../components/Research/ResearchList";
 import ResearchFilter from "../../components/Research/ResearchFilter";
 import ResearchSearch from "../../components/Research/ResearchSearch";
+import { ResearchCardSkeleton } from "../../components/common/Skeleton";
 import { useAuth } from "../../context/AuthContext";
 import {
   getResearchReadTime,
@@ -159,7 +160,7 @@ const ResearchPage = ({ showToast }) => {
 
   return (
     // Mobile: Pure white background (app-like). Desktop: Slate-50 for depth.
-    <div className="min-h-screen bg-white pb-24 transition-colors duration-300 sm:bg-slate-50 sm:pb-20 sm:pt-6">
+    <div className="min-h-screen bg-white dark:bg-slate-950 pb-24 transition-colors duration-300 sm:bg-slate-50 sm:dark:bg-slate-950 sm:pb-20 sm:pt-6">
       
       <div className="mx-auto max-w-screen-xl space-y-6 sm:px-6 lg:px-8">
         
@@ -174,7 +175,7 @@ const ResearchPage = ({ showToast }) => {
         )}
 
         {/* TOP TOOLBAR: Mobile-Native Frosted Glass Sticky Nav */}
-        <section className="sticky top-0 z-40 -mt-2 flex flex-col gap-2 border-b border-slate-100 bg-white/80 px-4 py-3 pb-3 backdrop-blur-xl sm:static sm:mt-0 sm:gap-3 sm:border-none sm:bg-transparent sm:px-0 sm:py-0 sm:pb-0 sm:backdrop-blur-none">
+        <section className="sticky top-0 z-40 -mt-2 flex flex-col gap-2 border-b border-slate-100 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 px-4 py-3 pb-3 backdrop-blur-xl sm:static sm:mt-0 sm:gap-3 sm:border-none sm:bg-transparent sm:px-0 sm:py-0 sm:pb-0 sm:backdrop-blur-none">
           <ResearchSearch
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -198,12 +199,13 @@ const ResearchPage = ({ showToast }) => {
         {/* MAIN LIST: px-4 on mobile matches the -mx-4 in ResearchList for edge-to-edge compact view */}
         <main className="px-4 sm:px-0">
           {isLoading ? (
-            // Native-style loading state
-            <div className="flex flex-col items-center justify-center py-[15vh] text-teal-600">
-              <i className="fa-solid fa-circle-notch fa-spin text-3xl sm:text-4xl"></i>
-              <p className="mt-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Syncing Archive
-              </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <ResearchCardSkeleton />
+              <ResearchCardSkeleton />
+              <ResearchCardSkeleton />
+              <ResearchCardSkeleton />
+              <ResearchCardSkeleton />
+              <ResearchCardSkeleton />
             </div>
           ) : (
             <>
@@ -218,12 +220,12 @@ const ResearchPage = ({ showToast }) => {
 
               {/* PAGINATION: Responsive pagination controls */}
               {totalPages > 1 && (
-                <div className="mt-10 flex flex-col items-center gap-4 border-t border-slate-100 pt-8 sm:mt-12 sm:pt-10">
+                <div className="mt-10 flex flex-col items-center gap-4 border-t border-slate-100 dark:border-slate-800 pt-8 sm:mt-12 sm:pt-10">
                   <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
                     {currentPage > 1 && (
                       <button
                         onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                        className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-all hover:border-teal-300 hover:text-teal-600 sm:rounded-xl"
+                        className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 transition-all hover:border-teal-300 dark:hover:border-teal-500 hover:text-teal-600 sm:rounded-xl bg-white dark:bg-slate-900"
                         aria-label="Previous page"
                       >
                         <i className="fa-solid fa-chevron-left text-sm"></i>
@@ -247,7 +249,7 @@ const ResearchPage = ({ showToast }) => {
                           className={`flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-lg text-sm font-bold transition-all sm:rounded-xl ${
                             currentPage === pageNum
                               ? "bg-teal-600 text-white shadow-md"
-                              : "border border-slate-200 text-slate-600 hover:border-teal-300 hover:bg-teal-50"
+                              : "border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-teal-300 dark:hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/30 bg-white dark:bg-slate-900"
                           }`}
                           aria-label={`Go to page ${pageNum}`}
                           aria-current={currentPage === pageNum ? "page" : undefined}
@@ -259,17 +261,17 @@ const ResearchPage = ({ showToast }) => {
                     {currentPage < totalPages && (
                       <button
                         onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                        className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-all hover:border-teal-300 hover:text-teal-600 sm:rounded-xl"
+                        className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 transition-all hover:border-teal-300 dark:hover:border-teal-500 hover:text-teal-600 sm:rounded-xl bg-white dark:bg-slate-900"
                         aria-label="Next page"
                       >
                         <i className="fa-solid fa-chevron-right text-sm"></i>
                       </button>
                     )}
                   </div>
-                  <p className="text-center text-xs font-medium text-slate-500 sm:text-sm">
-                    Page <span className="font-bold">{currentPage}</span> of{" "}
-                    <span className="font-bold">{totalPages}</span> •{" "}
-                    <span className="font-bold">{filteredResearches.length}</span> results
+                  <p className="text-center text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 sm:text-sm">
+                    Page <span className="text-teal-600 dark:text-teal-400">{currentPage}</span> of{" "}
+                    <span className="text-slate-800 dark:text-slate-200">{totalPages}</span> •{" "}
+                    <span className="text-slate-800 dark:text-slate-200">{filteredResearches.length}</span> results
                   </p>
                 </div>
               )}

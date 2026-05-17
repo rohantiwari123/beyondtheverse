@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { subscribeToUserNotifications, markNotificationAsRead, requestPushNotificationPermission } from '../../services/firebaseServices';
 import { formatDateTime } from '../../utils/dateFormatter';
 
@@ -9,6 +10,7 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, isAdmin, userName, userProfilePic, userId, logout } = useAuth();
+  const { isDarkMode, toggleDarkMode } = useTheme();
 
   // Notification States
   const [notifications, setNotifications] = useState([]);
@@ -73,24 +75,24 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-white/95 backdrop-blur-xl fixed top-0 left-0 right-0 z-40 border-b border-slate-200 w-full overflow-visible">
+      <header className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl fixed top-0 left-0 right-0 z-40 border-b border-slate-200 dark:border-slate-800 w-full overflow-visible transition-colors duration-300">
         <div className="w-full px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center">
 
           {/* 1. LEFT ZONE: TYPOGRAPHIC LOGO */}
           <div className="flex items-center justify-start min-w-max lg:w-1/4">
             <Link to="/" className="flex flex-col justify-center items-start select-none">
               <div className="flex items-baseline gap-1">
-                <span className="text-[22px] sm:text-[26px] lg:text-[34px] text-slate-900 font-cabinet font-black tracking-tighter leading-none">
+                <span className="text-[22px] sm:text-[26px] lg:text-[34px] text-slate-900 dark:text-white font-cabinet font-black tracking-tighter leading-none">
                   Beyond
                 </span>
-                <span className="text-[16px] sm:text-[20px] lg:text-[24px] lowercase tracking-tighter leading-[0.85] text-slate-400 font-serif italic font-bold tracking-tight leading-none">
+                <span className="text-[16px] sm:text-[20px] lg:text-[24px] lowercase tracking-tighter leading-[0.85] text-slate-400 dark:text-slate-500 font-serif italic font-bold tracking-tight leading-none">
                   The
                 </span>
-                <span className="text-[20px] sm:text-[24px] lg:text-[28px] text-teal-600 font-cabinet font-black tracking-tight leading-none">
+                <span className="text-[20px] sm:text-[24px] lg:text-[28px] text-teal-600 dark:text-teal-400 font-cabinet font-black tracking-tight leading-none">
                   Verse
                 </span>
               </div>
-              <span className="hidden xs:flex items-center gap-1.5 text-[6.5px] sm:text-[7px] lg:text-[8px] text-slate-400 uppercase mt-1.5 sm:mt-2 truncate tracking-[0.35em] font-medium font-sans">
+              <span className="hidden xs:flex items-center gap-1.5 text-[6.5px] sm:text-[7px] lg:text-[8px] text-slate-400 dark:text-slate-500 uppercase mt-1.5 sm:mt-2 truncate tracking-[0.35em] font-medium font-sans">
                 <div className="h-px w-3 bg-teal-500/40"></div> Empowering Education
               </span>
             </Link>
@@ -104,7 +106,7 @@ export default function Header() {
                   key={link.name}
                   to={link.path}
                   className={`px-3 py-2 rounded-lg text-[12px] xl:text-[13px] transition-all whitespace-nowrap ${
-                    isPathActive(link.path) ? "font-bold text-teal-700" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+                    isPathActive(link.path) ? "font-bold text-teal-700 dark:text-teal-400" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`}
                 >
                   {link.name}
@@ -116,18 +118,27 @@ export default function Header() {
           {/* 3. RIGHT ZONE: ACTIONS */}
           <div className="flex items-center justify-end flex-1 lg:w-1/4 gap-2">
 
+            {/* DARK MODE TOGGLE */}
+            <button
+              onClick={toggleDarkMode}
+              className="h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border border-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100"
+              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              <i className={`fa-solid ${isDarkMode ? 'fa-sun text-amber-500' : 'fa-moon text-indigo-500'} text-[15px] xl:text-base`}></i>
+            </button>
+
             {/* UNIVERSAL NOTIFICATION BELL */}
             {isAuthenticated && (
               <div className="relative">
                 <button
                   onClick={() => setShowNotifDropdown(!showNotifDropdown)}
                   className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${
-                    showNotifDropdown ? 'bg-teal-50 text-teal-600 border-teal-200' : 'text-slate-500 border-transparent hover:bg-slate-100 hover:text-slate-800'
+                    showNotifDropdown ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-800' : 'text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-100'
                   }`}
                 >
                   <i className="fa-regular fa-bell text-[15px] xl:text-base"></i>
                   {unreadCount > 0 && (
-                    <span className="absolute top-1 xl:top-1.5 right-1.5 h-2 w-2 bg-rose-500 rounded-full animate-pulse border border-white"></span>
+                    <span className="absolute top-1 xl:top-1.5 right-1.5 h-2 w-2 bg-rose-500 rounded-full animate-pulse border border-white dark:border-slate-900"></span>
                   )}
                 </button>
 
@@ -135,15 +146,15 @@ export default function Header() {
                 {showNotifDropdown && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowNotifDropdown(false)}></div>
-                    <div className="absolute right-0 mt-2 w-[280px] sm:w-[320px] bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-fade-in origin-top-right">
-                      <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 bg-slate-50/80">
-                        <span className="text-slate-800 text-[13px] uppercase font-bold">Notifications</span>
-                        {unreadCount > 0 && <span className="bg-teal-100 text-teal-700 text-[9px] font-bold uppercase px-2 py-1 rounded-md border border-teal-200">{unreadCount} New</span>}
+                    <div className="absolute right-0 mt-2 w-[280px] sm:w-[320px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden animate-fade-in origin-top-right">
+                      <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80">
+                        <span className="text-slate-800 dark:text-slate-100 text-[13px] uppercase font-bold">Notifications</span>
+                        {unreadCount > 0 && <span className="bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 text-[9px] font-bold uppercase px-2 py-1 rounded-md border border-teal-200 dark:border-teal-800">{unreadCount} New</span>}
                       </div>
 
                       <div className="max-h-[350px] overflow-y-auto hide-scrollbar">
                         {notifications.length === 0 ? (
-                          <div className="p-8 text-center text-slate-400">
+                          <div className="p-8 text-center text-slate-400 dark:text-slate-500">
                             <i className="fa-regular fa-bell-slash text-2xl mb-2 opacity-50"></i>
                             <p className="text-[11px] uppercase">Quiet in the verse</p>
                           </div>
@@ -152,22 +163,22 @@ export default function Header() {
                             {/* 🌟 NEW NOTIFICATIONS SECTION */}
                             {unreadNotifs.length > 0 && (
                               <div className="px-4 py-2.5 mt-1">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-teal-600">New</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-teal-600 dark:text-teal-400">New</span>
                               </div>
                             )}
                             {unreadNotifs.map(notif => (
                               <div
                                 key={notif.id}
                                 onClick={() => handleNotificationClick(notif)}
-                                className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors flex gap-3.5 bg-teal-50/40`}
+                                className={`p-4 border-b border-slate-50 dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex gap-3.5 bg-teal-50/40 dark:bg-teal-900/20`}
                               >
-                                <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 border bg-white text-teal-600 border-teal-200 shadow-sm`}>
+                                <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 border bg-white dark:bg-slate-900 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-800 shadow-sm`}>
                                   <i className="fa-solid fa-bolt text-[10px]"></i>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className={`text-[13px] truncate text-slate-800 font-medium`}>{notif.title}</p>
-                                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">{notif.message}</p>
-                                  <p className="text-[9px] text-slate-400 mt-2 uppercase">{formatDateTime(notif.timestamp)}</p>
+                                  <p className={`text-[13px] truncate text-slate-800 dark:text-slate-100 font-medium`}>{notif.title}</p>
+                                  <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-1">{notif.message}</p>
+                                  <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-2 uppercase">{formatDateTime(notif.timestamp)}</p>
                                 </div>
                                 <div className="h-1.5 w-1.5 rounded-full bg-teal-500 mt-2 shrink-0"></div>
                               </div>
@@ -175,23 +186,23 @@ export default function Header() {
 
                             {/* 🌟 EARLIER NOTIFICATIONS SECTION */}
                             {readNotifs.length > 0 && (
-                              <div className="px-4 py-2.5 mt-1 border-t border-slate-50 bg-white">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Earlier</span>
+                              <div className="px-4 py-2.5 mt-1 border-t border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Earlier</span>
                               </div>
                             )}
                             {readNotifs.map(notif => (
                               <div
                                 key={notif.id}
                                 onClick={() => handleNotificationClick(notif)}
-                                className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors flex gap-3.5`}
+                                className={`p-4 border-b border-slate-50 dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex gap-3.5`}
                               >
-                                <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 border bg-slate-50 text-slate-400 border-slate-200`}>
+                                <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 border bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700`}>
                                   <i className="fa-solid fa-bolt text-[10px]"></i>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className={`text-[13px] truncate text-slate-600`}>{notif.title}</p>
-                                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">{notif.message}</p>
-                                  <p className="text-[9px] text-slate-400 mt-2 uppercase">{formatDateTime(notif.timestamp)}</p>
+                                  <p className={`text-[13px] truncate text-slate-600 dark:text-slate-400`}>{notif.title}</p>
+                                  <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-1">{notif.message}</p>
+                                  <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-2 uppercase">{formatDateTime(notif.timestamp)}</p>
                                 </div>
                               </div>
                             ))}
@@ -212,7 +223,7 @@ export default function Header() {
                     <Link
                       to="/admin"
                       className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${
-                        isPathActive('/admin') ? "bg-slate-900 text-white border-slate-900" : "text-slate-400 border-transparent hover:bg-slate-100"
+                        isPathActive('/admin') ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white" : "text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800"
                       }`}
                       title="Admin Dashboard"
                     >
@@ -223,7 +234,7 @@ export default function Header() {
                   <Link
                     to="/settings"
                     className={`h-8 w-8 xl:h-9 xl:w-9 flex items-center justify-center rounded-full transition-all border ${
-                      isPathActive('/settings') ? "bg-teal-50 text-teal-600 border-teal-200" : "text-slate-400 border-transparent hover:bg-slate-100"
+                      isPathActive('/settings') ? "bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 border-teal-200 dark:border-teal-800" : "text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
                     title="Settings"
                   >
@@ -233,15 +244,15 @@ export default function Header() {
                   <Link
                     to="/profile"
                     className={`flex items-center justify-center w-8 h-8 xl:w-9 xl:h-9 rounded-full transition-all border ${
-                      isPathActive('/profile') ? "bg-teal-50 text-teal-700 border-teal-200" : "border-transparent hover:bg-slate-100"
+                      isPathActive('/profile') ? "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800" : "border-transparent hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
                     title="Profile"
                   >
                     {userProfilePic ? (
-                      <img src={userProfilePic} alt="Profile" className="w-full h-full rounded-full object-cover border border-slate-200" />
+                      <img src={userProfilePic} alt="Profile" className="w-full h-full rounded-full object-cover border border-slate-200 dark:border-slate-700" />
                     ) : (
                       <div className={`w-full h-full rounded-full flex items-center justify-center text-[11px] xl:text-xs font-bold ${
-                        isPathActive('/profile') ? 'bg-teal-500 text-white' : 'bg-slate-200 text-slate-600'
+                        isPathActive('/profile') ? 'bg-teal-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                       }`}>
                         {userName?.charAt(0).toUpperCase()}
                       </div>
@@ -251,7 +262,7 @@ export default function Header() {
               )}
 
               {isAuthenticated ? (
-                <button onClick={handleLogout} className="bg-rose-50 text-rose-600 border border-rose-100 px-3 py-1.5 rounded-lg text-[11px] xl:text-xs hover:bg-rose-100 transition-all">
+                <button onClick={handleLogout} className="bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30 px-3 py-1.5 rounded-lg text-[11px] xl:text-xs hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-all">
                   Logout
                 </button>
               ) : (
@@ -265,7 +276,7 @@ export default function Header() {
             <div className="flex xl:hidden">
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="h-9 w-9 flex items-center justify-center bg-slate-800 text-white rounded-lg active:scale-95 transition-transform"
+                className="h-9 w-9 flex items-center justify-center bg-slate-800 dark:bg-slate-700 text-white rounded-lg active:scale-95 transition-transform"
               >
                 <i className="fa-solid fa-bars text-sm"></i>
               </button>
@@ -279,24 +290,36 @@ export default function Header() {
 
       {/* MOBILE DRAWER */}
       <div
-        className={`fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity z-[100] xl:hidden ${
+        className={`fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm transition-opacity z-[100] xl:hidden ${
           isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         onClick={() => setIsMobileMenuOpen(false)}
       ></div>
 
       <div
-        className={`fixed top-0 right-0 h-screen w-[280px] sm:w-[320px] bg-white z-[110] xl:hidden flex flex-col transition-transform duration-300 ease-in-out border-l border-slate-200 ${
+        className={`fixed top-0 right-0 h-screen w-[280px] sm:w-[320px] bg-white dark:bg-slate-900 z-[110] xl:hidden flex flex-col transition-transform duration-300 ease-in-out border-l border-slate-200 dark:border-slate-800 ${
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
-            <i className="fa-solid fa-atom text-teal-600 text-lg"></i>
-            <span className="text-slate-800 uppercase">Menu</span>
+            <i className="fa-solid fa-atom text-teal-600 dark:text-teal-400 text-lg"></i>
+            <span className="text-slate-800 dark:text-slate-100 uppercase font-bold text-sm tracking-tight">Menu</span>
           </div>
-          <button onClick={() => setIsMobileMenuOpen(false)} className="h-8 w-8 flex items-center justify-center bg-slate-50 text-slate-400 rounded-full">
+          <button onClick={() => setIsMobileMenuOpen(false)} className="h-8 w-8 flex items-center justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-full">
             <i className="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        {/* Mobile Theme Toggle Quick Action */}
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Appearance</span>
+          <button 
+            onClick={toggleDarkMode}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm active:scale-95 transition-transform"
+          >
+            <i className={`fa-solid ${isDarkMode ? 'fa-sun text-amber-500' : 'fa-moon text-indigo-500'} text-xs`}></i>
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{isDarkMode ? 'Light' : 'Dark'}</span>
           </button>
         </div>
 
@@ -307,21 +330,20 @@ export default function Header() {
               to={link.path}
               onClick={() => setIsMobileMenuOpen(false)}
               className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${
-                isPathActive(link.path) ? "bg-teal-50 text-teal-700" : "text-slate-600 hover:bg-slate-50"
+                isPathActive(link.path) ? "bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
               }`}
             >
               <div className="w-5 flex justify-center shrink-0"><i className={`fa-solid ${link.icon} text-base`}></i></div>
-              <span className="text-sm">{link.name}</span>
+              <span className="text-sm font-medium">{link.name}</span>
             </Link>
           ))}
 
-          {/* 🌟 PRO FIX: Admin Dashboard ka badha button list ke andar */}
           {isAdmin && (
             <Link
               to="/admin"
               onClick={() => setIsMobileMenuOpen(false)}
               className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all mt-2 ${
-                isPathActive('/admin') ? "bg-slate-900 text-white" : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                isPathActive('/admin') ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900" : "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30"
               }`}
             >
               <div className="w-5 flex justify-center shrink-0"><i className="fa-solid fa-shield-halved text-base"></i></div>
@@ -331,14 +353,14 @@ export default function Header() {
         </nav>
 
         {/* MOBILE BOTTOM ACTIONS */}
-        <div className="p-4 pb-8 border-t border-slate-100 bg-slate-50 flex flex-col gap-3">
+        <div className="p-4 pb-8 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 flex flex-col gap-3">
           {isAuthenticated && (
             <div className={`p-2 rounded-xl border flex items-center justify-between transition-colors ${
-              isPathActive('/profile') || isPathActive('/settings') ? 'bg-white border-teal-200 shadow-sm' : 'bg-white border-slate-200'
+              isPathActive('/profile') || isPathActive('/settings') ? 'bg-white dark:bg-slate-800 border-teal-200 dark:border-teal-800 shadow-sm' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
             }`}>
               <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 flex-1 overflow-hidden px-1">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 border overflow-hidden ${
-                  isPathActive('/profile') ? 'bg-teal-500 text-white border-teal-600' : 'bg-slate-100 text-slate-600 border-slate-200'
+                  isPathActive('/profile') ? 'bg-teal-500 text-white border-teal-600' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-600'
                 }`}>
                   {userProfilePic ? (
                     <img src={userProfilePic} alt="Profile" className="w-full h-full object-cover" />
@@ -347,15 +369,14 @@ export default function Header() {
                   )}
                 </div>
                 <div className="overflow-hidden flex-1">
-                  <p className={`text-[9px] uppercase ${isPathActive('/profile') ? 'text-teal-600' : 'text-slate-400'}`}>Profile</p>
-                  <p className="text-[13px] text-slate-800 truncate">{userName}</p>
+                  <p className={`text-[9px] uppercase ${isPathActive('/profile') ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400 dark:text-slate-500'}`}>Profile</p>
+                  <p className="text-[13px] text-slate-800 dark:text-slate-100 truncate font-medium">{userName}</p>
                 </div>
               </Link>
 
-              {/* 🌟 FIX: Yahan se purana chhota shield icon hata diya gaya hai */}
-              <div className="flex items-center gap-1 border-l border-slate-100 pl-1">
+              <div className="flex items-center gap-1 border-l border-slate-100 dark:border-slate-700 pl-1">
                 <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${
-                  isPathActive('/settings') ? 'text-teal-600 bg-teal-50/50' : 'text-slate-400'
+                  isPathActive('/settings') ? 'text-teal-600 dark:text-teal-400 bg-teal-50/50 dark:bg-teal-900/20' : 'text-slate-400 dark:text-slate-500'
                 }`}>
                   <i className="fa-solid fa-gear text-sm"></i>
                 </Link>
@@ -365,11 +386,11 @@ export default function Header() {
 
           <div className="flex flex-col gap-2">
             {isAuthenticated ? (
-              <button onClick={handleLogout} className="w-full bg-white text-rose-600 py-2.5 rounded-xl text-xs border border-rose-100 active:bg-rose-50 transition-colors shadow-sm">
+              <button onClick={handleLogout} className="w-full bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 py-2.5 rounded-xl text-xs border border-rose-100 dark:border-rose-900/30 active:bg-rose-50 dark:active:bg-rose-900/20 transition-colors shadow-sm font-bold uppercase tracking-wider">
                 Sign Out
               </button>
             ) : (
-              <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-teal-600 text-white py-2.5 rounded-xl text-center text-xs">
+              <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-teal-600 text-white py-2.5 rounded-xl text-center text-xs font-bold uppercase tracking-wider shadow-lg shadow-teal-500/20">
                 Join Workspace
               </Link>
             )}
