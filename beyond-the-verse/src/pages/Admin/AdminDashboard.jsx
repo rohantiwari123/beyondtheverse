@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import AdminExamEditor from '../../components/Exam/AdminExamEditor';
 import AdminFrameworkManager from '../../components/Admin/AdminFrameworkManager';
 
-import { publishQuestionToFAQ, deleteUserQuestion, getResultsReleaseStatus, setResultsReleaseStatus, getUserProfile, updateUserRole, adminUpdateUserUsername, adminUpdateUserName } from '../../services/firebaseServices';
+import { publishQuestionToFAQ, deleteUserQuestion, getResultsReleaseStatus, setResultsReleaseStatus, getUserProfile, updateUserRole, adminUpdateUserUsername, adminUpdateUserName, getExamById } from '../../services/firebaseServices';
 
 // ==========================================
 // 🌟 CUSTOM MODAL (For Safe Actions)
@@ -42,6 +42,123 @@ function CustomModal({ config, onClose }) {
 }
 
 // ==========================================
+// 🌟 RESULT DETAILS MODAL
+// ==========================================
+function ResultDetailsModal({ result, exam, onClose }) {
+  if (!result || !exam) return null;
+
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] overflow-hidden relative z-10 animate-fade-in-up flex flex-col shadow-2xl">
+        <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">{result.displayName || result.userName}'s Performance</h3>
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-widest mt-1">{result.examTitle}</p>
+          </div>
+          <button onClick={onClose} className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition-all">
+            <i className="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+        
+        <div className="p-6 overflow-y-auto flex-1 space-y-8 bg-slate-50/30">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Raw Score</p>
+              <p className="text-xl font-bold text-slate-900">{result.totalScore} <span className="text-slate-400 text-sm font-medium">/ {result.maxScore}</span></p>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Percentage</p>
+              <div className="flex items-baseline gap-1">
+                <p className={`text-xl font-bold ${
+                  (result.totalScore/result.maxScore) >= 0.7 ? 'text-teal-600' : 
+                  (result.totalScore/result.maxScore) >= 0.5 ? 'text-amber-600' : 'text-rose-600'
+                }`}>
+                  {result.maxScore ? Math.round((result.totalScore / result.maxScore) * 100) : 0}%
+                </p>
+              </div>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Submitted On</p>
+              <p className="text-sm font-bold text-slate-800">{result.submittedAt ? new Date(result.submittedAt.toMillis?.() || result.submittedAt).toLocaleDateString() : 'N/A'}</p>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Attempt ID</p>
+              <p className="text-[10px] font-mono text-slate-400 truncate">{result.id}</p>
+            </div>
+          </div>
+
+          {/* Question Review */}
+          <div className="space-y-6">
+            <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+              <i className="fa-solid fa-list-check text-teal-600"></i> Question-by-Question Review
+            </h4>
+            {exam.questions.map((q, idx) => {
+              const selectedIds = result.answers?.[q.id] || [];
+              const correctIds = q.correctOptionIds || [];
+              const isCorrect = selectedIds.length === correctIds.length && selectedIds.every(id => correctIds.includes(id));
+              const isUnattempted = selectedIds.length === 0;
+
+              return (
+                <div key={q.id} className={`bg-white rounded-2xl border transition-all ${isCorrect ? 'border-teal-100' : isUnattempted ? 'border-slate-200' : 'border-rose-100'} overflow-hidden shadow-sm`}>
+                  <div className={`px-5 py-3 border-b flex justify-between items-center ${isCorrect ? 'bg-teal-50/50 border-teal-100' : isUnattempted ? 'bg-slate-50 border-slate-200' : 'bg-rose-50/50 border-rose-100'}`}>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Question {idx + 1}</span>
+                    <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full border ${
+                      isCorrect ? 'bg-teal-100 text-teal-700 border-teal-200' : 
+                      isUnattempted ? 'bg-white text-slate-500 border-slate-200' : 'bg-rose-100 text-rose-700 border-rose-200'
+                    }`}>
+                      {isCorrect ? 'Correct' : isUnattempted ? 'Unattempted' : 'Incorrect'}
+                    </span>
+                  </div>
+                  
+                  <div className="p-5 sm:p-6">
+                    <div className="text-[15px] text-slate-800 mb-6 font-medium leading-relaxed prose prose-sm max-w-none [&>p]:m-0" dangerouslySetInnerHTML={{ __html: q.text }} />
+                    
+                    <div className="grid grid-cols-1 gap-3">
+                      {q.options.map((opt, optIdx) => {
+                        const isSelected = selectedIds.includes(opt.id);
+                        const isCorrectOpt = correctIds.includes(opt.id);
+                        const optionLetter = String.fromCharCode(65 + optIdx);
+                        
+                        let style = "bg-white border-slate-200 text-slate-600";
+                        if (isSelected && isCorrectOpt) style = "bg-teal-50 border-teal-300 text-teal-900 font-medium";
+                        else if (isSelected && !isCorrectOpt) style = "bg-rose-50 border-rose-300 text-rose-900 font-medium";
+                        else if (!isSelected && isCorrectOpt) style = "bg-teal-50/30 border-teal-200 text-teal-700 border-dashed";
+
+                        return (
+                          <div key={opt.id} className={`p-3.5 rounded-xl border text-sm flex items-center gap-4 transition-all ${style}`}>
+                            <div className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs ${
+                              isCorrectOpt ? 'bg-teal-500 text-white' : isSelected ? 'bg-rose-500 text-white' : 'bg-slate-100 text-slate-500'
+                            }`}>
+                              {optionLetter}
+                            </div>
+                            <div className="flex-1 leading-snug [&>p]:m-0" dangerouslySetInnerHTML={{ __html: opt.text }} />
+                            {isSelected && isCorrectOpt && <i className="fa-solid fa-circle-check text-teal-600 text-lg"></i>}
+                            {isSelected && !isCorrectOpt && <i className="fa-solid fa-circle-xmark text-rose-600 text-lg"></i>}
+                            {!isSelected && isCorrectOpt && <i className="fa-solid fa-check text-teal-500 text-sm"></i>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        
+        <div className="p-6 border-t border-slate-200 bg-white flex justify-end">
+          <button onClick={onClose} className="px-8 py-3 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-black transition-all active:scale-95 shadow-lg shadow-slate-900/20">
+            Close Report
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
 // 🌟 MAIN DASHBOARD COMPONENT
 // ==========================================
 export default function AdminDashboard({ showToast, donations, totalRaised, targetAmount }) {
@@ -50,6 +167,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
 
   const [activeTab, setActiveTab] = useState('academy');
   const [searchTerm, setSearchTerm] = useState("");
+  const [resultsSearchTerm, setResultsSearchTerm] = useState("");
 
   const [newTarget, setNewTarget] = useState(targetAmount || 50000);
   const [scholarshipAmount, setScholarshipAmount] = useState("");
@@ -68,6 +186,10 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
   const [isFetchingResults, setIsFetchingResults] = useState(false);
   const [resultsReleased, setResultsReleased] = useState(false);
   const [isFetchingReleaseStatus, setIsFetchingReleaseStatus] = useState(false);
+
+  const [selectedResult, setSelectedResult] = useState(null);
+  const [selectedResultExam, setSelectedResultExam] = useState(null);
+  const [isViewingDetails, setIsViewingDetails] = useState(false);
 
   // Modal State
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
@@ -167,6 +289,47 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
 
     fetchReleaseStatus();
   }, [isAdmin, isTeacher, isExaminer]);
+
+  // 🌟 View Detailed Result
+  const handleViewResult = async (result) => {
+    try {
+      showToast("Fetching assessment details...");
+      const examData = await getExamById(result.examId);
+      if (!examData) {
+        showToast("Assessment details not found.", false);
+        return;
+      }
+      setSelectedResult(result);
+      setSelectedResultExam(examData);
+      setIsViewingDetails(true);
+    } catch (error) {
+      console.error("Error viewing result:", error);
+      showToast("Failed to load result details.", false);
+    }
+  };
+
+  const handleExportResultsCsv = () => {
+    if (allExamResults.length === 0) return showAlert("No exam results available to export.");
+
+    let csvContent = "Submitted At,Student Name,Username,Exam Title,Score,Max Score,Percentage\n";
+    allExamResults.forEach((r) => {
+      let dateStr = r.submittedAt ? new Date(r.submittedAt.toMillis?.() || r.submittedAt).toLocaleDateString("en-IN") : "N/A";
+      let name = `"${(r.displayName || r.userName || 'Unknown').replace(/"/g, '""')}"`;
+      let username = `"${(r.userUsername || 'N/A').replace(/"/g, '""')}"`;
+      let title = `"${(r.examTitle || 'Untitled').replace(/"/g, '""')}"`;
+      let score = r.totalScore || 0;
+      let max = r.maxScore || 0;
+      let perc = max ? Math.round((score / max) * 100) : 0;
+      
+      csvContent += `${dateStr},${name},${username},${title},${score},${max},${perc}%\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Exam_Results_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+  };
 
   // Redirect non-admins after hooks have been registered.
   if (!canAccess) {
@@ -336,6 +499,19 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
   return (
     <div className="w-full min-h-screen bg-slate-50">
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
+      
+      {/* 🌟 Result Details Modal */}
+      {isViewingDetails && (
+        <ResultDetailsModal 
+          result={selectedResult} 
+          exam={selectedResultExam} 
+          onClose={() => {
+            setIsViewingDetails(false);
+            setSelectedResult(null);
+            setSelectedResultExam(null);
+          }} 
+        />
+      )}
 
       <div className="max-w-full min-h-screen flex flex-col">
         
@@ -704,69 +880,132 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                   <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 mb-2">Exam Results</h1>
                   <p className="text-sm text-slate-600">View all student exam submissions and performance metrics</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <div className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-2 rounded-xl">
+                    <span className={`h-2 w-2 rounded-full ${resultsReleased ? 'bg-teal-500 animate-pulse' : 'bg-slate-300'}`}></span>
+                    <span className={`text-[11px] font-bold uppercase tracking-wider ${resultsReleased ? 'text-teal-600' : 'text-slate-500'}`}>
+                      {resultsReleased ? 'Results Released' : 'Results Hidden'}
+                    </span>
+                  </div>
                   <button
                     onClick={handleToggleResultsRelease}
                     disabled={isFetchingReleaseStatus}
-                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${resultsReleased ? 'bg-rose-600 text-white hover:bg-rose-700' : 'bg-teal-600 text-white hover:bg-teal-700'}`}
+                    className={`w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-sm active:scale-95 ${
+                      resultsReleased 
+                        ? 'bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100' 
+                        : 'bg-teal-600 text-white hover:bg-teal-700'
+                    }`}
                   >
-                    {isFetchingReleaseStatus ? 'Loading...' : resultsReleased ? 'Hide Results' : 'Release Results'}
+                    {isFetchingReleaseStatus ? (
+                      <><i className="fa-solid fa-spinner fa-spin mr-2"></i> Loading</>
+                    ) : resultsReleased ? (
+                      <><i className="fa-solid fa-eye-slash mr-2"></i> Hide from Students</>
+                    ) : (
+                      <><i className="fa-solid fa-paper-plane mr-2"></i> Release to Students</>
+                    )}
                   </button>
-                  <span className={`text-xs font-medium ${resultsReleased ? 'text-teal-600' : 'text-slate-500'}`}>
-                    {resultsReleased ? 'Students can now view their scores' : 'Results hidden from students'}
-                  </span>
                 </div>
               </div>
 
+              {/* Search & Export for Results */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 relative">
+                  <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                  <input 
+                    type="text" 
+                    placeholder="Search by student name or exam title..." 
+                    value={resultsSearchTerm} 
+                    onChange={(e) => setResultsSearchTerm(e.target.value)} 
+                    className="w-full bg-white border border-slate-200 py-3 pl-10 pr-4 rounded-xl text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all shadow-sm"
+                  />
+                </div>
+                <button 
+                  onClick={handleExportResultsCsv} 
+                  className="w-full sm:w-auto bg-slate-900 hover:bg-black active:scale-95 text-white text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-slate-900/10"
+                >
+                  <i className="fa-solid fa-download"></i> Export Results
+                </button>
+              </div>
+
               {isFetchingResults ? (
-                <div className="py-20 flex flex-col items-center justify-center bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl">
-                  <div className="h-8 w-8 border-4 border-slate-200 border-t-teal-600 rounded-full animate-spin mb-4"></div>
-                  <p className="text-sm text-slate-500">Loading exam results...</p>
+                <div className="py-20 flex flex-col items-center justify-center bg-white border border-slate-200 rounded-2xl shadow-sm">
+                  <div className="h-10 w-10 border-4 border-slate-100 border-t-teal-600 rounded-full animate-spin mb-4"></div>
+                  <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">Aggregating Submission Data...</p>
                 </div>
               ) : allExamResults.length === 0 ? (
-                <div className="py-20 flex flex-col items-center justify-center bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl">
-                  <i className="fa-solid fa-chart-line text-4xl text-slate-300 mb-3"></i>
-                  <p className="text-sm text-slate-500">No exam results available yet.</p>
+                <div className="py-20 flex flex-col items-center justify-center bg-white border border-slate-200 rounded-2xl shadow-sm">
+                  <i className="fa-solid fa-chart-line text-5xl text-slate-200 mb-4 block"></i>
+                  <p className="text-sm font-medium text-slate-500">No assessment submissions recorded yet.</p>
                 </div>
               ) : (
-                <div className="bg-white border border-slate-200 rounded-lg sm:rounded-xl lg:rounded-2xl overflow-hidden">
+                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
-                          <th className="px-4 py-3 text-left font-semibold text-slate-700">Student</th>
-                          <th className="px-4 py-3 text-left font-semibold text-slate-700">Exam Title</th>
-                          <th className="px-4 py-3 text-left font-semibold text-slate-700">Percentage</th>
-                          <th className="px-4 py-3 text-left font-semibold text-slate-700">Submitted</th>
+                          <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-widest text-slate-500">Student</th>
+                          <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-widest text-slate-500">Assessment</th>
+                          <th className="px-6 py-4 text-center text-[11px] font-bold uppercase tracking-widest text-slate-500">Performance</th>
+                          <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-widest text-slate-500">Date</th>
+                          <th className="px-6 py-4 text-center text-[11px] font-bold uppercase tracking-widest text-slate-500">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-200">
-                        {allExamResults.map((result) => {
+                      <tbody className="divide-y divide-slate-100">
+                        {allExamResults
+                          .filter(r => 
+                            (r.displayName || r.userName || "").toLowerCase().includes(resultsSearchTerm.toLowerCase()) ||
+                            (r.examTitle || "").toLowerCase().includes(resultsSearchTerm.toLowerCase())
+                          )
+                          .map((result) => {
                           const percentage = result.maxScore ? Math.round((result.totalScore / result.maxScore) * 100) : 0;
-                          const submittedDate = result.submittedAt ? new Date(result.submittedAt.toMillis?.() || result.submittedAt).toLocaleDateString() : 'N/A';
+                          const submittedDate = result.submittedAt ? new Date(result.submittedAt.toMillis?.() || result.submittedAt).toLocaleDateString("en-IN") : 'N/A';
                           
                           return (
-                            <tr key={result.id} className="hover:bg-slate-50 transition-colors">
-                              <td className="px-4 py-3 text-slate-900 font-medium">{result.displayName || result.userName || result.userUsername || result.userId.slice(0, 8)}</td>
-                              <td className="px-4 py-3 text-slate-900 font-medium">{result.examTitle}</td>
-                              <td className="px-4 py-3">
-                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                                  percentage >= 70 ? 'bg-teal-50 text-teal-700' :
-                                  percentage >= 50 ? 'bg-yellow-50 text-yellow-700' :
-                                  'bg-rose-50 text-rose-700'
+                            <tr key={result.id} className="hover:bg-slate-50/50 transition-colors group">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-8 w-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center text-xs font-bold border border-teal-100">
+                                    {(result.displayName || result.userName || "?").charAt(0).toUpperCase()}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-slate-900 font-bold truncate">{result.displayName || result.userName || 'Anonymous'}</p>
+                                    <p className="text-[10px] text-slate-400 font-medium">@{result.userUsername || result.userId.slice(0, 8)}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <p className="text-slate-700 font-medium text-xs line-clamp-1">{result.examTitle}</p>
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <span className={`inline-flex px-3 py-1 rounded-full text-[11px] font-bold border ${
+                                  percentage >= 70 ? 'bg-teal-50 text-teal-700 border-teal-200' :
+                                  percentage >= 50 ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                  'bg-rose-50 text-rose-700 border-rose-200'
                                 }`}>
                                   {percentage}%
                                 </span>
                               </td>
-                              <td className="px-4 py-3 text-slate-600 text-xs">{submittedDate}</td>
+                              <td className="px-6 py-4">
+                                <span className="text-slate-500 text-[11px] font-medium">{submittedDate}</span>
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <button 
+                                  onClick={() => handleViewResult(result)}
+                                  className="h-9 px-4 rounded-lg bg-white border border-slate-200 text-slate-600 hover:border-teal-500 hover:text-teal-600 hover:bg-teal-50 flex items-center justify-center mx-auto transition-all text-[11px] font-bold uppercase tracking-wider gap-2 shadow-sm"
+                                >
+                                  <i className="fa-solid fa-magnifying-glass-chart"></i>
+                                  View Details
+                                </button>
+                              </td>
                             </tr>
                           );
                         })}
                       </tbody>
                     </table>
                   </div>
-                  <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
-                    <span><strong>{allExamResults.length}</strong> total submissions</span>
+                  <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                    <span><strong>{allExamResults.length}</strong> total submissions aggregated</span>
+                    <span>Admin Level Access</span>
                   </div>
                 </div>
               )}
