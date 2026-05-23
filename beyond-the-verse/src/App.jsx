@@ -14,13 +14,13 @@ import ExamResult from './components/Exam/ExamResult';
 
 // 🌟 REUSABLE STYLES DICTIONARY
 const styles = {
-  appWrapper: "relative min-h-screen overflow-x-hidden transition-colors duration-300 selection:bg-teal-600 selection:text-white bg-[#f8fafc] text-slate-800",
+  appWrapper: "flex flex-col min-h-screen relative overflow-x-hidden transition-colors duration-300 selection:bg-teal-600 selection:text-white bg-[#f8fafc] text-slate-800",
   bgGradient: "fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-teal-900/5 to-transparent pointer-events-none z-0",
   bgGlow: "fixed -top-32 -left-32 w-96 h-96 bg-teal-400/10 rounded-full blur-[100px] pointer-events-none z-0",
-  headerZone: "relative z-50",
-  mainZone: "relative z-10 w-full",
-  footerZone: "relative z-10",
-  toastZone: "relative z-[100]",
+  headerZone: "relative z-50 shrink-0",
+  mainZone: "flex-grow relative z-10 w-full",
+  footerZone: "relative z-10 shrink-0",
+  toastZone: "relative z-[1000]",
   loaderContainer: "w-full h-[60vh] flex flex-col justify-center items-center",
   loaderSpinner: "fa-solid fa-circle-notch fa-spin text-4xl text-teal-600 mb-4",
   loaderText: "text-slate-500 font-medium tracking-widest uppercase text-xs animate-pulse"
@@ -94,7 +94,7 @@ export default function App() {
       <div className={styles.bgGradient}></div>
       <div className={styles.bgGlow}></div>
 
-      {!['/login', '/signup'].includes(location.pathname) && (
+      {!['/login', '/signup'].includes(location.pathname) && !location.pathname.startsWith('/exam/engine/') && (
         <div className={styles.headerZone}>
           <Header />
         </div>
@@ -153,7 +153,7 @@ export default function App() {
         </Suspense>
       </main>
 
-      {!['/login', '/signup'].includes(location.pathname) && (
+      {!['/login', '/signup', '/admin'].includes(location.pathname) && !location.pathname.startsWith('/exam/engine/') && (
         <div className={styles.footerZone}>
           <Footer />
         </div>

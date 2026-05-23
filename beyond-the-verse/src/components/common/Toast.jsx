@@ -1,8 +1,8 @@
 
 export default function Toast({ toast }) {
   return (
-    // Center alignment wrapper
-    <div className="fixed z-[9999] bottom-10 left-0 right-0 flex justify-center pointer-events-none px-4">
+    // Center alignment wrapper (Moved to TOP to avoid bottom overlap)
+    <div className="fixed z-[9999] top-20 left-0 right-0 flex justify-center pointer-events-none px-4">
       
       {/* 🌟 SIMPLE & FLAT UI: No Shadows, No Transform Animations */}
       <div

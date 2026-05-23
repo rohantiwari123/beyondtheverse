@@ -516,7 +516,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
       <div className="max-w-full min-h-screen flex flex-col">
         
         {/* 🌟 HORIZONTAL NAVBAR (Desktop) / TABS (Mobile) */}
-        <div className="w-full bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div className="w-full bg-white border-b border-slate-200 sticky top-14 sm:top-16 z-50">
           <div className="max-w-full px-4 sm:px-6 lg:px-8">
             
             {/* Desktop Navbar - Horizontal */}
