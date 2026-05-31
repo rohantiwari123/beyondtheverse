@@ -1,6 +1,8 @@
 /* 1. Font Imports */
 /* Base Font: Inter */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Hindi Font: Tiro Devanagari Hindi & Mukta */
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap');
 /* Terminal/Tag Font: JetBrains Mono */
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap');
 /* Logo Font: Cabinet Grotesk (Fontshare) */
@@ -11,12 +13,14 @@
 
 /* 3. Tailwind v4 Theme Configuration (No tailwind.config.js needed!) */
 @theme {
-  /* पूरी वेबसाइट का डिफ़ॉल्ट UI फॉन्ट */
-  --font-sans: "Inter", -apple-system, system-ui, sans-serif;
+  /* पूरी वेबसाइट का डिफ़ॉल्ट UI फॉन्ट - Added Tiro Devanagari Hindi for professional fallback */
+  --font-sans: "Inter", "Tiro Devanagari Hindi", "Mukta", -apple-system, system-ui, sans-serif;
   /* हेडर लोगो के लिए प्रीमियम फॉन्ट */
   --font-cabinet: "Cabinet Grotesk", sans-serif;
   /* सिस्टम/टर्मिनल टैग्स के लिए फॉन्ट */
   --font-mono: "JetBrains Mono", monospace;
+  /* हिन्दी कंटेंट के लिए प्रीमियम फॉन्ट */
+  --font-hindi: "Tiro Devanagari Hindi", "Mukta", sans-serif;
 }
 
 @layer base {

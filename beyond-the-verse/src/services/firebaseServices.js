@@ -263,8 +263,15 @@ export const saveExamToDb = async (examData) => {
     const docRef = await addDoc(collection(db, "exams"), {
       ...examData,
       createdAt: serverTimestamp(),
-      isResultPublished: false,
+      isResultPublished: false, // 🌟 By default results are hidden for this specific exam
     });
+
+    // 🌟 GLOBAL LOCK: When a new exam is published, make sure global results release is OFF
+    if (!examData.isDraft) {
+      const configRef = doc(db, 'settings', 'config');
+      await setDoc(configRef, { resultsReleased: false }, { merge: true });
+    }
+
     return docRef;
   } catch (error) {
     console.error("Error saving exam: ", error);
@@ -292,7 +299,21 @@ export const getExamById = async (examId) => {
 
 export const deleteExam = async (examId) => {
   try {
+    // 1. Delete the exam document
     await deleteDoc(doc(db, "exams", examId));
+
+    // 2. Cascading Delete: Find and delete all results associated with this exam
+    const resultsQuery = query(collection(db, "exam_results"), where("examId", "==", examId));
+    const resultsSnapshot = await getDocs(resultsQuery);
+    
+    if (!resultsSnapshot.empty) {
+      const batch = writeBatch(db);
+      resultsSnapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+    }
+
     return true;
   } catch (error) {
     console.error("Error deleting exam: ", error);
@@ -318,6 +339,29 @@ export const getAllExams = async () => {
     }));
   } catch (error) {
     console.error("Error fetching exams: ", error);
+    throw error;
+  }
+};
+
+export const cleanupOrphanedResults = async () => {
+  try {
+    const examsSnapshot = await getDocs(collection(db, "exams"));
+    const examIds = new Set(examsSnapshot.docs.map(doc => doc.id));
+    
+    const resultsSnapshot = await getDocs(collection(db, "exam_results"));
+    const orphans = resultsSnapshot.docs.filter(doc => !examIds.has(doc.data().examId));
+    
+    if (orphans.length > 0) {
+      const batch = writeBatch(db);
+      orphans.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      return orphans.length;
+    }
+    return 0;
+  } catch (error) {
+    console.error("Cleanup error:", error);
     throw error;
   }
 };

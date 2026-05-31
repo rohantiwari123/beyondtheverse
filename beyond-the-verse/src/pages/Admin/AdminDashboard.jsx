@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import AdminExamEditor from '../../components/Exam/AdminExamEditor';
 import AdminFrameworkManager from '../../components/Admin/AdminFrameworkManager';
 
-import { publishQuestionToFAQ, deleteUserQuestion, getResultsReleaseStatus, setResultsReleaseStatus, getUserProfile, updateUserRole, adminUpdateUserUsername, adminUpdateUserName, getExamById } from '../../services/firebaseServices';
+import { publishQuestionToFAQ, deleteUserQuestion, getResultsReleaseStatus, setResultsReleaseStatus, getUserProfile, updateUserRole, adminUpdateUserUsername, adminUpdateUserName, getExamById, cleanupOrphanedResults } from '../../services/firebaseServices';
 
 // ==========================================
 // 🌟 CUSTOM MODAL (For Safe Actions)
@@ -329,6 +329,21 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
     link.href = URL.createObjectURL(blob);
     link.download = `Exam_Results_${new Date().toISOString().slice(0,10)}.csv`;
     link.click();
+  };
+
+  const [isCleaning, setIsCleaning] = useState(false);
+  const handleCleanupOrphans = async () => {
+    showConfirm("This will scan for and delete all results belonging to exams that no longer exist. Continue?", async () => {
+      setIsCleaning(true);
+      try {
+        const deletedCount = await cleanupOrphanedResults();
+        showToast(`Cleanup complete. ${deletedCount} orphaned results removed.`);
+      } catch (error) {
+        showToast("Cleanup failed.", false);
+      } finally {
+        setIsCleaning(false);
+      }
+    });
   };
 
   // Redirect non-admins after hooks have been registered.
@@ -907,7 +922,6 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                 </div>
               </div>
 
-              {/* Search & Export for Results */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1 relative">
                   <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
@@ -919,12 +933,23 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                     className="w-full bg-white border border-slate-200 py-3 pl-10 pr-4 rounded-xl text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all shadow-sm"
                   />
                 </div>
-                <button 
-                  onClick={handleExportResultsCsv} 
-                  className="w-full sm:w-auto bg-slate-900 hover:bg-black active:scale-95 text-white text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-slate-900/10"
-                >
-                  <i className="fa-solid fa-download"></i> Export Results
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={handleCleanupOrphans}
+                    disabled={isCleaning}
+                    className="w-full sm:w-auto bg-white border border-slate-200 hover:border-amber-500 hover:text-amber-600 active:scale-95 text-slate-600 text-[10px] font-bold uppercase tracking-widest px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
+                    title="Delete results for exams that no longer exist"
+                  >
+                    {isCleaning ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-broom"></i>}
+                    Sync & Cleanup
+                  </button>
+                  <button 
+                    onClick={handleExportResultsCsv} 
+                    className="w-full sm:w-auto bg-slate-900 hover:bg-black active:scale-95 text-white text-[10px] font-bold uppercase tracking-widest px-6 py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-slate-900/10"
+                  >
+                    <i className="fa-solid fa-download"></i> Export Results
+                  </button>
+                </div>
               </div>
 
               {isFetchingResults ? (

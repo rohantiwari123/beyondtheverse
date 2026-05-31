@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-// 🌟 MERA UPDATE 1: Yahan getUserExamResults ko import kiya hai
 import { getExamById, submitExamResult, getUserExamResults } from '../../services/firebaseServices';
 import BackButton from '../common/BackButton';
 import ExamAgreement from './ExamAgreement';
@@ -58,37 +57,44 @@ const shuffleArray = (array) => {
 
 const enterFullscreen = () => {
   const elem = document.documentElement;
-  if (elem.requestFullscreen) {
-    elem.requestFullscreen();
-  } else if (elem.webkitRequestFullscreen) { /* Safari */
-    elem.webkitRequestFullscreen();
-  } else if (elem.msRequestFullscreen) { /* IE11 */
-    elem.msRequestFullscreen();
+  try {
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().catch(err => console.error("Fullscreen error:", err));
+    } else if (elem.webkitRequestFullscreen) {
+      elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) {
+      elem.msRequestFullscreen();
+    }
+  } catch (e) {
+    console.error("Fullscreen request failed", e);
   }
 };
 
-function FullscreenListener({ onExit }) {
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
-        onExit();
-      }
-    };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('msfullscreenchange', handleFullscreenChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('msfullscreenchange', handleFullscreenChange);
-    };
-  }, [onExit]);
-  return null;
+function FullscreenBlocker({ onResolve, warnings }) {
+  return (
+    <div className="fixed inset-0 z-[150] bg-slate-900 flex flex-col items-center justify-center p-6 text-center backdrop-blur-md">
+      <div className="max-w-sm animate-fade-in">
+        <div className="h-20 w-20 bg-teal-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border-2 border-teal-500/20 shadow-xl shadow-teal-500/5">
+          <i className="fa-solid fa-expand text-3xl text-teal-500"></i>
+        </div>
+        <h2 className="text-2xl font-black text-white mb-3 uppercase tracking-tighter">Fullscreen Mandatory</h2>
+        <p className="text-slate-400 text-sm mb-8 leading-relaxed font-medium">
+          To maintain assessment integrity, you must stay in fullscreen mode. {warnings > 0 && `(Warning ${warnings}/2)`}
+        </p>
+        <button 
+          onClick={onResolve}
+          className="w-full bg-teal-600 text-white px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-teal-700 transition-all border-b-4 border-teal-800 active:border-b-0 active:translate-y-1 shadow-lg shadow-teal-500/20"
+        >
+          Restore Fullscreen
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function SplitScreenBlocker({ onResolve }) {
   return (
-    <div className="fixed inset-0 z-[110] bg-slate-900 flex items-center justify-center p-6 text-center">
+    <div className="fixed inset-0 z-[160] bg-slate-900 flex items-center justify-center p-6 text-center backdrop-blur-md">
       <div className="max-w-sm animate-fade-in">
         <div className="h-20 w-20 bg-rose-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-rose-500/20">
           <i className="fa-solid fa-layer-group text-3xl text-rose-500 animate-pulse"></i>
@@ -123,16 +129,45 @@ export default function ExamEngine({ showToast }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasAgreed, setHasAgreed] = useState(location.state?.agreed || false);
   const [isSplitScreen, setIsSplitScreen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(true); // Initial guess
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
 
-  const [timeLeft, setTimeLeft] = useState(30 * 60); // Default 30 Minutes
-  const [warnings, setWarnings] = useState(0); // 🌟 Anti-cheating state
+  const [timeLeft, setTimeLeft] = useState(30 * 60); 
+  const [warnings, setWarnings] = useState(0); 
   
-  // 🌟 FIX: Prevent showing "already submitted" toast immediately after submission
   const isInitialLoad = React.useRef(true);
 
   const showAlert = (message, onConfirm = null) => setModalConfig({ isOpen: true, type: 'alert', message, onConfirm });
   const showConfirm = (message, onConfirm) => setModalConfig({ isOpen: true, type: 'confirm', message, onConfirm });
+
+  // 1. Fullscreen Monitoring
+  useEffect(() => {
+    const checkFS = () => {
+      const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+      setIsFullscreen(isFS);
+      
+      if (!isFS && hasAgreed && !isSubmitting) {
+        setWarnings(prev => {
+          const newWarnings = prev + 1;
+          return newWarnings;
+        });
+      }
+    };
+    
+    // Check on mount
+    const initialFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+    setIsFullscreen(initialFS);
+
+    document.addEventListener('fullscreenchange', checkFS);
+    document.addEventListener('webkitfullscreenchange', checkFS);
+    document.addEventListener('msfullscreenchange', checkFS);
+    
+    return () => {
+      document.removeEventListener('fullscreenchange', checkFS);
+      document.removeEventListener('webkitfullscreenchange', checkFS);
+      document.removeEventListener('msfullscreenchange', checkFS);
+    };
+  }, [hasAgreed, isSubmitting]);
 
   const calculateTimeLeft = (endDateStr, endTimeStr) => {
     if (!endDateStr || !endTimeStr) return 30 * 60;
@@ -177,7 +212,6 @@ export default function ExamEngine({ showToast }) {
   useEffect(() => {
     const fetchExamAndVerify = async () => {
       try {
-        // 🌟 SECURITY CHECK - Kya user ne exam de diya hai?
         if (userId && isInitialLoad.current) {
           const pastResults = await getUserExamResults(userId);
           const alreadyTaken = pastResults.find(r => r.examId === examId);
@@ -191,7 +225,6 @@ export default function ExamEngine({ showToast }) {
         
         isInitialLoad.current = false;
 
-        // 🌟 Skip fetching if data is prefetched, otherwise load it
         if (!exam) {
           const examData = await getExamById(examId);
           if (examData) {
@@ -210,13 +243,11 @@ export default function ExamEngine({ showToast }) {
             navigate('/exam'); 
           }
         } else if (Object.keys(answers).length === 0) {
-          // If prefetched, still need to init answers
           let initialAnswers = {};
           exam.questions.forEach(q => { initialAnswers[q.id] = []; });
           setAnswers(initialAnswers);
         }
         
-        // Timer check
         if (exam) {
           const initialTime = calculateTimeLeft(exam.endDate, exam.endTime);
           if (initialTime <= 0) {
@@ -236,7 +267,7 @@ export default function ExamEngine({ showToast }) {
     fetchExamAndVerify();
   }, [examId, userId, navigate, exam]);
 
-  // 🌟 NAYA: Auto-Submit Timer & Anti-Cheating Execution
+  // 🌟 Auto-Submit Timer & Anti-Cheating Execution
   useEffect(() => {
     if (!exam || isSubmitting) return;
 
@@ -246,8 +277,8 @@ export default function ExamEngine({ showToast }) {
       return;
     }
 
-    if (warnings >= 2) {
-      if (showToast) showToast("🚨 Multiple tab switches detected. Auto-submitting exam.", false);
+    if (warnings >= 3) { // Increased to 3 to be more forgiving with fullscreen toggles
+      if (showToast) showToast("🚨 Multiple security violations detected. Auto-submitting exam.", false);
       executeSubmit();
       return;
     }
@@ -259,16 +290,16 @@ export default function ExamEngine({ showToast }) {
     return () => clearInterval(timerId);
   }, [timeLeft, exam, isSubmitting, warnings]);
 
-  // 🌟 NAYA: Tab Switching Detection
+  // 🌟 Tab Switching Detection
   useEffect(() => {
-    if (!exam || isSubmitting || warnings >= 2) return;
+    if (!exam || isSubmitting || warnings >= 3) return;
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
         setWarnings(prev => {
           const newWarnings = prev + 1;
-          if (newWarnings < 2) {
-            showAlert(`🚨 Anti-Cheating Warning: Tab switching or minimizing is not allowed. Warning ${newWarnings}/2. Next time, your exam will be automatically submitted.`);
+          if (newWarnings < 3) {
+            showAlert(`🚨 Anti-Cheating Warning: Tab switching or minimizing is not allowed. Warning ${newWarnings}/3. Your exam will be auto-submitted on the next violation.`);
           }
           return newWarnings;
         });
@@ -279,32 +310,21 @@ export default function ExamEngine({ showToast }) {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [exam, isSubmitting, warnings]);
 
-  // 🌟 NAYA: Split-Screen / Resize Detection (Mobile)
+  // 🌟 Split-Screen / Resize Detection (Mobile)
   useEffect(() => {
-    if (!exam || isSubmitting || warnings >= 2) return;
+    if (!exam || isSubmitting || warnings >= 3) return;
 
-    // Record initial height
     const initialHeight = window.innerHeight;
 
     const handleResize = () => {
       const currentHeight = window.innerHeight;
-      // If height decreases by more than 30% (indicates split screen)
       if (currentHeight < initialHeight * 0.7) {
         setIsSplitScreen(true);
-        setWarnings(prev => {
-          if (prev >= 2) return prev;
-          const newWarnings = prev + 1;
-          if (newWarnings < 2) {
-            showAlert(`🚨 Anti-Cheating Warning: Split-screen or significant window resizing is not allowed. Warning ${newWarnings}/2.`);
-          }
-          return newWarnings;
-        });
       } else {
         setIsSplitScreen(false);
       }
     };
 
-    // Use a small timeout to avoid rapid firing
     let resizeTimer;
     const debouncedResize = () => {
       clearTimeout(resizeTimer);
@@ -346,17 +366,14 @@ export default function ExamEngine({ showToast }) {
    let maxScore = 0;
 
    exam.questions.forEach((q) => {
-     const selected = answers[q.id] || []; // User ne jo chuna
-     const correct = q.correctOptionIds || []; // Asli sahi jawab (Array)
+     const selected = answers[q.id] || []; 
+     const correct = q.correctOptionIds || []; 
 
-     // 🌟 1. DYNAMIC MAX SCORE CALCULATION
      maxScore += correct.length;
 
      if (selected.length === 0) {
-       // 🌟 2. UNANSWERED PENALTY
        totalScore -= 1;
      } else {
-       // 🌟 3. ACCURACY CHECKING
        let questionPenalty = 0;
        let questionGain = 0;
 
@@ -368,7 +385,6 @@ export default function ExamEngine({ showToast }) {
          }
        });
 
-       // 🌟 4. MISSING CORRECT ANSWERS PENALTY
        let missingCorrect = 0;
        correct.forEach((correctId) => {
          if (!selected.includes(correctId)) {
@@ -376,7 +392,6 @@ export default function ExamEngine({ showToast }) {
          }
        });
 
-       // Final calculation for this question
        totalScore += (questionGain - (questionPenalty + missingCorrect));
      }
    });
@@ -404,11 +419,10 @@ export default function ExamEngine({ showToast }) {
         examTitle: exam.title,
         totalScore: totalScore,
         maxScore: maxScore,
-        answers // 🌟 Zaroori: DB me answers save ho rahe hain
+        answers 
       });
 
       if(showToast) showToast("✅ Your assessment is submitted. Results will be visible once admin releases them.");
-      
       navigate('/exam');
 
     } catch (error) {
@@ -425,7 +439,6 @@ export default function ExamEngine({ showToast }) {
   );
 
   if (!hasAgreed) {
-    // 🌟 If reached directly, still show agreement, but normally it's skipped
     return (
       <ExamAgreement 
         exam={exam} 
@@ -438,6 +451,9 @@ export default function ExamEngine({ showToast }) {
     );
   }
 
+  // Determine if fullscreen is supported on this browser
+  const isFullscreenSupported = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen || document.documentElement.msRequestFullscreen);
+
   return (
     <div 
       className="w-full min-h-screen bg-slate-50 pb-28 md:py-10 sm:px-6 lg:px-8 relative select-none"
@@ -445,19 +461,15 @@ export default function ExamEngine({ showToast }) {
       onCopy={(e) => { e.preventDefault(); if (showToast) showToast("⚠️ Copying text is disabled."); }}
       onPaste={(e) => { e.preventDefault(); if (showToast) showToast("⚠️ Pasting is disabled."); }}
     >
+      {/* SECURITY OVERLAYS */}
       {isSplitScreen && <SplitScreenBlocker onResolve={enterFullscreen} />}
-      <FullscreenListener onExit={() => {
-        setWarnings(prev => {
-          const newWarnings = prev + 1;
-          if (newWarnings < 2) {
-            showAlert(
-              `🚨 Security Warning: Fullscreen mode was exited. Please stay in fullscreen to avoid disqualification. Warning ${newWarnings}/2.`,
-              enterFullscreen
-            );
-          }
-          return newWarnings;
-        });
-      }} />
+      {!isFullscreen && isFullscreenSupported && (
+        <FullscreenBlocker 
+          onResolve={enterFullscreen} 
+          warnings={warnings}
+        />
+      )}
+      
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
 
       {/* 🌟 STICKY TIMER FOR MOBILE */}

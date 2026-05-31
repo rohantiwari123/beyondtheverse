@@ -15,7 +15,7 @@
           var a = l.search.slice(3).split('&')[0].replace(/~and~/g, '&');
           window.history.replaceState(null, null,
               l.pathname.slice(0, -1) + a +
-              (l.search.slice(a.length + 3) ? '&' + l.search.slice(a.length + 3) : '') +
+              (l.search.slice(a.length + 3) ? '?' + l.search.slice(a.length + 3).replace(/~and~/g, '&') : '') +
               l.hash
           );
         }

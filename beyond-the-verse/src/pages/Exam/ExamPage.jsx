@@ -56,7 +56,10 @@ const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmi
 
   // 1. COMPLETED: High contrast bold mono text
   if (userResult) {
-    if (!resultsReleased && !isAdmin) {
+    // 🌟 DOUBLE LOCK: Global status AND specific exam status must be released
+    const isActuallyReleased = resultsReleased && exam.isResultPublished;
+
+    if (!isActuallyReleased && !isAdmin) {
       return {
         type: 'PENDING',
         label: 'Pending',
@@ -133,17 +136,112 @@ const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmi
 export default function ExamPage({ showToast }) {
   const { userId, isAdmin, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  
+
   const [exams, setExams] = useState([]);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resultsReleased, setResultsReleased] = useState(false);
-  const [now, setNow] = useState(nowDate);
-  const [selectedExam, setSelectedExam] = useState(null); // For Agreement Modal
-  const [fullExamData, setFullExamData] = useState(null); // Prefetched data
-  
+  const [now, setNow] = useState(new Date());
+  const [globalAgreed, setGlobalAgreed] = useState(false); // 🌟 New State for Checkbox
+  const [lang, setLang] = useState('en'); // 🌟 New State for Language ('en' or 'hi')
+  const [fullExamDataMap, setFullExamDataMap] = useState({}); // Store prefetched data by ID
+
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
   const showConfirm = (message, onConfirm) => setModalConfig({ isOpen: true, type: 'confirm', message, onConfirm });
+
+  // 🌟 TRANSLATION CONTENT
+  const protocolContent = {
+    en: {
+      title: "Assessment Protocol & Rules",
+      switch: "हिन्दी में पढ़ें",
+      sections: [
+        {
+          title: "Exam Pattern",
+          icon: "fa-solid fa-list-check",
+          items: [
+            { icon: "fa-solid fa-clipboard-question", text: "Total 50 MCQ questions." },
+            { icon: "fa-solid fa-check-double", text: "4 options per question with only 1 correct answer." },
+            { icon: "fa-solid fa-shuffle", text: "Questions and options are randomized for each student." }
+          ]
+        },
+        {
+          title: "Marking Scheme",
+          icon: "fa-solid fa-calculator",
+          items: [
+            { icon: "fa-solid fa-circle-check", label: "Correct Answer", value: "+1 Mark", color: "text-teal-600" },
+            { icon: "fa-solid fa-circle-xmark", label: "Wrong Answer", value: "-1 Mark (Penalty)", color: "text-rose-600" },
+            { icon: "fa-solid fa-circle-minus", label: "Unattempted", value: "-1 Mark (Penalty)", color: "text-amber-600" }
+          ]
+        },
+        {
+          title: "Technical Security",
+          icon: "fa-solid fa-shield-halved",
+          items: [
+            { icon: "fa-solid fa-expand", text: "Fullscreen mode is mandatory." },
+            { icon: "fa-solid fa-window-restore", text: "Tab switching / Minimizing is prohibited." },
+            { icon: "fa-solid fa-ban", text: "Right-click, Copy, & Paste are disabled." }
+          ]
+        },
+        {
+          title: "Disqualification",
+          icon: "fa-solid fa-gavel",
+          items: [
+            { icon: "fa-solid fa-triangle-exclamation", text: "3 Warnings will lead to auto-submission.", color: "text-rose-600" },
+            { icon: "fa-solid fa-code", text: "Opening DevTools will terminate session.", color: "text-rose-600" }
+          ]
+        }
+      ],
+      checkbox: "I have read and understood all the protocols. I agree to maintain assessment integrity and abide by these rules.",
+      noteTitle: "Final Note",
+      noteText: "The system will auto-submit responses when the timer ends. Results are pending until released by Admin."
+    },
+    hi: {
+      title: "परीक्षा प्रोटोकॉल और नियम",
+      switch: "Read in English",
+      sections: [
+        {
+          title: "परीक्षा का प्रारूप",
+          icon: "fa-solid fa-list-check",
+          items: [
+            { icon: "fa-solid fa-clipboard-question", text: "कुल 50 बहुविकल्पीय (MCQ) प्रश्न।" },
+            { icon: "fa-solid fa-check-double", text: "प्रत्येक प्रश्न के 4 विकल्प हैं और केवल 1 सही उत्तर है।" },
+            { icon: "fa-solid fa-shuffle", text: "प्रश्न और विकल्प प्रत्येक छात्र के लिए रैंडम (Random) होंगे।" }
+          ]
+        },
+        {
+          title: "अंक योजना",
+          icon: "fa-solid fa-calculator",
+          items: [
+            { icon: "fa-solid fa-circle-check", label: "सही उत्तर", value: "+1 अंक", color: "text-teal-600" },
+            { icon: "fa-solid fa-circle-xmark", label: "गलत उत्तर", value: "-1 अंक (Penalty)", color: "text-rose-600" },
+            { icon: "fa-solid fa-circle-minus", label: "अनुत्तरित प्रश्न", value: "-1 अंक (Penalty)", color: "text-amber-600" }
+          ]
+        },
+        {
+          title: "तकनीकी सुरक्षा",
+          icon: "fa-solid fa-shield-halved",
+          items: [
+            { icon: "fa-solid fa-expand", text: "फुलस्क्रीन मोड अनिवार्य है।" },
+            { icon: "fa-solid fa-window-restore", text: "टैब स्विचिंग / मिनिमाइज करना वर्जित है।" },
+            { icon: "fa-solid fa-ban", text: "राइट-क्लिक, कॉपी और पेस्ट डिसेबल हैं।" }
+          ]
+        },
+        {
+          title: "अयोग्यता",
+          icon: "fa-solid fa-gavel",
+          items: [
+            { icon: "fa-solid fa-triangle-exclamation", text: "3 चेतावनियों के बाद परीक्षा अपने आप सबमिट हो जाएगी।", color: "text-rose-600" },
+            { icon: "fa-solid fa-code", text: "DevTools खोलने पर सत्र समाप्त हो जाएगा।", color: "text-rose-600" }
+          ]
+        }
+      ],
+      checkbox: "मैंने सभी प्रोटोकॉल पढ़ और समझ लिए हैं। मैं परीक्षा की सत्यनिष्ठा बनाए रखने और इन नियमों का पालन करने के लिए सहमत हूँ।",
+      noteTitle: "अंतिम सूचना",
+      noteText: "समय समाप्त होने पर सिस्टम उत्तर सबमिट कर देगा। परिणाम एडमिन द्वारा जारी किए जाने तक लंबित रहेंगे।"
+    }
+  };
+
+  const t = protocolContent[lang];
 
   // 1 Second Ticker
   useEffect(() => {
@@ -165,6 +263,21 @@ export default function ExamPage({ showToast }) {
           const resultsData = await getUserExamResults(userId);
           setResults(resultsData);
         }
+
+        // Prefetch all active exam data
+        const activeExams = filteredExams.filter(e => {
+            const start = new Date(`${e.date} ${e.time}`);
+            const end = new Date(start.getTime() + 30 * 60000);
+            return new Date() >= start && new Date() <= end;
+        });
+
+        const dataMap = {};
+        await Promise.all(activeExams.map(async (e) => {
+            const data = await getExamById(e.id);
+            dataMap[e.id] = data;
+        }));
+        setFullExamDataMap(dataMap);
+
       } catch (error) {
         console.error(error);
       } finally {
@@ -173,20 +286,6 @@ export default function ExamPage({ showToast }) {
     };
     fetchData();
   }, [userId]);
-
-  useEffect(() => {
-    const prefetch = async () => {
-      if (selectedExam) {
-        try {
-          const data = await getExamById(selectedExam.id);
-          setFullExamData(data);
-        } catch (e) { console.error(e); }
-      } else {
-        setFullExamData(null);
-      }
-    };
-    prefetch();
-  }, [selectedExam]);
 
   const handleDeleteExam = (examId, examTitle) => {
     showConfirm(`This will permanently delete "${examTitle}". You cannot undo this.`, async () => {
@@ -198,22 +297,16 @@ export default function ExamPage({ showToast }) {
     });
   };
 
+  const enterFullscreen = () => {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) elem.requestFullscreen();
+    else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+    else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+  };
+
   return (
     <div className="w-full min-h-screen bg-zinc-50 pb-24 pt-4 sm:pt-10 selection:bg-zinc-200 selection:text-zinc-900 font-sans relative transition-colors duration-300">
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
-      
-      {selectedExam && (
-        <ExamAgreement 
-          exam={selectedExam} 
-          onAccept={() => navigate(`/exam/engine/${selectedExam.id}`, { 
-            state: { 
-              prefetchedExam: fullExamData, 
-              agreed: true 
-            } 
-          })}
-          onCancel={() => setSelectedExam(null)}
-        />
-      )}
 
       {!isAuthenticated && (
         <LoginOverlay 
@@ -226,7 +319,7 @@ export default function ExamPage({ showToast }) {
       {/* Main Wrapper */}
       <div className={`w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in transition-all duration-300 ${!isAuthenticated ? "pointer-events-none opacity-30 select-none" : ""}`}>
         <div className="w-full max-w-3xl mx-auto">
-        
+
         {/* HEADER */}
         <div className="px-4 sm:px-0 mb-6 sm:mb-8">
           <div className="mb-4 sm:mb-6"><BackButton label="Back" /></div>
@@ -234,26 +327,83 @@ export default function ExamPage({ showToast }) {
           <p className="text-[13px] sm:text-sm font-medium text-zinc-500 transition-colors">Manage your schedules and track your performance.</p>
         </div>
 
-        {/* RULES BANNER */}
-        <div className="mx-4 sm:mx-0 mb-6 sm:mb-8 bg-zinc-100 text-zinc-600 p-5 sm:p-6 rounded-2xl border border-zinc-200 transition-colors">
-          <div className="flex items-center gap-3 mb-3 text-zinc-800">
-            <i className="fa-solid fa-scale-balanced text-lg text-teal-600"></i>
-            <h3 className="text-base sm:text-lg font-bold tracking-tight">Assessment Rules & Marking Scheme</h3>
+        {/* 🌟 CLEAN & NORMAL RULES SECTION */}
+        <div className="mx-4 sm:mx-0 mb-8 sm:mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3 text-slate-900">
+              <i className="fa-solid fa-scale-balanced text-xl text-teal-600"></i>
+              <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${lang === 'hi' ? 'font-hindi' : ''}`}>
+                {t.title}
+              </h2>
+            </div>
+            <button 
+              onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm"
+            >
+              <i className="fa-solid fa-language text-teal-600"></i>
+              <span className={`text-xs font-bold uppercase tracking-wide text-slate-700 ${lang === 'hi' ? 'font-hindi text-sm' : ''}`}>
+                {t.switch}
+              </span>
+            </button>
           </div>
-          <ul className="space-y-2.5 text-[13px] sm:text-sm font-medium leading-relaxed">
-            <li className="flex items-start gap-2.5 transition-colors">
-              <span className="text-teal-600 mt-0.5"><i className="fa-solid fa-circle-check text-[10px]"></i></span>
-              <span><strong className="text-teal-700 font-bold">+1 Mark</strong> for every correct option you select.</span>
-            </li>
-            <li className="flex items-start gap-2.5 transition-colors">
-              <span className="text-rose-500 mt-0.5"><i className="fa-solid fa-circle-xmark text-[10px]"></i></span>
-              <span><strong className="text-rose-600 font-bold">-1 Mark (Penalty)</strong> for selecting an incorrect option or missing a correct option.</span>
-            </li>
-            <li className="flex items-start gap-2.5 transition-colors">
-              <span className="text-amber-500 mt-0.5"><i className="fa-solid fa-triangle-exclamation text-[10px]"></i></span>
-              <span><strong className="text-amber-600 font-bold">-1 Mark (Penalty)</strong> if a question is left completely unattempted (blank).</span>
-            </li>
-          </ul>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             {t.sections.map((section, sIdx) => (
+                <div key={sIdx} className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-teal-300 transition-colors">
+                  <div className="flex items-center gap-3 mb-5 border-b border-slate-50 pb-3">
+                    <i className={`${section.icon} text-teal-600 text-base`}></i>
+                    <h4 className={`font-bold text-slate-800 ${lang === 'hi' ? 'font-hindi text-lg' : 'text-xs uppercase tracking-widest'}`}>
+                      {section.title}
+                    </h4>
+                  </div>
+
+                  <ul className="space-y-3">
+                    {section.items.map((item, iIdx) => (
+                      <li key={iIdx} className="flex items-start gap-3">
+                        <i className={`${item.icon} mt-1 text-[12px] ${item.color || 'text-slate-400'}`}></i>
+                        <div className={`flex flex-col ${lang === 'hi' ? 'font-hindi leading-relaxed' : ''}`}>
+                          {item.label && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                              {item.label}
+                            </span>
+                          )}
+                          <span className={`text-[13px] sm:text-sm font-semibold ${item.color || 'text-slate-700'}`}>
+                            {item.value || item.text}
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+             ))}
+          </div>
+
+          <div className="mt-6 bg-teal-50/50 border border-teal-100 rounded-2xl p-6 sm:p-8">
+             <div className="flex flex-col gap-6">
+                <label className="flex items-start gap-4 cursor-pointer group">
+                  <div className="relative flex items-center justify-center mt-1 shrink-0">
+                    <input 
+                      type="checkbox" 
+                      checked={globalAgreed} 
+                      onChange={(e) => setGlobalAgreed(e.target.checked)}
+                      className="peer h-6 w-6 appearance-none rounded-lg border-2 border-slate-300 bg-white checked:bg-teal-600 checked:border-teal-600 transition-all cursor-pointer"
+                    />
+                    <i className="fa-solid fa-check absolute text-white text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+                  </div>
+                  <p className={`text-sm sm:text-[15px] font-bold text-slate-600 group-hover:text-slate-900 transition-colors leading-relaxed ${lang === 'hi' ? 'font-hindi text-lg' : ''}`}>
+                    {t.checkbox}
+                  </p>
+                </label>
+
+                <div className="flex items-center gap-3 pt-4 border-t border-teal-100/50">
+                  <i className="fa-solid fa-circle-info text-teal-600"></i>
+                  <p className={`text-xs font-bold text-slate-500 ${lang === 'hi' ? 'font-hindi text-sm' : ''}`}>
+                    <span className="text-teal-700 uppercase tracking-widest mr-2">{t.noteTitle}:</span>
+                    {t.noteText}
+                  </p>
+                </div>
+             </div>
+          </div>
         </div>
 
         {/* 🌟 SINGLE LIST CONTAINER */}
@@ -269,7 +419,7 @@ export default function ExamPage({ showToast }) {
              </div>
           ) : (
             <div className="bg-white border-y sm:border border-zinc-200 sm:rounded-2xl flex flex-col shadow-sm transition-colors">
-              
+
               {/* TABLE LIST */}
               <div className="divide-y divide-zinc-100">
                 {exams.map((exam) => {
@@ -278,10 +428,10 @@ export default function ExamPage({ showToast }) {
 
                   return (
                     <div key={exam.id} className="flex items-center justify-between py-5 px-4 sm:px-8 hover:bg-zinc-50/80 transition-all duration-200 group">
-                      
+
                       {/* LEFT: INFO */}
                       <div className="flex flex-col justify-center pr-4 overflow-hidden">
-                        
+
                         {/* Category & Delete */}
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest truncate">
@@ -298,12 +448,12 @@ export default function ExamPage({ showToast }) {
                             </button>
                           )}
                         </div>
-                        
+
                         {/* Title */}
                         <h3 className="text-[15px] sm:text-base font-bold text-zinc-900 leading-snug truncate tracking-tight transition-colors">
                           {exam.title}
                         </h3>
-                        
+
                         {/* Date & Time */}
                         <div className="text-[11px] sm:text-xs font-medium text-zinc-500 mt-1 truncate transition-colors">
                           {exam.date} <span className="mx-1.5 opacity-40">•</span> {exam.time}
@@ -313,9 +463,9 @@ export default function ExamPage({ showToast }) {
 
                       {/* RIGHT: EXACT STATUS / ACTION BOX */}
                       <div className="shrink-0 flex justify-end gap-2">
-                        
+
                         {/* COMPLETED: Show Results Button / Locked Notice */}
-                                {statusBox.type === 'COMPLETED' || statusBox.type === 'PENDING' ? (
+                        {statusBox.type === 'COMPLETED' || statusBox.type === 'PENDING' ? (
                           <>
                             <div className={`flex items-center justify-center h-8 sm:h-9 px-3 sm:px-4 rounded-lg transition-colors ${statusBox.color}`}>
                               {statusBox.label}
@@ -338,8 +488,21 @@ export default function ExamPage({ showToast }) {
                           /* ACTIVE BUTTON (Clickable) */
                           statusBox.type === 'ACTIVE' ? (
                             <button 
-                              onClick={() => setSelectedExam(exam)} 
-                              className={`flex items-center justify-center h-8 sm:h-9 px-4 sm:px-5 rounded-lg active:scale-95 transition-all shadow-lg ${statusBox.color === 'bg-zinc-900 text-white hover:bg-zinc-800 transition-colors duration-200 font-semibold text-[11px] sm:text-xs' ? 'bg-zinc-900 text-white shadow-teal-500/10' : statusBox.color}`}
+                              onClick={() => {
+                                if (!globalAgreed) {
+                                    showToast("Please agree to the assessment protocols first.", false);
+                                    return;
+                                }
+                                enterFullscreen();
+                                navigate(`/exam/engine/${exam.id}`, { 
+                                    state: { 
+                                        prefetchedExam: fullExamDataMap[exam.id], 
+                                        agreed: true 
+                                    } 
+                                });
+                              }} 
+                              disabled={!globalAgreed}
+                              className={`flex items-center justify-center h-8 sm:h-9 px-4 sm:px-5 rounded-lg active:scale-95 transition-all shadow-lg ${!globalAgreed ? 'opacity-30 cursor-not-allowed bg-zinc-200 text-zinc-400' : 'bg-zinc-900 text-white hover:bg-zinc-800'}`}
                             >
                               {statusBox.label}
                             </button>

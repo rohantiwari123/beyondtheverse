@@ -40,7 +40,11 @@ export default function ExamResult({ showToast }) {
         }
 
         setExam(examData);
-        if (!resultsReleasedStatus && !isAdmin) {
+
+        // 🌟 DOUBLE LOCK CHECK: Both Global and Specific Exam status must be true
+        const isActuallyReleased = resultsReleasedStatus && examData.isResultPublished;
+
+        if (!isActuallyReleased && !isAdmin) {
           setIsBlocked(true);
           setUserResult(null);
         } else {
