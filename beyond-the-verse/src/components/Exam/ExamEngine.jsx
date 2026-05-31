@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 // 🌟 MERA UPDATE 1: Yahan getUserExamResults ko import kiya hai
 import { getExamById, submitExamResult, getUserExamResults } from '../../services/firebaseServices';
@@ -115,12 +115,13 @@ function SplitScreenBlocker({ onResolve }) {
 export default function ExamEngine({ showToast }) {
   const { examId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { userId, userName, userUsername } = useAuth();
   
-  const [exam, setExam] = useState(null);
+  const [exam, setExam] = useState(location.state?.prefetchedExam || null);
   const [answers, setAnswers] = useState({}); 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasAgreed, setHasAgreed] = useState(false);
+  const [hasAgreed, setHasAgreed] = useState(location.state?.agreed || false);
   const [isSplitScreen, setIsSplitScreen] = useState(false);
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
 
@@ -176,55 +177,64 @@ export default function ExamEngine({ showToast }) {
   useEffect(() => {
     const fetchExamAndVerify = async () => {
       try {
-        // 🌟 MERA UPDATE 2: SECURITY CHECK - Kya user ne exam de diya hai? (Only on initial load)
+        // 🌟 SECURITY CHECK - Kya user ne exam de diya hai?
         if (userId && isInitialLoad.current) {
           const pastResults = await getUserExamResults(userId);
           const alreadyTaken = pastResults.find(r => r.examId === examId);
           
           if (alreadyTaken) {
-            if (showToast) showToast("You have already completed this evaluation. Multiple attempts are restricted.", false);
-            navigate('/exam'); // Bahar fek do!
+            if (showToast) showToast("You have already completed this evaluation.", false);
+            navigate('/exam');
             return;
           }
         }
         
         isInitialLoad.current = false;
 
-        // 🌟 Agar nahi diya hai, tabhi paper load karo
-        const examData = await getExamById(examId);
-        if (examData) {
-          // 🌟 SHUFFLING LOGIC: Shuffle Questions AND their internal options
-          const shuffledQuestions = shuffleArray(examData.questions).map(q => ({
-            ...q,
-            options: shuffleArray(q.options)
-          }));
-
-          const finalizedExam = { ...examData, questions: shuffledQuestions };
-          setExam(finalizedExam);
-          
+        // 🌟 Skip fetching if data is prefetched, otherwise load it
+        if (!exam) {
+          const examData = await getExamById(examId);
+          if (examData) {
+            const shuffledQuestions = shuffleArray(examData.questions).map(q => ({
+              ...q,
+              options: shuffleArray(q.options)
+            }));
+            const finalizedExam = { ...examData, questions: shuffledQuestions };
+            setExam(finalizedExam);
+            
+            let initialAnswers = {};
+            finalizedExam.questions.forEach(q => { initialAnswers[q.id] = []; });
+            setAnswers(initialAnswers);
+          } else {
+            showToast("Assessment module unavailable.", false);
+            navigate('/exam'); 
+          }
+        } else if (Object.keys(answers).length === 0) {
+          // If prefetched, still need to init answers
           let initialAnswers = {};
-          finalizedExam.questions.forEach(q => { initialAnswers[q.id] = []; });
+          exam.questions.forEach(q => { initialAnswers[q.id] = []; });
           setAnswers(initialAnswers);
-          
-          const initialTime = calculateTimeLeft(examData.endDate, examData.endTime);
+        }
+        
+        // Timer check
+        if (exam) {
+          const initialTime = calculateTimeLeft(exam.endDate, exam.endTime);
           if (initialTime <= 0) {
-            if (showToast) showToast("This assessment's deadline has passed. You can no longer attempt it.", false);
+            if (showToast) showToast("Assessment deadline has passed.", false);
             navigate('/exam');
             return;
           }
           setTimeLeft(initialTime);
-        } else {
-          showToast("Assessment module unavailable.", false);
-          navigate('/exam'); 
         }
+
       } catch (error) {
-        showToast("Failed to initialize the assessment. Please retry.", false);
+        showToast("Initialization failed.", false);
         navigate('/exam');
       }
     };
     
     fetchExamAndVerify();
-  }, [examId, userId, navigate]);
+  }, [examId, userId, navigate, exam]);
 
   // 🌟 NAYA: Auto-Submit Timer & Anti-Cheating Execution
   useEffect(() => {
@@ -415,6 +425,7 @@ export default function ExamEngine({ showToast }) {
   );
 
   if (!hasAgreed) {
+    // 🌟 If reached directly, still show agreement, but normally it's skipped
     return (
       <ExamAgreement 
         exam={exam} 

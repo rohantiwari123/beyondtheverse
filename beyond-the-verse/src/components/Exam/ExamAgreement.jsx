@@ -29,6 +29,7 @@ const ExamAgreement = ({ onAccept, onCancel, exam }) => {
             { label: "Total Questions", value: `${questionCount} (MCQ)`, icon: "fa-solid fa-clipboard-question" },
             { label: "Passing Marks", value: `70% (${passingScore}/${questionCount})`, icon: "fa-solid fa-award" },
             { label: "Duration", value: "2 Hours", icon: "fa-solid fa-hourglass-half" },
+            { label: "Shuffling", value: "Questions & options are randomized", icon: "fa-solid fa-shuffle", color: "text-indigo-600" },
           ]
         },
         {
@@ -41,12 +42,21 @@ const ExamAgreement = ({ onAccept, onCancel, exam }) => {
           ]
         },
         {
-          title: "Exam Rules",
+          title: "Technical Security",
+          icon: "fa-solid fa-shield-halved",
+          items: [
+            { text: "Fullscreen mode is mandatory.", icon: "fa-solid fa-expand" },
+            { text: "Tab switching / Minimizing is prohibited.", icon: "fa-solid fa-window-restore" },
+            { text: "Split-screen / Multi-window is blocked.", icon: "fa-solid fa-layer-group" },
+            { text: "Right-click, Copy, & Paste are disabled.", icon: "fa-solid fa-ban" },
+          ]
+        },
+        {
+          title: "Disqualification",
           icon: "fa-solid fa-gavel",
           items: [
-            { text: "Split screen will immediately disqualify you.", icon: "fa-solid fa-window-restore" },
-            { text: "Opening a new tab will immediately disqualify you.", icon: "fa-solid fa-plus" },
-            { text: "Questions and options cannot be copied.", icon: "fa-solid fa-copy" },
+            { text: "2 Warnings will lead to auto-submission.", icon: "fa-solid fa-triangle-exclamation" },
+            { text: "Opening DevTools will terminate session.", icon: "fa-solid fa-code" },
             { text: "Any form of malpractice is strictly prohibited.", icon: "fa-solid fa-shield-virus" },
           ]
         }
@@ -77,6 +87,7 @@ const ExamAgreement = ({ onAccept, onCancel, exam }) => {
             { label: "कुल प्रश्न", value: `${questionCount} (MCQ)`, icon: "fa-solid fa-clipboard-question" },
             { label: "उत्तीर्ण अंक", value: `70% (${passingScore}/${questionCount})`, icon: "fa-solid fa-award" },
             { label: "अवधि", value: "2 घंटे", icon: "fa-solid fa-hourglass-half" },
+            { label: "शफलिंग", value: "प्रश्न और विकल्प रैंडम होंगे", icon: "fa-solid fa-shuffle", color: "text-indigo-600" },
           ]
         },
         {
@@ -89,12 +100,21 @@ const ExamAgreement = ({ onAccept, onCancel, exam }) => {
           ]
         },
         {
-          title: "परीक्षा के नियम",
+          title: "तकनीकी सुरक्षा",
+          icon: "fa-solid fa-shield-halved",
+          items: [
+            { text: "फुलस्क्रीन मोड अनिवार्य है।", icon: "fa-solid fa-expand" },
+            { text: "टैब स्विचिंग / मिनिमाइज करना वर्जित है।", icon: "fa-solid fa-window-restore" },
+            { text: "स्प्लिट-स्क्रीन मोड ब्लॉक कर दिया गया है।", icon: "fa-solid fa-layer-group" },
+            { text: "राइट-क्लिक, कॉपी और पेस्ट डिसेबल हैं।", icon: "fa-solid fa-ban" },
+          ]
+        },
+        {
+          title: "अयोग्यता (Disqualification)",
           icon: "fa-solid fa-gavel",
           items: [
-            { text: "स्प्लिट स्क्रीन आपको तुरंत अयोग्य घोषित कर देगी।", icon: "fa-solid fa-window-restore" },
-            { text: "नया टैब खोलने पर आपको तुरंत अयोग्य घोषित कर दिया जाएगा।", icon: "fa-solid fa-plus" },
-            { text: "प्रश्न और विकल्प कॉपी नहीं किए जा सकते।", icon: "fa-solid fa-copy" },
+            { text: "2 चेतावनियों के बाद ऑटो-सबमिशन होगा।", icon: "fa-solid fa-triangle-exclamation" },
+            { text: "DevTools खोलने पर सत्र समाप्त हो जाएगा।", icon: "fa-solid fa-code" },
             { text: "किसी भी प्रकार का कदाचार सख्त वर्जित है।", icon: "fa-solid fa-shield-virus" },
           ]
         }

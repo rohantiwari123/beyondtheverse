@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 import { useAuth } from '../../context/AuthContext';
-import { getAllExams, getUserExamResults, deleteExam, getResultsReleaseStatus } from '../../services/firebaseServices'; 
+import { getAllExams, getUserExamResults, deleteExam, getResultsReleaseStatus, getExamById } from '../../services/firebaseServices'; 
 import BackButton from '../../components/common/BackButton';
 import LoginOverlay from '../../components/common/LoginOverlay';
+import ExamAgreement from '../../components/Exam/ExamAgreement';
 
 // ==========================================
 // 🌟 CUSTOM MODAL (Ultra Flat & Minimal)
@@ -137,7 +138,9 @@ export default function ExamPage({ showToast }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resultsReleased, setResultsReleased] = useState(false);
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState(nowDate);
+  const [selectedExam, setSelectedExam] = useState(null); // For Agreement Modal
+  const [fullExamData, setFullExamData] = useState(null); // Prefetched data
   
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
   const showConfirm = (message, onConfirm) => setModalConfig({ isOpen: true, type: 'confirm', message, onConfirm });
@@ -171,6 +174,20 @@ export default function ExamPage({ showToast }) {
     fetchData();
   }, [userId]);
 
+  useEffect(() => {
+    const prefetch = async () => {
+      if (selectedExam) {
+        try {
+          const data = await getExamById(selectedExam.id);
+          setFullExamData(data);
+        } catch (e) { console.error(e); }
+      } else {
+        setFullExamData(null);
+      }
+    };
+    prefetch();
+  }, [selectedExam]);
+
   const handleDeleteExam = (examId, examTitle) => {
     showConfirm(`This will permanently delete "${examTitle}". You cannot undo this.`, async () => {
       try {
@@ -184,6 +201,19 @@ export default function ExamPage({ showToast }) {
   return (
     <div className="w-full min-h-screen bg-zinc-50 pb-24 pt-4 sm:pt-10 selection:bg-zinc-200 selection:text-zinc-900 font-sans relative transition-colors duration-300">
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
+      
+      {selectedExam && (
+        <ExamAgreement 
+          exam={selectedExam} 
+          onAccept={() => navigate(`/exam/engine/${selectedExam.id}`, { 
+            state: { 
+              prefetchedExam: fullExamData, 
+              agreed: true 
+            } 
+          })}
+          onCancel={() => setSelectedExam(null)}
+        />
+      )}
 
       {!isAuthenticated && (
         <LoginOverlay 
@@ -308,7 +338,7 @@ export default function ExamPage({ showToast }) {
                           /* ACTIVE BUTTON (Clickable) */
                           statusBox.type === 'ACTIVE' ? (
                             <button 
-                              onClick={() => navigate(`/exam/engine/${exam.id}`)} 
+                              onClick={() => setSelectedExam(exam)} 
                               className={`flex items-center justify-center h-8 sm:h-9 px-4 sm:px-5 rounded-lg active:scale-95 transition-all shadow-lg ${statusBox.color === 'bg-zinc-900 text-white hover:bg-zinc-800 transition-colors duration-200 font-semibold text-[11px] sm:text-xs' ? 'bg-zinc-900 text-white shadow-teal-500/10' : statusBox.color}`}
                             >
                               {statusBox.label}
