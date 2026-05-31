@@ -86,6 +86,28 @@ function FullscreenListener({ onExit }) {
   return null;
 }
 
+function SplitScreenBlocker({ onResolve }) {
+  return (
+    <div className="fixed inset-0 z-[110] bg-slate-900 flex items-center justify-center p-6 text-center">
+      <div className="max-w-sm animate-fade-in">
+        <div className="h-20 w-20 bg-rose-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-rose-500/20">
+          <i className="fa-solid fa-layer-group text-3xl text-rose-500 animate-pulse"></i>
+        </div>
+        <h2 className="text-2xl font-black text-white mb-3 uppercase tracking-tighter">Split-Screen Detected</h2>
+        <p className="text-slate-400 text-sm mb-8 leading-relaxed font-medium">
+          Multi-window mode is strictly prohibited. To continue your assessment, please close all other applications and exit split-screen mode.
+        </p>
+        <button 
+          onClick={onResolve}
+          className="w-full bg-white text-slate-900 px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all border-b-4 border-slate-300 active:border-b-0 active:translate-y-1"
+        >
+          I have closed other apps
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ==========================================
 // 🌟 MAIN EXAM COMPONENT
 // ==========================================
@@ -99,6 +121,7 @@ export default function ExamEngine({ showToast }) {
   const [answers, setAnswers] = useState({}); 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasAgreed, setHasAgreed] = useState(false);
+  const [isSplitScreen, setIsSplitScreen] = useState(false);
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
 
   const [timeLeft, setTimeLeft] = useState(30 * 60); // Default 30 Minutes
@@ -255,17 +278,19 @@ export default function ExamEngine({ showToast }) {
 
     const handleResize = () => {
       const currentHeight = window.innerHeight;
-      // If height decreases by more than 30% (indicates split screen, as keyboard shouldn't open for MCQ)
+      // If height decreases by more than 30% (indicates split screen)
       if (currentHeight < initialHeight * 0.7) {
+        setIsSplitScreen(true);
         setWarnings(prev => {
-          // Prevent multiple quick triggers
           if (prev >= 2) return prev;
           const newWarnings = prev + 1;
           if (newWarnings < 2) {
-            showAlert(`🚨 Anti-Cheating Warning: Split-screen or significant window resizing is not allowed. Warning ${newWarnings}/2. Next time, your exam will be automatically submitted.`);
+            showAlert(`🚨 Anti-Cheating Warning: Split-screen or significant window resizing is not allowed. Warning ${newWarnings}/2.`);
           }
           return newWarnings;
         });
+      } else {
+        setIsSplitScreen(false);
       }
     };
 
@@ -409,6 +434,7 @@ export default function ExamEngine({ showToast }) {
       onCopy={(e) => { e.preventDefault(); if (showToast) showToast("⚠️ Copying text is disabled."); }}
       onPaste={(e) => { e.preventDefault(); if (showToast) showToast("⚠️ Pasting is disabled."); }}
     >
+      {isSplitScreen && <SplitScreenBlocker onResolve={enterFullscreen} />}
       <FullscreenListener onExit={() => {
         setWarnings(prev => {
           const newWarnings = prev + 1;

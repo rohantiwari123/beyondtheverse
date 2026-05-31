@@ -109,41 +109,43 @@ const ExamAgreement = ({ onAccept, onCancel, exam }) => {
   const t = content[lang];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto">
-      <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden animate-fade-in-up my-8">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/95 backdrop-blur-md p-0 sm:p-4 overflow-hidden">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-4xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
         
-        {/* Header */}
-        <div className="bg-slate-900 px-6 py-8 sm:px-10 text-white relative">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{t.title}</h1>
-              <p className="text-slate-400 text-sm mt-1 font-medium">{t.subtitle}</p>
+        {/* Header - Fixed at top */}
+        <div className="bg-slate-900 px-6 py-6 sm:px-10 sm:py-8 text-white shrink-0">
+          <div className="flex justify-between items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-3xl font-black tracking-tight leading-tight">{t.title}</h1>
+              <p className="text-slate-400 text-[10px] sm:text-sm mt-1 font-medium uppercase tracking-wider">{t.subtitle}</p>
             </div>
             <button 
               onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
-              className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-bold transition-all border border-white/10 flex items-center gap-2"
+              className="bg-teal-500 hover:bg-teal-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-black transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2 shrink-0 border-b-4 border-teal-700 active:border-b-0 active:translate-y-1"
             >
-              <i className="fa-solid fa-language text-lg"></i>
-              {t.langSwitch}
+              <i className="fa-solid fa-language text-base"></i>
+              <span className="hidden xs:inline">{t.langSwitch}</span>
             </button>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 sm:p-10 max-h-[60vh] overflow-y-auto custom-scrollbar bg-slate-50/50">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+        {/* Content - Scrollable area */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-5 sm:p-10 bg-slate-50">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {t.sections.map((section, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <div key={idx} className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-4 text-slate-800 border-b border-slate-100 pb-3">
-                  <i className={`${section.icon} text-teal-600`}></i>
-                  <h3 className="font-bold uppercase tracking-widest text-xs">{section.title}</h3>
+                  <div className="h-8 w-8 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
+                    <i className={`${section.icon} text-teal-600 text-sm`}></i>
+                  </div>
+                  <h3 className="font-bold uppercase tracking-widest text-[10px] sm:text-xs">{section.title}</h3>
                 </div>
                 <ul className="space-y-3">
                   {section.items.map((item, iidx) => (
                     <li key={iidx} className="flex items-start gap-3">
-                      <i className={`${item.icon} mt-1 text-[14px] ${item.color || 'text-slate-400'}`}></i>
-                      <div className="text-sm">
-                        {item.label && <span className="text-slate-500 font-medium mr-1.5">{item.label}:</span>}
+                      <i className={`${item.icon} mt-1 text-[12px] sm:text-[14px] ${item.color || 'text-slate-400'}`}></i>
+                      <div className="text-[12px] sm:text-sm leading-snug">
+                        {item.label && <span className="text-slate-500 font-semibold mr-1.5">{item.label}:</span>}
                         <span className={`font-bold ${item.color || 'text-slate-800'}`}>
                           {item.value || item.text}
                         </span>
@@ -155,49 +157,52 @@ const ExamAgreement = ({ onAccept, onCancel, exam }) => {
             ))}
           </div>
 
-          <div className="mt-8 bg-amber-50 border border-amber-200 p-5 rounded-2xl flex items-start gap-4">
-            <div className="h-10 w-10 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
+          <div className="mt-6 sm:mt-8 bg-amber-50 border-l-4 border-amber-500 p-4 sm:p-5 rounded-r-2xl flex items-start gap-4">
+            <div className="h-10 w-10 bg-amber-100 rounded-full flex items-center justify-center shrink-0 hidden sm:flex">
               <i className="fa-solid fa-triangle-exclamation text-amber-600"></i>
             </div>
-            <div className="text-sm">
-              <h4 className="font-bold text-amber-900 uppercase tracking-tight mb-1">Important Notice</h4>
-              <p className="text-amber-800 leading-relaxed font-medium">
+            <div className="text-[11px] sm:text-sm">
+              <h4 className="font-black text-amber-900 uppercase tracking-tighter mb-1 flex items-center gap-2">
+                <i className="fa-solid fa-triangle-exclamation sm:hidden"></i>
+                Important Notice
+              </h4>
+              <p className="text-amber-800 leading-relaxed font-semibold">
                 {lang === 'en' 
-                  ? "By starting this exam, you acknowledge that your session will be monitored for tab switching and window resizing. Any attempt to bypass these rules will lead to automatic submission."
-                  : "इस परीक्षा को शुरू करके, आप स्वीकार करते हैं कि आपके सत्र की टैब स्विचिंग और विंडो रीसाइजिंग के लिए निगरानी की जाएगी। इन नियमों को बायपास करने के किसी भी प्रयास से ऑटोमैटिक सबमिशन हो जाएगा।"}
+                  ? "Split-screen, window resizing, and tab switching are strictly prohibited. Your session will be automatically terminated upon violation."
+                  : "स्प्लिट-स्क्रीन, विंडो रीसाइजिंग और टैब स्विचिंग सख्त वर्जित हैं। उल्लंघन करने पर आपका सत्र अपने आप समाप्त हो जाएगा।"}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-6 sm:px-10 sm:py-8 border-t border-slate-100 bg-white">
-          <label className="flex items-start gap-4 cursor-pointer group mb-8">
-            <div className="relative flex items-center justify-center mt-1">
+        {/* Footer - Fixed at bottom */}
+        <div className="p-5 sm:px-10 sm:py-8 border-t border-slate-100 bg-white shrink-0">
+          <label className="flex items-start gap-3 sm:gap-4 cursor-pointer group mb-6 sm:mb-8">
+            <div className="relative flex items-center justify-center mt-0.5 shrink-0">
               <input 
                 type="checkbox" 
                 checked={agreed} 
                 onChange={(e) => setAgreed(e.target.checked)}
-                className="peer h-6 w-6 appearance-none rounded-md border-2 border-slate-300 checked:bg-teal-600 checked:border-teal-600 transition-all cursor-pointer"
+                className="peer h-5 w-5 sm:h-6 sm:w-6 appearance-none rounded-md border-2 border-slate-300 checked:bg-slate-900 checked:border-slate-900 transition-all cursor-pointer"
               />
-              <i className="fa-solid fa-check absolute text-white text-xs opacity-0 peer-checked:opacity-100 transition-opacity"></i>
+              <i className="fa-solid fa-check absolute text-white text-[10px] opacity-0 peer-checked:opacity-100 transition-opacity"></i>
             </div>
-            <span className="text-sm font-semibold text-slate-600 group-hover:text-slate-900 transition-colors leading-relaxed">
+            <span className="text-[11px] sm:text-sm font-bold text-slate-500 group-hover:text-slate-900 transition-colors leading-tight">
               {t.checkbox}
             </span>
           </label>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex gap-3">
             <button 
               onClick={onCancel}
-              className="px-8 py-4 rounded-2xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all border border-slate-200 uppercase tracking-widest"
+              className="flex-1 sm:flex-none px-4 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black text-slate-500 hover:bg-slate-100 transition-all border border-slate-200 uppercase tracking-widest"
             >
               {t.cancelButton}
             </button>
             <button 
               onClick={onAccept}
               disabled={!agreed}
-              className="flex-1 bg-slate-900 hover:bg-black disabled:opacity-30 disabled:pointer-events-none text-white px-8 py-4 rounded-2xl text-sm font-bold transition-all shadow-xl shadow-slate-900/20 uppercase tracking-widest flex items-center justify-center gap-3"
+              className="flex-[2] bg-slate-900 hover:bg-black disabled:opacity-30 disabled:pointer-events-none text-white px-6 sm:px-12 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black transition-all shadow-xl shadow-slate-900/30 uppercase tracking-widest flex items-center justify-center gap-3 border-b-4 border-black active:border-b-0 active:translate-y-1"
             >
               <i className="fa-solid fa-bolt"></i>
               {t.startButton}
