@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 // 🌟 MERA UPDATE 1: Yahan getUserExamResults ko import kiya hai
 import { getExamById, submitExamResult, getUserExamResults } from '../../services/firebaseServices';
 import BackButton from '../common/BackButton';
+import ExamAgreement from './ExamAgreement';
 
 // ==========================================
 // 🌟 CUSTOM COMPONENTS (Upgraded Professional UI)
@@ -43,6 +44,49 @@ function CustomModal({ config, onClose }) {
 }
 
 // ==========================================
+// 🌟 UTILS
+// ==========================================
+const shuffleArray = (array) => {
+  if (!array || array.length === 0) return [];
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+const enterFullscreen = () => {
+  const elem = document.documentElement;
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen();
+  } else if (elem.webkitRequestFullscreen) { /* Safari */
+    elem.webkitRequestFullscreen();
+  } else if (elem.msRequestFullscreen) { /* IE11 */
+    elem.msRequestFullscreen();
+  }
+};
+
+function FullscreenListener({ onExit }) {
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+        onExit();
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('msfullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+    };
+  }, [onExit]);
+  return null;
+}
+
+// ==========================================
 // 🌟 MAIN EXAM COMPONENT
 // ==========================================
 
@@ -54,6 +98,7 @@ export default function ExamEngine({ showToast }) {
   const [exam, setExam] = useState(null);
   const [answers, setAnswers] = useState({}); 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasAgreed, setHasAgreed] = useState(false);
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
 
   const [timeLeft, setTimeLeft] = useState(30 * 60); // Default 30 Minutes
@@ -62,7 +107,7 @@ export default function ExamEngine({ showToast }) {
   // 🌟 FIX: Prevent showing "already submitted" toast immediately after submission
   const isInitialLoad = React.useRef(true);
 
-  const showAlert = (message) => setModalConfig({ isOpen: true, type: 'alert', message, onConfirm: null });
+  const showAlert = (message, onConfirm = null) => setModalConfig({ isOpen: true, type: 'alert', message, onConfirm });
   const showConfirm = (message, onConfirm) => setModalConfig({ isOpen: true, type: 'confirm', message, onConfirm });
 
   const calculateTimeLeft = (endDateStr, endTimeStr) => {
@@ -125,9 +170,17 @@ export default function ExamEngine({ showToast }) {
         // 🌟 Agar nahi diya hai, tabhi paper load karo
         const examData = await getExamById(examId);
         if (examData) {
-          setExam(examData);
+          // 🌟 SHUFFLING LOGIC: Shuffle Questions AND their internal options
+          const shuffledQuestions = shuffleArray(examData.questions).map(q => ({
+            ...q,
+            options: shuffleArray(q.options)
+          }));
+
+          const finalizedExam = { ...examData, questions: shuffledQuestions };
+          setExam(finalizedExam);
+          
           let initialAnswers = {};
-          examData.questions.forEach(q => { initialAnswers[q.id] = []; });
+          finalizedExam.questions.forEach(q => { initialAnswers[q.id] = []; });
           setAnswers(initialAnswers);
           
           const initialTime = calculateTimeLeft(examData.endDate, examData.endTime);
@@ -336,6 +389,19 @@ export default function ExamEngine({ showToast }) {
     </div>
   );
 
+  if (!hasAgreed) {
+    return (
+      <ExamAgreement 
+        exam={exam} 
+        onAccept={() => {
+          setHasAgreed(true);
+          enterFullscreen();
+        }} 
+        onCancel={() => navigate('/exam')} 
+      />
+    );
+  }
+
   return (
     <div 
       className="w-full min-h-screen bg-slate-50 pb-28 md:py-10 sm:px-6 lg:px-8 relative select-none"
@@ -343,6 +409,18 @@ export default function ExamEngine({ showToast }) {
       onCopy={(e) => { e.preventDefault(); if (showToast) showToast("⚠️ Copying text is disabled."); }}
       onPaste={(e) => { e.preventDefault(); if (showToast) showToast("⚠️ Pasting is disabled."); }}
     >
+      <FullscreenListener onExit={() => {
+        setWarnings(prev => {
+          const newWarnings = prev + 1;
+          if (newWarnings < 2) {
+            showAlert(
+              `🚨 Security Warning: Fullscreen mode was exited. Please stay in fullscreen to avoid disqualification. Warning ${newWarnings}/2.`,
+              enterFullscreen
+            );
+          }
+          return newWarnings;
+        });
+      }} />
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
 
       {/* 🌟 STICKY TIMER FOR MOBILE */}
@@ -397,22 +475,27 @@ export default function ExamEngine({ showToast }) {
               />
               
               <div className="grid grid-cols-1 gap-3">
-                {q.options.map(opt => {
+                {q.options.map((opt, optIndex) => {
                   const isSelected = answers[q.id]?.includes(opt.id);
+                  const optionLetter = String.fromCharCode(65 + optIndex);
                   return (
                     <div 
                       key={opt.id}
                       onClick={() => toggleOption(q.id, opt.id)}
-                      className={`flex items-start gap-3 sm:gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all active:scale-[0.99] ${isSelected ? 'border-teal-500 bg-teal-50/30' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'}`}
+                      className={`flex items-center gap-3 sm:gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all active:scale-[0.99] ${isSelected ? 'border-teal-500 bg-teal-50/30 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'}`}
                     >
-                      <div className={`mt-0.5 h-5 w-5 rounded-md shrink-0 flex items-center justify-center border-2 transition-colors ${isSelected ? 'bg-teal-500 border-teal-500 text-white shadow-sm shadow-teal-200' : 'border-slate-300 bg-slate-50'}`}>
-                        {isSelected && <i className="fa-solid fa-check text-[10px]"></i>}
+                      <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0 transition-colors ${isSelected ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                        {optionLetter}
                       </div>
                       
                       <div 
-                        className={`prose prose-sm w-full transition-colors break-words overflow-hidden ${isSelected ? 'text-teal-950 font-medium' : 'text-slate-700'}`} 
+                        className={`prose prose-sm w-full transition-colors break-words overflow-hidden ${isSelected ? 'text-teal-950 font-bold' : 'text-slate-700 font-medium'}`} 
                         dangerouslySetInnerHTML={{ __html: opt.text }} 
                       />
+
+                      <div className={`ml-auto h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'border-teal-500 bg-teal-500 text-white' : 'border-slate-300'}`}>
+                        {isSelected && <i className="fa-solid fa-check text-[10px]"></i>}
+                      </div>
                     </div>
                   );
                 })}

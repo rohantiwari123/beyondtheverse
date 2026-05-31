@@ -68,10 +68,13 @@ export default function ExamResult({ showToast }) {
   }
 
   const userAnswers = userResult?.answers || {}; // DB se aayi hui answer sheet
+  const percentage = userResult?.maxScore ? Math.round((userResult.totalScore / userResult.maxScore) * 100) : 0;
+  const isPassed = percentage >= 70;
+
   const resultLabel = isBlocked
     ? 'Pending'
     : userResult?.maxScore
-      ? `${Math.round((userResult.totalScore / userResult.maxScore) * 100)}%`
+      ? `${percentage}%`
       : userResult
         ? `${userResult.totalScore > 0 ? '+' : ''}${userResult.totalScore}`
         : '0%';
@@ -87,9 +90,18 @@ export default function ExamResult({ showToast }) {
         {/* 1. REVIEW HEADER */}
         <div className="bg-slate-900 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl mb-6 sm:mb-8 border border-slate-800">
           <div>
-            <span className="bg-teal-500/20 text-teal-400 border border-teal-500/30 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest mb-3 inline-block">
-              Performance Report
-            </span>
+            <div className="flex items-center gap-3 mb-3">
+              <span className="bg-teal-500/20 text-teal-400 border border-teal-500/30 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest inline-block">
+                Performance Report
+              </span>
+              {!isBlocked && userResult && (
+                <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest border ${
+                  isPassed ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                }`}>
+                  {isPassed ? 'Passed' : 'Failed'}
+                </span>
+              )}
+            </div>
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
               {exam?.title}
             </h2>
