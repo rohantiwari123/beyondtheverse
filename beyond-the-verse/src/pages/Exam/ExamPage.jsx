@@ -103,8 +103,11 @@ const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmi
     const seconds = Math.floor((diffMs / 1000) % 60);
     
     let timerStr = "";
-    if (days > 0) timerStr = `${days}d ${hours}h`;
-    else timerStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    if (days > 0) {
+      timerStr = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    } else {
+      timerStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
     
     return { 
       type: 'UPCOMING', 
@@ -161,7 +164,9 @@ export default function ExamPage({ showToast }) {
           items: [
             { icon: "fa-solid fa-clipboard-question", text: "Total 50 MCQ questions." },
             { icon: "fa-solid fa-check-double", text: "4 options per question with only 1 correct answer." },
-            { icon: "fa-solid fa-shuffle", text: "Questions and options are randomized for each student." }
+            { icon: "fa-solid fa-award", text: "Passing Marks: 70% (35/50)." },
+            { icon: "fa-solid fa-language", text: "Bilingual: Questions are in both Hindi & English." },
+            { icon: "fa-solid fa-hourglass-half", text: "Duration: 2 Hours." }
           ]
         },
         {
@@ -169,31 +174,32 @@ export default function ExamPage({ showToast }) {
           icon: "fa-solid fa-calculator",
           items: [
             { icon: "fa-solid fa-circle-check", label: "Correct Answer", value: "+1 Mark", color: "text-teal-600" },
-            { icon: "fa-solid fa-circle-xmark", label: "Wrong Answer", value: "-1 Mark (Penalty)", color: "text-rose-600" },
-            { icon: "fa-solid fa-circle-minus", label: "Unattempted", value: "-1 Mark (Penalty)", color: "text-amber-600" }
+            { icon: "fa-solid fa-circle-xmark", label: "Wrong / Inaccurate", value: "-1 Mark", color: "text-rose-600" },
+            { icon: "fa-solid fa-circle-minus", label: "Unattempted Question", value: "-1 Mark", color: "text-amber-600" }
           ]
         },
         {
           title: "Technical Security",
           icon: "fa-solid fa-shield-halved",
           items: [
-            { icon: "fa-solid fa-expand", text: "Fullscreen mode is mandatory." },
-            { icon: "fa-solid fa-window-restore", text: "Tab switching / Minimizing is prohibited." },
-            { icon: "fa-solid fa-ban", text: "Right-click, Copy, & Paste are disabled." }
+            { icon: "fa-solid fa-layer-group", text: "Split-screen will immediately disqualify you.", color: "text-rose-600" },
+            { icon: "fa-solid fa-window-restore", text: "Opening a new tab will immediately disqualify you.", color: "text-rose-600" },
+            { icon: "fa-solid fa-ban", text: "Questions and options cannot be copied." }
           ]
         },
         {
-          title: "Disqualification",
-          icon: "fa-solid fa-gavel",
+          title: "Important Rules",
+          icon: "fa-solid fa-circle-exclamation",
           items: [
-            { icon: "fa-solid fa-triangle-exclamation", text: "3 Warnings will lead to auto-submission.", color: "text-rose-600" },
-            { icon: "fa-solid fa-code", text: "Opening DevTools will terminate session.", color: "text-rose-600" }
+            { icon: "fa-solid fa-clock", text: "Login at least 10 minutes before the exam starts." },
+            { icon: "fa-solid fa-wifi", text: "Ensure a stable internet connection." },
+            { icon: "fa-solid fa-gavel", text: "Re-entry after disqualification is not allowed." }
           ]
         }
       ],
       checkbox: "I have read and understood all the protocols. I agree to maintain assessment integrity and abide by these rules.",
-      noteTitle: "Final Note",
-      noteText: "The system will auto-submit responses when the timer ends. Results are pending until released by Admin."
+      noteTitle: "Safety Note",
+      noteText: "The system will auto-submit responses when the timer ends. Negative marking applies — answer carefully."
     },
     hi: {
       title: "परीक्षा प्रोटोकॉल और नियम",
@@ -204,8 +210,10 @@ export default function ExamPage({ showToast }) {
           icon: "fa-solid fa-list-check",
           items: [
             { icon: "fa-solid fa-clipboard-question", text: "कुल 50 बहुविकल्पीय (MCQ) प्रश्न।" },
-            { icon: "fa-solid fa-check-double", text: "प्रत्येक प्रश्न के 4 विकल्प हैं और केवल 1 सही उत्तर है।" },
-            { icon: "fa-solid fa-shuffle", text: "प्रश्न और विकल्प प्रत्येक छात्र के लिए रैंडम (Random) होंगे।" }
+            { icon: "fa-solid fa-check-double", text: "प्रत्येक प्रश्न के 4 विकल्प और केवल 1 सही उत्तर है।" },
+            { icon: "fa-solid fa-award", text: "उत्तीर्ण अंक: 70% (35/50)।" },
+            { icon: "fa-solid fa-language", text: "द्विभाषी: प्रश्न हिन्दी और अंग्रेजी दोनों में होंगे।" },
+            { icon: "fa-solid fa-hourglass-half", text: "अवधि: 2 घंटे।" }
           ]
         },
         {
@@ -213,31 +221,32 @@ export default function ExamPage({ showToast }) {
           icon: "fa-solid fa-calculator",
           items: [
             { icon: "fa-solid fa-circle-check", label: "सही उत्तर", value: "+1 अंक", color: "text-teal-600" },
-            { icon: "fa-solid fa-circle-xmark", label: "गलत उत्तर", value: "-1 अंक (Penalty)", color: "text-rose-600" },
-            { icon: "fa-solid fa-circle-minus", label: "अनुत्तरित प्रश्न", value: "-1 अंक (Penalty)", color: "text-amber-600" }
+            { icon: "fa-solid fa-circle-xmark", label: "गलत उत्तर", value: "-1 अंक", color: "text-rose-600" },
+            { icon: "fa-solid fa-circle-minus", label: "अनुत्तरित प्रश्न", value: "-1 अंक", color: "text-amber-600" }
           ]
         },
         {
           title: "तकनीकी सुरक्षा",
           icon: "fa-solid fa-shield-halved",
           items: [
-            { icon: "fa-solid fa-expand", text: "फुलस्क्रीन मोड अनिवार्य है।" },
-            { icon: "fa-solid fa-window-restore", text: "टैब स्विचिंग / मिनिमाइज करना वर्जित है।" },
-            { icon: "fa-solid fa-ban", text: "राइट-क्लिक, कॉपी और पेस्ट डिसेबल हैं।" }
+            { icon: "fa-solid fa-layer-group", text: "स्प्लिट-स्क्रीन (Split screen) पर तुरंत अयोग्य घोषित कर दिया जाएगा।", color: "text-rose-600" },
+            { icon: "fa-solid fa-window-restore", text: "नया टैब खोलने पर तुरंत अयोग्य घोषित कर दिया जाएगा।", color: "text-rose-600" },
+            { icon: "fa-solid fa-ban", text: "प्रश्नों और विकल्पों को कॉपी नहीं किया जा सकता।" }
           ]
         },
         {
-          title: "अयोग्यता",
-          icon: "fa-solid fa-gavel",
+          title: "महत्वपूर्ण नियम",
+          icon: "fa-solid fa-circle-exclamation",
           items: [
-            { icon: "fa-solid fa-triangle-exclamation", text: "3 चेतावनियों के बाद परीक्षा अपने आप सबमिट हो जाएगी।", color: "text-rose-600" },
-            { icon: "fa-solid fa-code", text: "DevTools खोलने पर सत्र समाप्त हो जाएगा।", color: "text-rose-600" }
+            { icon: "fa-solid fa-clock", text: "परीक्षा शुरू होने से कम से कम 10 मिनट पहले लॉगिन करें।" },
+            { icon: "fa-solid fa-wifi", text: "स्थिर इंटरनेट कनेक्शन सुनिश्चित करें।" },
+            { icon: "fa-solid fa-gavel", text: "अयोग्य घोषित होने के बाद पुन: प्रवेश की अनुमति नहीं होगी।" }
           ]
         }
       ],
       checkbox: "मैंने सभी प्रोटोकॉल पढ़ और समझ लिए हैं। मैं परीक्षा की सत्यनिष्ठा बनाए रखने और इन नियमों का पालन करने के लिए सहमत हूँ।",
-      noteTitle: "अंतिम सूचना",
-      noteText: "समय समाप्त होने पर सिस्टम उत्तर सबमिट कर देगा। परिणाम एडमिन द्वारा जारी किए जाने तक लंबित रहेंगे।"
+      noteTitle: "सुरक्षा सूचना",
+      noteText: "समय समाप्त होने पर सिस्टम उत्तर सबमिट कर देगा। निगेटिव मार्किंग लागू है — ध्यान से उत्तर दें।"
     }
   };
 
