@@ -31,43 +31,37 @@ const SingleResearchPage = () => {
   }, [researchId]);
 
   return (
-    // Mobile: Pure App-like White. Desktop: Light grey so the book pops out.
-    <div className="min-h-screen bg-white pb-24 transition-colors duration-300 sm:bg-slate-50/80 sm:py-8 lg:py-12">
+    // Mobile: Pure App-like White. Desktop: Professional Slate for depth.
+    <div className="min-h-screen bg-white transition-colors duration-300 sm:bg-slate-200/50">
       
-      {/* Wrapper width adjusted slightly larger than the book to allow padding */}
-      <div className="mx-auto w-full max-w-[900px]">
-        
-        {/* NATIVE TOOLBAR: Frosted Glass Sticky on Mobile, Static Transparent on Desktop */}
-        <nav className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-slate-100 bg-white/90 px-5 py-3 backdrop-blur-xl transition-all sm:static sm:mb-8 sm:border-none sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
-          <BackButton to="/research" label="Library" />
-        </nav>
+      {/* NATIVE TOOLBAR: Frosted Glass Sticky on Mobile, Static Transparent on Desktop */}
+      <nav className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-slate-100 bg-white/95 px-5 py-3 backdrop-blur-xl transition-all sm:static sm:bg-transparent sm:px-8 sm:py-6 sm:border-none">
+        <BackButton to="/research" label="Research Archive" />
+      </nav>
 
-        {/* MAIN CONTAINER: Removed double boxing. Just a transparent structural wrapper now */}
-        <main className="relative w-full">
-          
-          {loading ? (
-            // Native & Clean Loading State matches typography
-            <div className="flex min-h-[50vh] flex-col items-center justify-center py-[20vh] text-teal-600">
-              <i className="fa-solid fa-circle-notch fa-spin text-3xl sm:text-4xl"></i>
-              <p className="mt-5 text-[10px] font-bold uppercase tracking-widest text-slate-400 sm:text-[11px]">
-                Loading Manuscript
-              </p>
-            </div>
-          ) : research ? (
-            <div className="animate-in fade-in slide-in-from-bottom-4 w-full duration-700">
-              {/* ResearchDetail handles its own card/book UI now */}
-              <ResearchDetail research={research} />
-            </div>
-          ) : (
-            <div className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-12">
-              <ResearchEmptyState
-                message="Document Not Found"
-                subMessage="This research might have been removed or the URL is incorrect."
-              />
-            </div>
-          )}
-        </main>
-      </div>
+      {/* MAIN CONTAINER */}
+      <main className="relative w-full">
+        
+        {loading ? (
+          <div className="flex min-h-[70vh] flex-col items-center justify-center text-teal-600">
+            <div className="h-10 w-10 border-4 border-slate-200 border-t-teal-600 rounded-full animate-spin mb-6"></div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">
+              Retrieving Digital Manuscript
+            </p>
+          </div>
+        ) : research ? (
+          <div className="animate-in fade-in slide-in-from-bottom-6 w-full duration-1000 ease-out">
+            <ResearchDetail research={research} />
+          </div>
+        ) : (
+          <div className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-12">
+            <ResearchEmptyState
+              message="Document Not Found"
+              subMessage="This research might have been removed or the URL is incorrect."
+            />
+          </div>
+        )}
+      </main>
     </div>
   );
 };
