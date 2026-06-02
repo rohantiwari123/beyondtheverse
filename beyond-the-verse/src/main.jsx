@@ -5,9 +5,24 @@ import { BrowserRouter } from 'react-router-dom';
 import './index.css';
 import App from './App.jsx';
 
+// PWA Registration
+import { registerSW } from 'virtual:pwa-register';
+
 // 🌟 NAYA: AuthProvider import kiya (Yahi sabse zaroori hai!)
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+
+// Register Service Worker for PWA
+const updateSW = registerSW({
+  onNeedRefresh() {
+    if (confirm('New content available. Reload?')) {
+      updateSW(true);
+    }
+  },
+  onOfflineReady() {
+    console.log('App ready to work offline');
+  },
+});
 
 // 🌟 Advanced Error Boundary 🌟
 class ErrorBoundary extends React.Component {
