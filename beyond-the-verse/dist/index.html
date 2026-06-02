@@ -7,6 +7,9 @@
     <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="favicon.svg">
     <title>Beyond The Verse</title>
 
     <script type="text/javascript">
@@ -15,17 +18,17 @@
           var a = l.search.slice(3).split('&')[0].replace(/~and~/g, '&');
           window.history.replaceState(null, null,
               l.pathname.slice(0, -1) + a +
-              (l.search.slice(a.length + 3) ? '&' + l.search.slice(a.length + 3) : '') +
+              (l.search.slice(a.length + 3) ? '?' + l.search.slice(a.length + 3).replace(/~and~/g, '&') : '') +
               l.hash
           );
         }
       }(window.location))
     </script>
-    <script type="module" crossorigin src="/beyondtheverse/assets/index-CY9ljQdQ.js"></script>
-    <link rel="modulepreload" crossorigin href="/beyondtheverse/assets/vendor-DGA4RRtu.js">
+    <script type="module" crossorigin src="/beyondtheverse/assets/index-CRz7f8Tc.js"></script>
+    <link rel="modulepreload" crossorigin href="/beyondtheverse/assets/vendor-0DVhkApR.js">
     <link rel="stylesheet" crossorigin href="/beyondtheverse/assets/vendor-BzY4kI8E.css">
-    <link rel="stylesheet" crossorigin href="/beyondtheverse/assets/index-BzcK4nCE.css">
-  </head>
+    <link rel="stylesheet" crossorigin href="/beyondtheverse/assets/index-CLBMqBFD.css">
+  <link rel="manifest" href="/beyondtheverse/manifest.webmanifest"></head>
   
   <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
