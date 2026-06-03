@@ -281,6 +281,10 @@ app.get('/', (req, res) => {
   res.send('Beyond the Verse Notification & Auth Server is Live! 🚀');
 });
 
+app.get('/api', (req, res) => {
+  res.json({ success: true, message: 'BTVerse API is Live! 🚀' });
+});
+
 // 🌟 NOTIFICATION BHEJNE WALA API ROUTE
 app.post('/api/send-notification', async (req, res) => {
   console.log("Push request received for token:", req.body.fcmToken);

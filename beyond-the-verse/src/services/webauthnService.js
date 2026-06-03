@@ -1,9 +1,10 @@
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 
-// 🌟 DYNAMIC BACKEND URL
+// 🌟 FULLY DYNAMIC BACKEND URL
+// If on localhost, use port 3000. Otherwise, use the same domain the app is running on.
 const BACKEND_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'http://localhost:3000' 
-  : 'https://beyondtheverse.vercel.app'; 
+  : window.location.origin; 
 
 const handleFetchResponse = async (response) => {
   const contentType = response.headers.get("content-type");

@@ -284,9 +284,9 @@ export default function SecuritySettings() {
                         
                         setIsRevoking(true);
                         try {
-                            const BACKEND_URL = window.location.hostname === 'localhost' 
+                            const BACKEND_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
                                 ? 'http://localhost:3000' 
-                                : 'https://beyondtheverse.vercel.app';
+                                : window.location.origin;
                             const res = await fetch(`${BACKEND_URL}/api/revoke-sessions`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
