@@ -55,17 +55,34 @@ const db = admin.apps.length ? admin.firestore() : null;
 
 // 🛡️ MIDDLEWARE: Check if Firebase is initialized
 app.use((req, res, next) => {
+  // Always allow health checks or the root path
+  if (req.path === '/' || req.path === '/api') return next();
+  
   if (!db) {
     return res.status(500).json({ 
-      error: "Firebase Admin is not initialized. Check your FIREBASE_CREDENTIALS environment variable." 
+      error: "Firebase Admin is not initialized. Please ensure FIREBASE_CREDENTIALS is set correctly in Vercel Environment Variables.",
+      diagnostics: {
+        hasRawCreds: !!process.env.FIREBASE_CREDENTIALS,
+        rawCredsLength: process.env.FIREBASE_CREDENTIALS?.length || 0
+      }
     });
   }
   next();
 });
 
-const RP_ID = 'rohantiwari123.github.io'; // Change to your actual domain
+// 🌟 DYNAMIC DOMAIN DETECTION FOR WEBAUTHN
+const getRPID = (req) => {
+  const host = req.get('host') || 'localhost';
+  return host.split(':')[0]; // Remove port if present
+};
+
+const getOrigin = (req) => {
+  const host = req.get('host') || 'localhost';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  return `${protocol}://${host}`;
+};
+
 const RP_NAME = 'Beyond The Verse';
-const ORIGIN = `https://${RP_ID}`;
 
 // 🌟 WEB AUTHENTICATION (WEBAUTHN) ENDPOINTS 🌟
 
@@ -73,6 +90,8 @@ const ORIGIN = `https://${RP_ID}`;
 app.post('/api/webauthn/register-options', async (req, res) => {
   const { uid, email } = req.body;
   if (!uid || !email) return res.status(400).json({ error: 'UID and Email are required' });
+
+  const RP_ID = getRPID(req);
 
   try {
     const userDoc = await db.collection('users').doc(uid).get();
@@ -111,6 +130,9 @@ app.post('/api/webauthn/register-options', async (req, res) => {
 app.post('/api/webauthn/register-verify', async (req, res) => {
   const { uid, response } = req.body;
   if (!uid || !response) return res.status(400).json({ error: 'UID and Response are required' });
+
+  const RP_ID = getRPID(req);
+  const ORIGIN = getOrigin(req);
 
   try {
     const challengeDoc = await db.collection('authChallenges').doc(uid).get();
@@ -157,6 +179,8 @@ app.post('/api/webauthn/login-options', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email is required' });
 
+  const RP_ID = getRPID(req);
+
   try {
     const userSnapshot = await db.collection('users').where('email', '==', email).limit(1).get();
     if (userSnapshot.empty) return res.status(404).json({ error: 'User not found' });
@@ -197,6 +221,9 @@ app.post('/api/webauthn/login-options', async (req, res) => {
 app.post('/api/webauthn/login-verify', async (req, res) => {
   const { email, response } = req.body;
   if (!email || !response) return res.status(400).json({ error: 'Email and Response are required' });
+
+  const RP_ID = getRPID(req);
+  const ORIGIN = getOrigin(req);
 
   try {
     const challengeDoc = await db.collection('authChallenges').doc(email).get();
