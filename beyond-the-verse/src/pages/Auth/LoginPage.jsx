@@ -4,11 +4,13 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
-  signOut
+  signOut,
+  signInWithCustomToken
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import emailjs from '@emailjs/browser';
+import { loginBiometric } from '../../services/webauthnService';
 
 export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
   const navigate = useNavigate();
@@ -41,6 +43,54 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
   const [emailOtpSent, setEmailOtpSent] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+
+  const handleBiometricLogin = async () => {
+    if (!email.trim()) {
+      setEmailError("Email or Username is required for biometric login.");
+      return;
+    }
+
+    setIsBiometricLoading(true);
+    try {
+      let loginEmail = email.trim();
+
+      // Resolve username to email if necessary
+      if (!loginEmail.includes('@')) {
+        const q = query(collection(db, 'users'), where('username', '==', loginEmail.toLowerCase()));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          setEmailError("No account found with this username!");
+          setIsBiometricLoading(false);
+          return;
+        }
+        loginEmail = querySnapshot.docs[0].data().email;
+      }
+
+      const token = await loginBiometric(loginEmail);
+      const userCredential = await signInWithCustomToken(auth, token);
+      const user = userCredential.user;
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+
+      if (userDoc.exists()) {
+        const actualRole = userDoc.data().role || 'user';
+        if (actualRole !== activeTab) {
+          await signOut(auth);
+          showToast(`Access Denied! You are not registered as a ${activeTab.toUpperCase()}.`, false);
+          setIsBiometricLoading(false);
+          return;
+        }
+        showToast(`Logged in with Biometrics!`);
+        navigate('/');
+      }
+    } catch (error) {
+      console.error("Biometric Login Error:", error);
+      showToast(error.message || "Biometric login failed.", false);
+    } finally {
+      setIsBiometricLoading(false);
+    }
+  };
 
 
   useEffect(() => {
@@ -591,6 +641,26 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
             {isLoading ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Processing...</>
             : <>{authMode === 'login' ? `Sign In to ${activeTab}` : authMode === 'signup' ? (emailOtpSent ? 'Verify OTP' : 'Continue Signup') : 'Send Reset Link'}</>}
           </button>
+
+          {authMode === 'login' && (
+            <div className="relative flex items-center gap-4 my-2">
+              <div className="flex-1 h-px bg-slate-200"></div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Or login with</span>
+              <div className="flex-1 h-px bg-slate-200"></div>
+            </div>
+          )}
+
+          {authMode === 'login' && (
+            <button
+              type="button"
+              onClick={handleBiometricLogin}
+              disabled={isLoading || isBiometricLoading || !email.trim()}
+              className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+            >
+              {isBiometricLoading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-fingerprint text-teal-600"></i>}
+              Biometric Access
+            </button>
+          )}
         </form>
 
         {/* Form Footer Links */}

@@ -1,14 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { updateUserSecurityPassword } from '../../services/firebaseServices';
 import { auth, db } from '../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { registerBiometric } from '../../services/webauthnService';
 
 export default function SecuritySettings() {
     const [passwords, setPasswords] = useState({ new: '', confirm: '' });
     const [showPassword, setShowPassword] = useState(false); // 🌟 Eye icon toggle
     const [isLoading, setIsLoading] = useState(false);
     const [isRevoking, setIsRevoking] = useState(false);
+    const [isRegisteringBiometric, setIsRegisteringBiometric] = useState(false);
+    const [hasBiometric, setHasBiometric] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+
+    useEffect(() => {
+        const checkBiometric = async () => {
+            if (auth.currentUser) {
+                const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+                if (userDoc.exists() && userDoc.data().webauthnCredentials?.length > 0) {
+                    setHasBiometric(true);
+                }
+            }
+        };
+        checkBiometric();
+    }, []);
 
     // 🌟 1. DYNAMIC PASSWORD RULES
     const passRules = {
@@ -86,6 +101,23 @@ export default function SecuritySettings() {
         }
     };
 
+    const handleEnableBiometric = async () => {
+        if (!auth.currentUser) return;
+        setIsRegisteringBiometric(true);
+        setMessage({ type: '', text: '' });
+        try {
+            const success = await registerBiometric(auth.currentUser.uid, auth.currentUser.email);
+            if (success) {
+                setHasBiometric(true);
+                setMessage({ type: 'success', text: 'Biometric login enabled successfully! 👆' });
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: error.message || 'Failed to enable biometric login.' });
+        } finally {
+            setIsRegisteringBiometric(false);
+        }
+    };
+
     // Rule Indicator Component
     const RuleItem = ({ met, text }) => (
         <div className="flex items-center gap-1.5">
@@ -107,6 +139,37 @@ export default function SecuritySettings() {
                     {message.text}
                 </div>
             )}
+
+            {/* 🌟 NEW FEATURE: Biometric Access */}
+            <div className="mb-8 p-5 bg-teal-50/30 border border-teal-100 rounded-2xl animate-fade-in-up">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+                            <i className="fa-solid fa-fingerprint text-teal-600"></i>
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-bold text-slate-900">Biometric Login</h3>
+                            <p className="text-xs text-slate-500 mt-1 max-w-sm">
+                                {hasBiometric 
+                                    ? "You have already enabled biometric login for this device." 
+                                    : "Use your device's fingerprint or face recognition for faster, more secure access."}
+                            </p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={handleEnableBiometric}
+                        disabled={isRegisteringBiometric || hasBiometric}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 justify-center ${
+                            hasBiometric 
+                            ? 'bg-white text-emerald-600 border border-emerald-100 cursor-default' 
+                            : 'bg-teal-600 text-white hover:bg-teal-700 shadow-sm active:scale-95'
+                        }`}
+                    >
+                        {isRegisteringBiometric ? <i className="fa-solid fa-circle-notch fa-spin"></i> : hasBiometric ? <i className="fa-solid fa-check"></i> : <i className="fa-solid fa-plus"></i>}
+                        {hasBiometric ? "Enabled" : "Enable Biometric"}
+                    </button>
+                </div>
+            </div>
 
             <form onSubmit={handleSave} className="space-y-6 max-w-md">
                 
@@ -221,8 +284,10 @@ export default function SecuritySettings() {
                         
                         setIsRevoking(true);
                         try {
-                            const BACKEND_URL = "https://beyondtheverse.vercel.app/api/revoke-sessions";
-                            const res = await fetch(BACKEND_URL, {
+                            const BACKEND_URL = window.location.hostname === 'localhost' 
+                                ? 'http://localhost:3000' 
+                                : 'https://beyondtheverse.vercel.app';
+                            const res = await fetch(`${BACKEND_URL}/api/revoke-sessions`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ uid: auth.currentUser.uid })
