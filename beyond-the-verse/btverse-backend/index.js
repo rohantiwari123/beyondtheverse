@@ -1,26 +1,257 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
+const {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+} = require('@simplewebauthn/server');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🌟 FIREBASE ADMIN SETUP (Safe way for Vercel)
-const serviceAccount = process.env.FIREBASE_CREDENTIALS 
-  ? JSON.parse(process.env.FIREBASE_CREDENTIALS) 
-  : null;
+// 🌟 FIREBASE ADMIN SETUP
+let serviceAccount = null;
+const credsRaw = process.env.FIREBASE_CREDENTIALS;
 
-// Ek bar se zyada initialize hone se bachane ke liye
-if (serviceAccount && !admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
+if (credsRaw) {
+  try {
+    // Check if the string was accidentally pasted as "FIREBASE_CREDENTIALS=..."
+    let cleanCreds = credsRaw.trim();
+    if (cleanCreds.startsWith('FIREBASE_CREDENTIALS=')) {
+      cleanCreds = cleanCreds.replace('FIREBASE_CREDENTIALS=', '').trim();
+    }
+    // Remove potential surrounding single/double quotes
+    if ((cleanCreds.startsWith("'") && cleanCreds.endsWith("'")) || 
+        (cleanCreds.startsWith('"') && cleanCreds.endsWith('"'))) {
+      cleanCreds = cleanCreds.slice(1, -1).trim();
+    }
+    
+    serviceAccount = JSON.parse(cleanCreds);
+  } catch (err) {
+    console.error("❌ ERROR: FIREBASE_CREDENTIALS is not valid JSON.");
+    console.error("Value starts with:", credsRaw.substring(0, 20) + "...");
+    console.error("Make sure you only paste the JSON content { ... } into the Vercel environment variable value, not the key name or quotes.");
+  }
 }
 
-// 🌟 Taki browser me kholne par 'Cannot GET /' na aaye
+if (!admin.apps.length) {
+  if (serviceAccount) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    console.log("✅ Firebase Admin initialized via Environment Variable");
+  } else {
+    // ⚠️ Fallback for local development if .env is missing or doesn't have credentials
+    console.warn("⚠️ FIREBASE_CREDENTIALS not found. Backend will fail on DB calls.");
+  }
+}
+
+// Only get Firestore if an app exists, otherwise delay or handle error
+const db = admin.apps.length ? admin.firestore() : null;
+
+// 🛡️ MIDDLEWARE: Check if Firebase is initialized
+app.use((req, res, next) => {
+  if (!db) {
+    return res.status(500).json({ 
+      error: "Firebase Admin is not initialized. Check your FIREBASE_CREDENTIALS environment variable." 
+    });
+  }
+  next();
+});
+
+const RP_ID = 'rohantiwari123.github.io'; // Change to your actual domain
+const RP_NAME = 'Beyond The Verse';
+const ORIGIN = `https://${RP_ID}`;
+
+// 🌟 WEB AUTHENTICATION (WEBAUTHN) ENDPOINTS 🌟
+
+// 1. Generate Registration Options
+app.post('/api/webauthn/register-options', async (req, res) => {
+  const { uid, email } = req.body;
+  if (!uid || !email) return res.status(400).json({ error: 'UID and Email are required' });
+
+  try {
+    const userDoc = await db.collection('users').doc(uid).get();
+    const userCredentials = userDoc.data()?.webauthnCredentials || [];
+
+    const options = await generateRegistrationOptions({
+      rpName: RP_NAME,
+      rpID: RP_ID,
+      userID: uid,
+      userName: email,
+      attestationType: 'none',
+      excludeCredentials: userCredentials.map(cred => ({
+        id: cred.credentialID,
+        type: 'public-key',
+      })),
+      authenticatorSelection: {
+        residentKey: 'preferred',
+        userVerification: 'preferred',
+      },
+    });
+
+    // Save challenge in Firestore for verification
+    await db.collection('authChallenges').doc(uid).set({
+      challenge: options.challenge,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    res.json(options);
+  } catch (error) {
+    console.error('Register Options Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 2. Verify Registration Response
+app.post('/api/webauthn/register-verify', async (req, res) => {
+  const { uid, response } = req.body;
+  if (!uid || !response) return res.status(400).json({ error: 'UID and Response are required' });
+
+  try {
+    const challengeDoc = await db.collection('authChallenges').doc(uid).get();
+    if (!challengeDoc.exists) return res.status(400).json({ error: 'Challenge not found' });
+
+    const expectedChallenge = challengeDoc.data().challenge;
+
+    const verification = await verifyRegistrationResponse({
+      response,
+      expectedChallenge,
+      expectedOrigin: ORIGIN,
+      expectedRPID: RP_ID,
+    });
+
+    if (verification.verified) {
+      const { registrationInfo } = verification;
+      const { credentialID, credentialPublicKey, counter } = registrationInfo;
+
+      // Store credential in User document
+      const newCredential = {
+        credentialID: Buffer.from(credentialID).toString('base64url'),
+        publicKey: Buffer.from(credentialPublicKey).toString('base64url'),
+        counter,
+        transports: response.response.transports,
+      };
+
+      await db.collection('users').doc(uid).update({
+        webauthnCredentials: admin.firestore.FieldValue.arrayUnion(newCredential)
+      });
+
+      await db.collection('authChallenges').doc(uid).delete();
+      res.json({ success: true });
+    } else {
+      res.status(400).json({ error: 'Verification failed' });
+    }
+  } catch (error) {
+    console.error('Register Verify Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 3. Generate Authentication Options
+app.post('/api/webauthn/login-options', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+
+  try {
+    const userSnapshot = await db.collection('users').where('email', '==', email).limit(1).get();
+    if (userSnapshot.empty) return res.status(404).json({ error: 'User not found' });
+
+    const userDoc = userSnapshot.docs[0];
+    const uid = userDoc.id;
+    const userCredentials = userDoc.data().webauthnCredentials || [];
+
+    if (userCredentials.length === 0) {
+      return res.status(400).json({ error: 'No biometric credentials registered for this user' });
+    }
+
+    const options = await generateAuthenticationOptions({
+      rpID: RP_ID,
+      allowCredentials: userCredentials.map(cred => ({
+        id: cred.credentialID,
+        type: 'public-key',
+        transports: cred.transports,
+      })),
+      userVerification: 'preferred',
+    });
+
+    // Save challenge in Firestore for verification
+    await db.collection('authChallenges').doc(email).set({
+      challenge: options.challenge,
+      uid: uid,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    res.json(options);
+  } catch (error) {
+    console.error('Login Options Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 4. Verify Authentication Response
+app.post('/api/webauthn/login-verify', async (req, res) => {
+  const { email, response } = req.body;
+  if (!email || !response) return res.status(400).json({ error: 'Email and Response are required' });
+
+  try {
+    const challengeDoc = await db.collection('authChallenges').doc(email).get();
+    if (!challengeDoc.exists) return res.status(400).json({ error: 'Challenge not found' });
+
+    const { challenge: expectedChallenge, uid } = challengeDoc.data();
+    const userDoc = await db.collection('users').doc(uid).get();
+    const userCredentials = userDoc.data().webauthnCredentials || [];
+
+    const credentialID = response.id;
+    const credential = userCredentials.find(cred => cred.credentialID === credentialID);
+
+    if (!credential) return res.status(400).json({ error: 'Credential not found for this user' });
+
+    const verification = await verifyAuthenticationResponse({
+      response,
+      expectedChallenge,
+      expectedOrigin: ORIGIN,
+      expectedRPID: RP_ID,
+      authenticator: {
+        credentialID: Buffer.from(credential.credentialID, 'base64url'),
+        credentialPublicKey: Buffer.from(credential.publicKey, 'base64url'),
+        counter: credential.counter,
+      },
+    });
+
+    if (verification.verified) {
+      // Update counter
+      const updatedCredentials = userCredentials.map(cred => {
+        if (cred.credentialID === credentialID) {
+          return { ...cred, counter: verification.authenticationInfo.newCounter };
+        }
+        return cred;
+      });
+
+      await db.collection('users').doc(uid).update({
+        webauthnCredentials: updatedCredentials
+      });
+
+      // Generate Firebase Custom Token
+      const customToken = await admin.auth().createCustomToken(uid);
+      
+      await db.collection('authChallenges').doc(email).delete();
+      res.json({ success: true, token: customToken });
+    } else {
+      res.status(400).json({ error: 'Verification failed' });
+    }
+  } catch (error) {
+    console.error('Login Verify Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get('/', (req, res) => {
-  res.send('Beyond the Verse Notification Server is Live! 🚀');
+  res.send('Beyond the Verse Notification & Auth Server is Live! 🚀');
 });
 
 // 🌟 NOTIFICATION BHEJNE WALA API ROUTE
