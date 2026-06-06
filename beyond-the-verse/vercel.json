@@ -1,10 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "btverse-backend/index.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/:path*",
