@@ -1,9 +1,18 @@
 {
   "version": 2,
+  "functions": {
+    "btverse-backend/index.js": {
+      "runtime": "vercel-node@latest"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "btverse-backend/index.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
