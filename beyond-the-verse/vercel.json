@@ -2,8 +2,8 @@
   "version": 2,
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "btverse-backend/index.js"
+      "source": "/api/:path*",
+      "destination": "/btverse-backend/index.js"
     }
   ],
   "headers": [
