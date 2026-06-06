@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "/btverse-backend/index.js"
+      "destination": "btverse-backend/index.js"
     }
   ],
   "headers": [
