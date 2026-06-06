@@ -9,7 +9,7 @@ export default function ProfileHeader({ profileData, isMyProfile = true }) {
     
     const displayPhotoURL = isMyProfile ? currentUser?.photoURL : profileData?.profilePic;
     const displayUserName = isMyProfile ? userName : profileData?.name;
-    const displayIsAdmin = isMyProfile ? isAdmin : (profileData?.role === 'admin');
+    const displayIsAdmin = isMyProfile ? isAdmin : (profileData?.role?.toLowerCase() === 'admin');
 
     // 🌟 LOGIC: Privacy Settings (Email, Bio, Location, Socials)
     const privacy = profileData?.privacySettings || {};

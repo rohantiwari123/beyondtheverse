@@ -285,6 +285,12 @@ app.get('/api', (req, res) => {
   res.json({ success: true, message: 'BTVerse API is Live! 🚀' });
 });
 
+// 🌟 DIAGNOSTIC ROUTE: Catch-all to see what path is actually reaching Express
+app.use('/api', (req, res, next) => {
+  console.log(`Incoming request to backend: ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // 🌟 NOTIFICATION BHEJNE WALA API ROUTE
 app.post('/api/send-notification', async (req, res) => {
   console.log("Push request received for token:", req.body.fcmToken);

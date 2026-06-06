@@ -1,56 +1,58 @@
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 
 // 🌟 FULLY DYNAMIC BACKEND URL
-// If on localhost, use port 3000. Otherwise, use the same domain the app is running on.
-const BACKEND_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? 'http://localhost:3000' 
-  : window.location.origin; 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 
+  ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:3000' 
+    : window.location.origin); 
 
-const handleFetchResponse = async (response) => {
+const handleFetchResponse = async (response, url) => {
   const contentType = response.headers.get("content-type");
   if (!response.ok) {
     if (contentType && contentType.includes("application/json")) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Server error');
+      throw new Error(errorData.error || `Server error at ${url}`);
     } else {
-      throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+      throw new Error(`Server returned ${response.status} for ${url}`);
     }
   }
   if (!contentType || !contentType.includes("application/json")) {
-    throw new Error("Server did not return JSON. Check if the backend is running and the URL is correct.");
+    throw new Error(`Server at ${url} did not return JSON. Check if the backend is running and the URL is correct.`);
   }
   return response.json();
 };
 
 export const registerBiometric = async (uid, email) => {
+  const url = `${BACKEND_URL}/api/webauthn/register-options`;
   try {
     let resp;
     try {
-      resp = await fetch(`${BACKEND_URL}/api/webauthn/register-options`, {
+      resp = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, email }),
       });
     } catch (e) {
-      throw new Error(`Failed to connect to backend at ${BACKEND_URL}. Is the server running?`);
+      throw new Error(`Failed to connect to backend at ${url}. Is the server running?`);
     }
 
-    const options = await handleFetchResponse(resp);
+    const options = await handleFetchResponse(resp, url);
 
     const attResp = await startRegistration(options);
 
+    const verifyUrl = `${BACKEND_URL}/api/webauthn/register-verify`;
     let verifyResp;
     try {
-      verifyResp = await fetch(`${BACKEND_URL}/api/webauthn/register-verify`, {
+      verifyResp = await fetch(verifyUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, response: attResp }),
       });
     } catch (e) {
-      throw new Error(`Failed to connect to backend at ${BACKEND_URL} for verification.`);
+      throw new Error(`Failed to connect to backend at ${verifyUrl} for verification.`);
     }
 
-    const verification = await handleFetchResponse(verifyResp);
+    const verification = await handleFetchResponse(verifyResp, verifyUrl);
     return verification.success;
   } catch (error) {
     console.error('Biometric Registration Error:', error);
@@ -59,34 +61,36 @@ export const registerBiometric = async (uid, email) => {
 };
 
 export const loginBiometric = async (email) => {
+  const url = `${BACKEND_URL}/api/webauthn/login-options`;
   try {
     let resp;
     try {
-      resp = await fetch(`${BACKEND_URL}/api/webauthn/login-options`, {
+      resp = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
     } catch (e) {
-      throw new Error(`Failed to connect to backend at ${BACKEND_URL}. Is the server running?`);
+      throw new Error(`Failed to connect to backend at ${url}. Is the server running?`);
     }
 
-    const options = await handleFetchResponse(resp);
+    const options = await handleFetchResponse(resp, url);
 
     const asseResp = await startAuthentication(options);
 
+    const verifyUrl = `${BACKEND_URL}/api/webauthn/login-verify`;
     let verifyResp;
     try {
-      verifyResp = await fetch(`${BACKEND_URL}/api/webauthn/login-verify`, {
+      verifyResp = await fetch(verifyUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, response: asseResp }),
       });
     } catch (e) {
-      throw new Error(`Failed to connect to backend at ${BACKEND_URL} for verification.`);
+      throw new Error(`Failed to connect to backend at ${verifyUrl} for verification.`);
     }
 
-    const verification = await handleFetchResponse(verifyResp);
+    const verification = await handleFetchResponse(verifyResp, verifyUrl);
     return verification.token; 
   } catch (error) {
     console.error('Biometric Login Error:', error);

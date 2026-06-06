@@ -44,7 +44,7 @@ export default function PostCard({ post, showToast, isSinglePost }) {
   const isBookmarked = bookmarks.includes(userId);
   const isOwner = post.userId === userId;
 
-  const isAdminPost = post.isAdminPost === true || post.role === 'admin';
+  const isAdminPost = post.isAdminPost === true || post.role?.toLowerCase() === 'admin';
 
   // 🌟 PRO FRONTEND TRICK
   const currentDisplayName = isOwner ? userName : post.userName;

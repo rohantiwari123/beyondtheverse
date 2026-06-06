@@ -58,7 +58,7 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
   const targetId = interaction.id || interaction.timestamp;
   const gates = interaction.commentGates || { support: [], counter: [], doubt: [] };
 
-  const isAdminBadge = interaction.isAdminComment === true || interaction.role === 'admin';
+  const isAdminBadge = interaction.isAdminComment === true || interaction.role?.toLowerCase() === 'admin';
 
   useEffect(() => {
     if (isOwner && isAdmin && !isAdminBadge) {

@@ -831,7 +831,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                             <tr key={user.uid} className="hover:bg-slate-50 transition-colors">
                               <td className="px-4 py-3 sm:px-6 sm:py-4">
                                 <div className="flex items-center gap-3">
-                                  <div className={`h-10 w-10 sm:h-11 sm:w-11 rounded-lg flex items-center justify-center text-white font-semibold text-sm ${user.role === 'admin' ? 'bg-slate-900' : 'bg-teal-600'}`}>
+                                  <div className={`h-10 w-10 sm:h-11 sm:w-11 rounded-lg flex items-center justify-center text-white font-semibold text-sm ${(user.role || 'user').toLowerCase() === 'admin' ? 'bg-slate-900' : 'bg-teal-600'}`}>
                                     {user.name?.charAt(0).toUpperCase() || "?"}
                                   </div>
                                   <div className="min-w-0">
@@ -852,7 +852,7 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                               </td>
                               <td className="px-4 py-3 sm:px-6 sm:py-4 text-center">
                                 <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${
-                                  user.role === 'admin' 
+                                  (user.role || 'user').toLowerCase() === 'admin' 
                                     ? 'bg-slate-900 text-white border-slate-800' 
                                     : 'bg-teal-50 text-teal-700 border-teal-200'
                                 }`}>
@@ -861,8 +861,8 @@ export default function AdminDashboard({ showToast, donations, totalRaised, targ
                               </td>
                               <td className="px-4 py-3 sm:px-6 sm:py-4 text-center">
                                 <select 
-                                  value={user.role || 'user'} 
-                                  onChange={(e) => handleRoleChange(user.uid, user.role || 'user', e.target.value)}
+                                  value={(user.role || 'user').toLowerCase()} 
+                                  onChange={(e) => handleRoleChange(user.uid, (user.role || 'user').toLowerCase(), e.target.value)}
                                   className="text-[10px] sm:text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all cursor-pointer font-medium text-slate-700"
                                 >
                                   <option value="user">User</option>

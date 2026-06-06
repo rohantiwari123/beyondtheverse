@@ -46,6 +46,11 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
   const [isBiometricLoading, setIsBiometricLoading] = useState(false);
 
   const handleBiometricLogin = async () => {
+    if (!window.isSecureContext && window.location.hostname !== 'localhost') {
+      showToast("Biometric login requires a secure connection (HTTPS).", false);
+      return;
+    }
+
     if (!email.trim()) {
       setEmailError("Email or Username is required for biometric login.");
       return;
@@ -53,11 +58,11 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
 
     setIsBiometricLoading(true);
     try {
-      let loginEmail = email.trim();
+      let loginEmail = email.trim().toLowerCase();
 
       // Resolve username to email if necessary
       if (!loginEmail.includes('@')) {
-        const q = query(collection(db, 'users'), where('username', '==', loginEmail.toLowerCase()));
+        const q = query(collection(db, 'users'), where('username', '==', loginEmail));
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
@@ -74,14 +79,21 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
 
       if (userDoc.exists()) {
-        const actualRole = userDoc.data().role || 'user';
+        const rawRole = userDoc.data().role || 'user';
+        const actualRole = rawRole.toLowerCase() === 'student' ? 'user' : rawRole.toLowerCase();
+
         if (actualRole !== activeTab) {
-          await signOut(auth);
-          showToast(`Access Denied! You are not registered as a ${activeTab.toUpperCase()}.`, false);
-          setIsBiometricLoading(false);
-          return;
+          if (activeTab === 'user' || actualRole === 'admin') {
+            showToast(`Welcome! Logged in as ${actualRole.toUpperCase()}.`);
+          } else {
+            await signOut(auth);
+            showToast(`Access Denied! You are not registered as a ${activeTab.toUpperCase()}.`, false);
+            setIsBiometricLoading(false);
+            return;
+          }
+        } else {
+          showToast(`Logged in with Biometrics!`);
         }
-        showToast(`Logged in with Biometrics!`);
         navigate('/');
       }
     } catch (error) {
@@ -96,7 +108,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
   useEffect(() => {
     const urlMode = new URLSearchParams(location.search).get('mode');
     const requestedMode = urlMode || location.state?.authMode || initialAuthMode;
-    const allowedModes = ['login', 'signup', 'forgot'];
+    const allowedModes = ['login', 'signup'];
 
     if (allowedModes.includes(requestedMode)) {
       setAuthMode(requestedMode);
@@ -287,7 +299,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
       await setDoc(doc(db, 'users', user.uid), {
         name: fullName,
         username: username,
-        email: user.email,
+        email: user.email.toLowerCase(),
         role: selectedSignupRole,
         createdAt: Date.now()
       });
@@ -333,10 +345,10 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
     setIsLoading(true);
     try {
       if (authMode === 'login') {
-        let loginEmail = email.trim();
+        let loginEmail = email.trim().toLowerCase();
 
         if (!loginEmail.includes('@')) {
-          const q = query(collection(db, 'users'), where('username', '==', loginEmail.toLowerCase()));
+          const q = query(collection(db, 'users'), where('username', '==', loginEmail));
           const querySnapshot = await getDocs(q);
 
           if (querySnapshot.empty) {
@@ -352,24 +364,27 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
 
         if (userDoc.exists()) {
-          const actualRole = userDoc.data().role || 'user';
+          const rawRole = userDoc.data().role || 'user';
+          const actualRole = rawRole.toLowerCase() === 'student' ? 'user' : rawRole.toLowerCase();
+
           if (actualRole !== activeTab) {
-            await signOut(auth);
-            showToast(`Access Denied! You are not registered as a ${activeTab.toUpperCase()}.`, false);
-            setIsLoading(false);
-            return;
+            if (activeTab === 'user' || actualRole === 'admin') {
+              showToast(`Welcome! Accessing ${actualRole.toUpperCase()} workspace.`);
+            } else {
+              await signOut(auth);
+              showToast(`Access Denied! You are not registered as a ${activeTab.toUpperCase()}.`, false);
+              setIsLoading(false);
+              return;
+            }
+          } else {
+            showToast(`Logged in as ${actualRole.toUpperCase()}!`);
           }
-          showToast(`Logged in as ${activeTab.toUpperCase()}!`);
           navigate('/');
         } else {
           showToast("User role data not found!", false);
           await signOut(auth);
         }
 
-      } else if (authMode === 'forgot') {
-        await sendPasswordResetEmail(auth, email);
-        showToast("Password reset link sent to your email!");
-        setAuthMode('login');
       }
     } catch (error) {
       console.error("Authentication Error Details:", error);
@@ -449,7 +464,6 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
             <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
               {authMode === 'login' && `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Portal`}
               {authMode === 'signup' && (emailOtpSent ? 'Verify OTP' : `Create Account`)}
-              {authMode === 'forgot' && `Reset Password`}
             </h2>
             {authMode === 'login' && <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">Accessing workspace for {activeTab}s</p>}
           </div>
@@ -567,8 +581,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
               </div>
 
               {/* UPGRADED PASSWORD INPUT */}
-              {authMode !== 'forgot' && (
-                <div className="flex flex-col">
+              <div className="flex flex-col">
                   <div className="relative">
                     <i className={`${designVars.iconBase} ${currentPasswordError ? designVars.iconError : designVars.iconNormal} fa-solid fa-lock`}></i>
                     <input
@@ -610,8 +623,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
                       </div>
                     </div>
                   )}
-                </div>
-              )}
+              </div>
             </>
           )}
 
@@ -625,7 +637,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
 
           {authMode === 'login' && (
             <div className="flex justify-end mt-1">
-              <button type="button" onClick={() => setAuthMode('forgot')} className="text-xs font-semibold text-slate-500 hover:text-teal-600">Forgot Password?</button>
+              <button type="button" onClick={() => navigate('/recover')} className="text-xs font-semibold text-slate-500 hover:text-teal-600">Forgot Password or Username?</button>
             </div>
           )}
 
@@ -639,7 +651,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
             className={`w-full text-white font-bold py-3 sm:py-4 px-6 rounded-xl text-sm sm:text-base active:scale-[0.98] flex items-center justify-center gap-2 mt-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all uppercase tracking-widest ${activeTab === 'admin' ? 'bg-slate-900 hover:bg-black shadow-lg shadow-slate-900/10' : 'bg-teal-600 hover:bg-teal-700 shadow-lg shadow-teal-600/10'}`}
           >
             {isLoading ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Processing...</>
-            : <>{authMode === 'login' ? `Sign In to ${activeTab}` : authMode === 'signup' ? (emailOtpSent ? 'Verify OTP' : 'Continue Signup') : 'Send Reset Link'}</>}
+            : <>{authMode === 'login' ? `Sign In to ${activeTab}` : (emailOtpSent ? 'Verify OTP' : 'Continue Signup')}</>}
           </button>
 
           {authMode === 'login' && (
@@ -664,16 +676,12 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
         </form>
 
         {/* Form Footer Links */}
-        {authMode !== 'forgot' && activeTab !== 'admin' ? (
+        {activeTab !== 'admin' ? (
           <div className="text-center mt-8 text-sm text-slate-500 font-medium">
             {authMode === 'login' ? "Don't have an account? " : "Already have an account? "}
             <button onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')} className="text-teal-600 font-bold hover:text-teal-700 hover:underline underline-offset-4">
               {authMode === 'login' ? 'Sign up' : 'Log in'}
             </button>
-          </div>
-        ) : authMode === 'forgot' ? (
-          <div className="text-center mt-8 text-sm text-slate-500 font-medium">
-            Remembered your password? <button onClick={() => setAuthMode('login')} className="text-teal-600 font-bold hover:text-teal-700 hover:underline underline-offset-4">Back to Login</button>
           </div>
         ) : null}
 

@@ -14,14 +14,23 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const savedUser = getLocalUser();
   
+  // 🛡️ SECURITY FIX: Normalize role for legacy and case-sensitivity
+  const normalizeRole = (role) => {
+    if (!role) return 'user';
+    const r = role.toLowerCase();
+    return r === 'student' ? 'user' : r;
+  };
+
+  const initialRole = normalizeRole(savedUser?.role);
+  
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(!!savedUser);
-  const [userRole, setUserRole] = useState(savedUser?.role || 'user'); // student/user, teacher, admin, examiner
+  const [userRole, setUserRole] = useState(initialRole); // user, teacher, admin, examiner
   
-  const [isAdmin, setIsAdmin] = useState(savedUser?.role === 'admin');
-  const [isTeacher, setIsTeacher] = useState(savedUser?.role === 'teacher');
-  const [isExaminer, setIsExaminer] = useState(savedUser?.role === 'examiner');
-  const [isUser, setIsUser] = useState(savedUser?.role === 'user' || !savedUser?.role);
+  const [isAdmin, setIsAdmin] = useState(initialRole === 'admin');
+  const [isTeacher, setIsTeacher] = useState(initialRole === 'teacher');
+  const [isExaminer, setIsExaminer] = useState(initialRole === 'examiner');
+  const [isUser, setIsUser] = useState(initialRole === 'user');
 
   const [userName, setUserName] = useState(savedUser?.name || ""); 
   const [userUsername, setUserUsername] = useState(savedUser?.username || "");
@@ -38,7 +47,7 @@ export const AuthProvider = ({ children }) => {
         unsubscribeSnapshot = onSnapshot(doc(db, 'users', user.uid), 
           (userDoc) => {
             if (userDoc.exists()) {
-              const role = userDoc.data().role || 'user';
+              const role = normalizeRole(userDoc.data().role);
               const realName = userDoc.data().name || user.displayName || ""; 
               const realUsername = userDoc.data().username || "";
               const realProfilePic = userDoc.data().profilePic || user.photoURL || "";

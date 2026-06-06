@@ -28,6 +28,7 @@ const styles = {
 
 // Lazy Loading
 const LoginPage = lazy(() => import('./pages/Auth/LoginPage'));
+const ForgotCredentialsPage = lazy(() => import('./pages/Auth/ForgotCredentialsPage'));
 const HomePage = lazy(() => import('./pages/Home/HomePage'));
 const DonationPage = lazy(() => import('./pages/Donation/DonationPage'));
 const AboutPage = lazy(() => import('./pages/About/AboutPage'));
@@ -94,7 +95,7 @@ export default function App() {
       <div className={styles.bgGradient}></div>
       <div className={styles.bgGlow}></div>
 
-      {!['/login', '/signup'].includes(location.pathname) && !location.pathname.startsWith('/exam/engine/') && (
+      {!['/login', '/signup', '/recover'].includes(location.pathname) && !location.pathname.startsWith('/exam/engine/') && (
         <div className={styles.headerZone}>
           <Header />
         </div>
@@ -107,6 +108,7 @@ export default function App() {
               {/* Auth Routes */}
               <Route path="/login" element={!isAuthenticated ? <LoginPage showToast={showToast} /> : <Navigate to="/" />} />
               <Route path="/signup" element={!isAuthenticated ? <LoginPage showToast={showToast} initialAuthMode="signup" /> : <Navigate to="/" />} />
+              <Route path="/recover" element={!isAuthenticated ? <ForgotCredentialsPage showToast={showToast} /> : <Navigate to="/" />} />
 
               {/* Public/Member Routes */}
               <Route path="/" element={<HomePage onNavigateToDonate={() => navigate('/donate')} />} />
@@ -153,7 +155,7 @@ export default function App() {
         </Suspense>
       </main>
 
-      {!['/login', '/signup', '/admin'].includes(location.pathname) && !location.pathname.startsWith('/exam/engine/') && (
+      {!['/login', '/signup', '/admin', '/recover'].includes(location.pathname) && !location.pathname.startsWith('/exam/engine/') && (
         <div className={styles.footerZone}>
           <Footer />
         </div>
