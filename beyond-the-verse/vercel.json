@@ -1,15 +1,13 @@
 {
   "version": 2,
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "/api/index.js"
     },
     {
-      "handle": "filesystem"
-    },
-    {
-      "source": "/(.*)",
+      "source": "/((?!api/|assets/|favicon.svg|icons.svg|hero.png|sw.js|workbox-.*\\.js).*)",
       "destination": "/index.html"
     }
   ]
