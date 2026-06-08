@@ -56,8 +56,8 @@ const getExamStatusBox = (exam, userResult, currentTime, resultsReleased, isAdmi
 
   // 1. COMPLETED: High contrast bold mono text
   if (userResult) {
-    // 🌟 DOUBLE LOCK: Global status AND specific exam status must be released
-    const isActuallyReleased = resultsReleased && exam.isResultPublished;
+    // 🌟 MASTER LOCK: Global status must be released
+    const isActuallyReleased = resultsReleased;
 
     if (!isActuallyReleased && !isAdmin) {
       return {

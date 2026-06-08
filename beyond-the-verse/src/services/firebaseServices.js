@@ -263,7 +263,7 @@ export const saveExamToDb = async (examData) => {
     const docRef = await addDoc(collection(db, "exams"), {
       ...examData,
       createdAt: serverTimestamp(),
-      isResultPublished: false, // 🌟 By default results are hidden for this specific exam
+      isResultPublished: true, // 🌟 Default to true, global resultsReleased toggle will control visibility
     });
 
     // 🌟 GLOBAL LOCK: When a new exam is published, make sure global results release is OFF
