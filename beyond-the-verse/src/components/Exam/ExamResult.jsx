@@ -205,7 +205,7 @@ export default function ExamResult({ showToast }) {
                           </div>
 
                           <div 
-                            className="flex-1 text-sm sm:text-base verse-thought-serif leading-snug [&>p]:m-0 break-words overflow-hidden"
+                            className="flex-1 min-w-0 text-sm sm:text-base verse-thought-serif leading-snug [&>p]:m-0 break-words overflow-hidden"
                             dangerouslySetInnerHTML={{ __html: opt.text }}
                           />
 

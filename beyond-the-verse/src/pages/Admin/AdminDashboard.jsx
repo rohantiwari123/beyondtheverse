@@ -113,7 +113,7 @@ function ResultDetailsModal({ result, exam, onClose }) {
                   </div>
                   
                   <div className="p-5 sm:p-6">
-                    <div className="text-[15px] text-slate-800 mb-6 font-medium leading-relaxed prose prose-sm max-w-none [&>p]:m-0" dangerouslySetInnerHTML={{ __html: q.text }} />
+                    <div className="text-[15px] text-slate-800 mb-6 font-medium leading-relaxed prose prose-sm max-w-none [&>p]:m-0 break-words" dangerouslySetInnerHTML={{ __html: q.text }} />
                     
                     <div className="grid grid-cols-1 gap-3">
                       {q.options.map((opt, optIdx) => {
@@ -133,7 +133,7 @@ function ResultDetailsModal({ result, exam, onClose }) {
                             }`}>
                               {optionLetter}
                             </div>
-                            <div className="flex-1 leading-snug [&>p]:m-0" dangerouslySetInnerHTML={{ __html: opt.text }} />
+                            <div className="flex-1 min-w-0 leading-snug [&>p]:m-0 break-words" dangerouslySetInnerHTML={{ __html: opt.text }} />
                             {isSelected && isCorrectOpt && <i className="fa-solid fa-circle-check text-teal-600 text-lg"></i>}
                             {isSelected && !isCorrectOpt && <i className="fa-solid fa-circle-xmark text-rose-600 text-lg"></i>}
                             {!isSelected && isCorrectOpt && <i className="fa-solid fa-check text-teal-500 text-sm"></i>}
