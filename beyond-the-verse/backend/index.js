@@ -1,19 +1,22 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const admin = require('firebase-admin');
-const {
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import admin from 'firebase-admin';
+import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
-} = require('@simplewebauthn/server');
+} from '@simplewebauthn/server';
 
 const app = express();
 
+// 🌟 FRONTEND URL DETECTION (Default for Local Dev)
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
 // 🌟 CORS CONFIGURATION
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: FRONTEND_URL,
   methods: ['GET', 'POST'],
   credentials: true,
 }));
@@ -62,17 +65,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// 🌟 DYNAMIC DOMAIN DETECTION
-const getRPID = (req) => {
-  const host = req.get('host') || 'localhost';
-  return host.split(':')[0];
+// 🌟 DYNAMIC DOMAIN DETECTION (Fixed for Cross-Domain WebAuthn)
+const getRPID = () => {
+  try {
+    return new URL(FRONTEND_URL).hostname;
+  } catch (e) {
+    return 'localhost';
+  }
 };
 
-const getOrigin = (req) => {
-  const host = req.get('host') || 'localhost';
-  const protocol = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
-  return `${protocol}://${host}`;
-};
+const getOrigin = () => FRONTEND_URL;
 
 const RP_NAME = 'Beyond The Verse';
 const CHALLENGE_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
@@ -92,7 +94,7 @@ app.post('/api/webauthn/register-options', async (req, res) => {
 
     const options = await generateRegistrationOptions({
       rpName: RP_NAME,
-      rpID: getRPID(req),
+      rpID: getRPID(),
       userID: uid,
       userName: email,
       attestationType: 'none',
@@ -137,8 +139,8 @@ app.post('/api/webauthn/register-verify', async (req, res) => {
     const verification = await verifyRegistrationResponse({
       response,
       expectedChallenge,
-      expectedOrigin: getOrigin(req),
-      expectedRPID: getRPID(req),
+      expectedOrigin: getOrigin(),
+      expectedRPID: getRPID(),
     });
 
     if (verification.verified) {
@@ -184,7 +186,7 @@ app.post('/api/webauthn/login-options', async (req, res) => {
     }
 
     const options = await generateAuthenticationOptions({
-      rpID: getRPID(req),
+      rpID: getRPID(),
       allowCredentials: userCredentials.map(cred => ({
         id: cred.credentialID,
         type: 'public-key',
@@ -235,8 +237,8 @@ app.post('/api/webauthn/login-verify', async (req, res) => {
     const verification = await verifyAuthenticationResponse({
       response,
       expectedChallenge,
-      expectedOrigin: getOrigin(req),
-      expectedRPID: getRPID(req),
+      expectedOrigin: getOrigin(),
+      expectedRPID: getRPID(),
       authenticator: {
         credentialID: Buffer.from(credential.credentialID, 'base64url'),
         credentialPublicKey: Buffer.from(credential.publicKey, 'base64url'),
@@ -310,4 +312,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`BTVerse Backend is running on port ${PORT} 🚀`);
 });
 
-module.exports = app;
+export default app;
