@@ -12,14 +12,27 @@ import {
 const app = express();
 
 // 🌟 FRONTEND URL DETECTION (Default for Production)
-// Note: CORS and WebAuthn Origin require the base URL WITHOUT the subpath.
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://rohantiwari123.github.io';
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://rohantiwari123.github.io').replace(/\/$/, '');
 
 // 🌟 CORS CONFIGURATION
 app.use(cors({
-  origin: FRONTEND_URL,
-  methods: ['GET', 'POST'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    // Normalize origins for comparison
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    
+    if (normalizedOrigin === FRONTEND_URL) {
+      callback(null, true);
+    } else {
+      console.warn(`🚨 CORS Blocked: Origin ${origin} does not match ${FRONTEND_URL}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
