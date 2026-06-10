@@ -133,7 +133,7 @@ export default function StorySection({ isAuthenticated, onDonate }) {
         { name: "Safe Payment", desc: "Support us easily and safely using UPI." },
         { name: "Special Thanks", desc: "We feature our supporters on our Wall of Love." }
       ],
-      path: "/donation",
+      path: "/donate",
       requiresAuth: false,
       // Solid Slate-900 (Level 1 Elevated)
       theme: { bg: "bg-slate-50", border: "border-rose-100", text: "text-rose-600", accent: "bg-rose-600 hover:opacity-90" }

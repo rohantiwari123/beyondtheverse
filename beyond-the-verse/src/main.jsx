@@ -77,8 +77,8 @@ console.log(
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      {/* 🌟 FIX: HashRouter की जगह BrowserRouter लगाया और basename सेट किया */}
-      <BrowserRouter basename="/beyondtheverse">
+      {/* 🌟 FIX: Dynamic basename detection for local and GitHub Pages support */}
+      <BrowserRouter basename={window.location.pathname.startsWith('/beyondtheverse') ? '/beyondtheverse' : '/'}>
         {/* 🌟 NAYA: Puri App ko AuthProvider ke andar lapet diya hai! 🌟 */}
         <AuthProvider>
           <ThemeProvider>

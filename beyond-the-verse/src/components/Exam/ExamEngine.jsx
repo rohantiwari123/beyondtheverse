@@ -206,17 +206,13 @@ export default function ExamEngine({ showToast }) {
 
       const startCamera = async () => {
         try {
-          const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-            video: { width: 640, height: 480, facingMode: "user" }, 
-            audio: false 
-          });
-          setStream(mediaStream);
-          
-          if (videoRef.current) {
-            videoRef.current.srcObject = mediaStream;
+          if (!videoRef.current) {
+            console.warn("Video ref not ready, retrying...");
+            setTimeout(startCamera, 500);
+            return;
           }
 
-          // Start AI Frame Processing
+          // Use MediaPipe Camera utility if available
           if (window.Camera) {
             const camera = new window.Camera(videoRef.current, {
               onFrame: async () => {
@@ -227,10 +223,26 @@ export default function ExamEngine({ showToast }) {
               width: 640,
               height: 480,
             });
-            camera.start();
+            
+            await camera.start();
+            
+            // Sync the stream state for UI feedback
+            if (videoRef.current.srcObject) {
+              setStream(videoRef.current.srcObject);
+            }
+          } else {
+            // Manual fallback if Camera utility is missing
+            const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+              video: { width: 640, height: 480, facingMode: "user" }, 
+              audio: false 
+            });
+            setStream(mediaStream);
+            if (videoRef.current) {
+              videoRef.current.srcObject = mediaStream;
+            }
           }
         } catch (err) {
-          console.error("Camera access denied:", err);
+          console.error("Camera acquisition failed:", err);
           setCameraError(true);
           showAlert("🚨 Proctoring Required: Camera access is mandatory for this assessment. Please enable camera permissions and refresh the page to continue.");
         }
@@ -589,18 +601,17 @@ export default function ExamEngine({ showToast }) {
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
 
       {/* 📸 PROCTORING PREVIEW (Floating) */}
-      {stream && (
-        <div className="fixed bottom-24 right-4 sm:bottom-28 sm:right-8 z-50 animate-fade-in-up">
-          <div className="relative group">
-            <div className="absolute -top-2 -right-2 h-4 w-4 bg-teal-500 rounded-full border-2 border-white z-10 animate-pulse shadow-sm"></div>
-            <div className="bg-slate-900 rounded-2xl overflow-hidden border-2 border-white shadow-2xl w-28 h-36 sm:w-36 sm:h-48 transition-all hover:scale-105 group-hover:border-teal-400">
-              <video 
-                ref={videoRef} 
-                autoPlay 
-                playsInline 
-                muted 
-                className={`w-full h-full object-cover grayscale contrast-125 brightness-110 transition-all ${aiWarning ? 'border-4 border-rose-500 blur-[1px]' : 'border-0'}`}
-              />
+      <div className={`fixed bottom-24 right-4 sm:bottom-28 sm:right-8 z-50 animate-fade-in-up transition-opacity duration-500 ${!stream ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        <div className="relative group">
+          <div className="absolute -top-2 -right-2 h-4 w-4 bg-teal-500 rounded-full border-2 border-white z-10 animate-pulse shadow-sm"></div>
+          <div className="bg-slate-900 rounded-2xl overflow-hidden border-2 border-white shadow-2xl w-28 h-36 sm:w-36 sm:h-48 transition-all hover:scale-105 group-hover:border-teal-400">
+            <video 
+              ref={videoRef} 
+              autoPlay 
+              playsInline 
+              muted 
+              className={`w-full h-full object-cover grayscale contrast-125 brightness-110 transition-all ${aiWarning ? 'border-4 border-rose-500 blur-[1px]' : 'border-0'}`}
+            />
               <div className={`absolute bottom-2 left-2 right-2 bg-black/60 backdrop-blur-sm rounded-lg py-1.5 px-2 flex flex-col items-center justify-center gap-1 transition-all ${aiWarning ? 'bg-rose-900/80' : ''}`}>
                 <div className="flex items-center gap-1.5">
                     <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${aiWarning ? 'bg-white' : 'bg-teal-400'}`}></span>
