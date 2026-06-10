@@ -11,8 +11,17 @@ import {
 
 const app = express();
 
-// 🌟 FRONTEND URL DETECTION (Default for Production)
-const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://rohantiwari123.github.io').replace(/\/$/, '');
+// 🌟 FRONTEND URL DETECTION (Robust Origin Extraction)
+const getCleanOrigin = (url) => {
+  try {
+    const parsed = new URL(url || 'https://rohantiwari123.github.io');
+    return `${parsed.protocol}//${parsed.host}`;
+  } catch (e) {
+    return 'https://rohantiwari123.github.io';
+  }
+};
+
+const FRONTEND_URL = getCleanOrigin(process.env.FRONTEND_URL);
 
 // 🌟 CORS CONFIGURATION
 app.use(cors({
@@ -20,20 +29,26 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     
-    // Normalize origins for comparison
     const normalizedOrigin = origin.replace(/\/$/, '');
     
     if (normalizedOrigin === FRONTEND_URL) {
       callback(null, true);
     } else {
-      console.warn(`🚨 CORS Blocked: Origin ${origin} does not match ${FRONTEND_URL}`);
-      callback(new Error('Not allowed by CORS'));
+      console.error(`❌ CORS REJECTED:
+        Incoming Origin: ${origin}
+        Expected Origin: ${FRONTEND_URL}
+        Env Var: ${process.env.FRONTEND_URL}
+      `);
+      callback(null, false); // Return false instead of Error to allow standard 403/headers
     }
   },
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Pre-flight fix for all routes
+app.options('*', cors());
 
 app.use(express.json());
 
