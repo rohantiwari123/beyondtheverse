@@ -12,7 +12,8 @@ import {
 const app = express();
 
 // 🌟 FRONTEND URL DETECTION (Default for Production)
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://rohantiwari123.github.io/beyondtheverse';
+// Note: CORS and WebAuthn Origin require the base URL WITHOUT the subpath.
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://rohantiwari123.github.io';
 
 // 🌟 CORS CONFIGURATION
 app.use(cors({
