@@ -205,6 +205,42 @@ export default function ExamEngine({ showToast }) {
       };
 
       const startCamera = async () => {
+        const preferredConstraints = { video: { width: 640, height: 480, facingMode: "user" }, audio: false };
+        const fallbackConstraints = { video: true, audio: false };
+
+        const tryAcquire = async (constraints) => {
+          try {
+            const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+            setStream(mediaStream);
+            
+            if (videoRef.current) {
+              videoRef.current.srcObject = mediaStream;
+              // Once we have a stream, we can attach MediaPipe processing
+              if (window.Camera) {
+                // We use MediaPipe's onFrame approach but with our own stream
+                const camera = new window.Camera(videoRef.current, {
+                  onFrame: async () => {
+                    if (faceMeshRef.current && !isSubmitting) {
+                      await faceMeshRef.current.send({ image: videoRef.current });
+                    }
+                  },
+                  width: 640,
+                  height: 480,
+                });
+                // Note: We don't call camera.start() because we already have the stream via getUserMedia
+                // and it would try to acquire it again. Instead, we use the onFrame manually or 
+                // find a way to let MediaPipe use our stream.
+                // Actually, MediaPipe's Camera utility IS a wrapper for getUserMedia + requestAnimationFrame.
+                // If we want to use MediaPipe's Camera utility, we should let IT handle the acquisition.
+              }
+            }
+            return true;
+          } catch (e) {
+            console.warn("Acquisition failed with constraints:", constraints, e);
+            return false;
+          }
+        };
+
         try {
           if (!videoRef.current) {
             console.warn("Video ref not ready, retrying...");
@@ -212,39 +248,42 @@ export default function ExamEngine({ showToast }) {
             return;
           }
 
-          // Use MediaPipe Camera utility if available
+          // Let's try MediaPipe's Camera utility first as it's the most integrated
           if (window.Camera) {
-            const camera = new window.Camera(videoRef.current, {
-              onFrame: async () => {
-                if (faceMeshRef.current && !isSubmitting) {
-                  await faceMeshRef.current.send({ image: videoRef.current });
-                }
-              },
-              width: 640,
-              height: 480,
-            });
-            
-            await camera.start();
-            
-            // Sync the stream state for UI feedback
-            if (videoRef.current.srcObject) {
-              setStream(videoRef.current.srcObject);
-            }
-          } else {
-            // Manual fallback if Camera utility is missing
-            const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-              video: { width: 640, height: 480, facingMode: "user" }, 
-              audio: false 
-            });
-            setStream(mediaStream);
-            if (videoRef.current) {
-              videoRef.current.srcObject = mediaStream;
+            try {
+              const camera = new window.Camera(videoRef.current, {
+                onFrame: async () => {
+                  if (faceMeshRef.current && !isSubmitting) {
+                    await faceMeshRef.current.send({ image: videoRef.current });
+                  }
+                },
+                width: 640,
+                height: 480,
+              });
+              await camera.start();
+              if (videoRef.current.srcObject) {
+                setStream(videoRef.current.srcObject);
+                return;
+              }
+            } catch (err) {
+              console.warn("MediaPipe Camera start failed, trying manual fallback:", err);
             }
           }
+
+          // Fallback to manual acquisition with progressive constraints
+          let success = await tryAcquire(preferredConstraints);
+          if (!success) {
+            success = await tryAcquire(fallbackConstraints);
+          }
+
+          if (!success) {
+            throw new Error("All camera acquisition attempts failed.");
+          }
+
         } catch (err) {
           console.error("Camera acquisition failed:", err);
           setCameraError(true);
-          showAlert("🚨 Proctoring Required: Camera access is mandatory for this assessment. Please enable camera permissions and refresh the page to continue.");
+          showAlert(`🚨 Camera Access Error: ${err.name === 'NotFoundError' ? 'No suitable camera found. Please ensure a camera is connected and not being used by another app.' : 'Camera access is mandatory for this assessment. Please enable permissions and refresh.'}`);
         }
       };
 
