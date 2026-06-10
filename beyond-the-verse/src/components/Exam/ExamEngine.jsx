@@ -135,7 +135,51 @@ export default function ExamEngine({ showToast }) {
   const [timeLeft, setTimeLeft] = useState(30 * 60); 
   const [warnings, setWarnings] = useState(0); 
   
+  // 📸 Camera Proctoring States
+  const [stream, setStream] = useState(null);
+  const [cameraError, setCameraError] = useState(false);
+  const videoRef = React.useRef(null);
   const isInitialLoad = React.useRef(true);
+
+  // 📸 Initialize Camera
+  useEffect(() => {
+    if (hasAgreed && !isSubmitting) {
+      const startCamera = async () => {
+        try {
+          const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+              facingMode: "user" 
+            }, 
+            audio: false 
+          });
+          setStream(mediaStream);
+          if (videoRef.current) {
+            videoRef.current.srcObject = mediaStream;
+          }
+        } catch (err) {
+          console.error("Camera access denied:", err);
+          setCameraError(true);
+          showAlert("🚨 Proctoring Required: Camera access is mandatory for this assessment. Please enable camera permissions and refresh the page to continue.");
+        }
+      };
+      startCamera();
+    }
+
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [hasAgreed]);
+
+  // Sync video element with stream
+  useEffect(() => {
+    if (stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
 
   const showAlert = (message, onConfirm = null) => setModalConfig({ isOpen: true, type: 'alert', message, onConfirm });
   const showConfirm = (message, onConfirm) => setModalConfig({ isOpen: true, type: 'confirm', message, onConfirm });
@@ -471,6 +515,28 @@ export default function ExamEngine({ showToast }) {
       )}
       
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
+
+      {/* 📸 PROCTORING PREVIEW (Floating) */}
+      {stream && (
+        <div className="fixed bottom-24 right-4 sm:bottom-28 sm:right-8 z-50 animate-fade-in-up">
+          <div className="relative group">
+            <div className="absolute -top-2 -right-2 h-4 w-4 bg-teal-500 rounded-full border-2 border-white z-10 animate-pulse shadow-sm"></div>
+            <div className="bg-slate-900 rounded-2xl overflow-hidden border-2 border-white shadow-2xl w-28 h-36 sm:w-36 sm:h-48 transition-all hover:scale-105 group-hover:border-teal-400">
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline 
+                muted 
+                className="w-full h-full object-cover grayscale contrast-125 brightness-110"
+              />
+              <div className="absolute bottom-2 left-2 right-2 bg-black/40 backdrop-blur-sm rounded-lg py-1 px-2 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="h-1.5 w-1.5 bg-teal-400 rounded-full animate-pulse"></span>
+                <span className="text-[8px] font-bold text-white uppercase tracking-widest">Live Proctor</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 🌟 STICKY TIMER FOR MOBILE */}
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex justify-between items-center sm:hidden shadow-sm">
