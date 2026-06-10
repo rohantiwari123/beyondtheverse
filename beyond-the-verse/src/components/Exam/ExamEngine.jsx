@@ -145,6 +145,7 @@ export default function ExamEngine({ showToast }) {
   // 🤖 AI Detection States
   const [aiStatus, setAiStatus] = useState("Initializing AI...");
   const [aiWarning, setAiWarning] = useState(null);
+  const aiWarningTimer = React.useRef(null);
 
   // 📸 Initialize AI & Camera
   useEffect(() => {
@@ -189,9 +190,26 @@ export default function ExamEngine({ showToast }) {
             setAiWarning(warning);
             if (warning) {
               setAiStatus(warning);
-              // Optional: Add to warnings counter if warning persists
+              
+              // 🚨 NEW: Handle persistent AI warnings
+              if (!aiWarningTimer.current) {
+                aiWarningTimer.current = setTimeout(() => {
+                  setWarnings(prev => {
+                    const newWarnings = prev + 1;
+                    if (newWarnings < 3) {
+                      showAlert(`🚨 AI Security Alert: Persistent suspicious activity detected (${warning}). Warning ${newWarnings}/3. Continued violations will lead to auto-submission.`);
+                    }
+                    return newWarnings;
+                  });
+                  aiWarningTimer.current = null; // Reset to allow next increment
+                }, 5000); // 5 seconds threshold for persistent suspicion
+              }
             } else {
               setAiStatus("Monitoring Active");
+              if (aiWarningTimer.current) {
+                clearTimeout(aiWarningTimer.current);
+                aiWarningTimer.current = null;
+              }
             }
           });
 
