@@ -639,11 +639,11 @@ export default function ExamEngine({ showToast }) {
       
       <CustomModal config={modalConfig} onClose={() => setModalConfig({ ...modalConfig, isOpen: false })} />
 
-      {/* 📸 PROCTORING PREVIEW (Floating) */}
-      <div className={`fixed bottom-24 right-4 sm:bottom-28 sm:right-8 z-50 animate-fade-in-up transition-opacity duration-500 ${!stream ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+      {/* 📸 PROCTORING PREVIEW (Floating - Top Right) */}
+      <div className={`fixed top-16 sm:top-20 right-4 sm:right-8 z-50 animate-fade-in-down transition-opacity duration-500 ${!stream ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <div className="relative group">
-          <div className="absolute -top-2 -right-2 h-4 w-4 bg-teal-500 rounded-full border-2 border-white z-10 animate-pulse shadow-sm"></div>
-          <div className="bg-slate-900 rounded-2xl overflow-hidden border-2 border-white shadow-2xl w-28 h-36 sm:w-36 sm:h-48 transition-all hover:scale-105 group-hover:border-teal-400">
+          <div className="absolute -bottom-1 -left-1 h-3 w-3 bg-teal-500 rounded-full border-2 border-white z-10 animate-pulse shadow-sm"></div>
+          <div className="bg-slate-900 rounded-2xl overflow-hidden border-2 border-white shadow-2xl w-24 h-32 sm:w-32 sm:h-44 transition-all hover:scale-105 group-hover:border-teal-400">
             <video 
               ref={videoRef} 
               autoPlay 
@@ -651,19 +651,18 @@ export default function ExamEngine({ showToast }) {
               muted 
               className={`w-full h-full object-cover grayscale contrast-125 brightness-110 transition-all ${aiWarning ? 'border-4 border-rose-500 blur-[1px]' : 'border-0'}`}
             />
-              <div className={`absolute bottom-2 left-2 right-2 bg-black/60 backdrop-blur-sm rounded-lg py-1.5 px-2 flex flex-col items-center justify-center gap-1 transition-all ${aiWarning ? 'bg-rose-900/80' : ''}`}>
-                <div className="flex items-center gap-1.5">
-                    <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${aiWarning ? 'bg-white' : 'bg-teal-400'}`}></span>
-                    <span className="text-[8px] font-bold text-white uppercase tracking-widest">{aiWarning ? 'AI Alert' : 'Live Proctor'}</span>
-                </div>
-                <span className="text-[7px] font-black text-slate-300 uppercase tracking-tighter text-center leading-none truncate w-full">
-                    {aiStatus}
-                </span>
+            <div className={`absolute bottom-1.5 left-1.5 right-1.5 bg-black/60 backdrop-blur-sm rounded-lg py-1 px-1.5 flex flex-col items-center justify-center gap-0.5 transition-all ${aiWarning ? 'bg-rose-900/80' : ''}`}>
+              <div className="flex items-center gap-1">
+                  <span className={`h-1 w-1 rounded-full animate-pulse ${aiWarning ? 'bg-white' : 'bg-teal-400'}`}></span>
+                  <span className="text-[7px] font-bold text-white uppercase tracking-widest">{aiWarning ? 'AI Alert' : 'Live'}</span>
               </div>
+              <span className="text-[6px] font-black text-slate-300 uppercase tracking-tighter text-center leading-none truncate w-full">
+                  {aiStatus}
+              </span>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* 🌟 STICKY TIMER FOR MOBILE */}
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex justify-between items-center sm:hidden shadow-sm">
