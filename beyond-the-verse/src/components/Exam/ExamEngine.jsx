@@ -139,24 +139,95 @@ export default function ExamEngine({ showToast }) {
   const [stream, setStream] = useState(null);
   const [cameraError, setCameraError] = useState(false);
   const videoRef = React.useRef(null);
+  const faceMeshRef = React.useRef(null);
   const isInitialLoad = React.useRef(true);
 
-  // 📸 Initialize Camera
+  // 🤖 AI Detection States
+  const [aiStatus, setAiStatus] = useState("Initializing AI...");
+  const [aiWarning, setAiWarning] = useState(null);
+
+  // 📸 Initialize AI & Camera
   useEffect(() => {
     if (hasAgreed && !isSubmitting) {
+      const initializeAI = async () => {
+        try {
+          // Check if MediaPipe is loaded from index.html
+          if (!window.FaceMesh) {
+            console.error("MediaPipe FaceMesh not loaded");
+            setAiStatus("AI Proctoring Unavailable");
+            return;
+          }
+
+          const faceMesh = new window.FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
+          });
+
+          faceMesh.setOptions({
+            maxNumFaces: 2,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5,
+          });
+
+          faceMesh.onResults((results) => {
+            if (isSubmitting) return;
+
+            let warning = null;
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 1) {
+              warning = "Multiple Faces Detected!";
+            } else if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
+              warning = "No Face Detected!";
+            } else {
+              // Gaze Tracking (Simplified)
+              const landmarks = results.multiFaceLandmarks[0];
+              const nose = landmarks[1];
+              if (nose.x < 0.35 || nose.x > 0.65) {
+                warning = "Please look at the screen!";
+              }
+            }
+
+            setAiWarning(warning);
+            if (warning) {
+              setAiStatus(warning);
+              // Optional: Add to warnings counter if warning persists
+            } else {
+              setAiStatus("Monitoring Active");
+            }
+          });
+
+          faceMeshRef.current = faceMesh;
+          setAiStatus("AI Ready");
+
+        } catch (err) {
+          console.error("AI Initialization Error:", err);
+          setAiStatus("AI Error");
+        }
+      };
+
       const startCamera = async () => {
         try {
           const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-            video: { 
-              width: { ideal: 640 },
-              height: { ideal: 480 },
-              facingMode: "user" 
-            }, 
+            video: { width: 640, height: 480, facingMode: "user" }, 
             audio: false 
           });
           setStream(mediaStream);
+          
           if (videoRef.current) {
             videoRef.current.srcObject = mediaStream;
+          }
+
+          // Start AI Frame Processing
+          if (window.Camera) {
+            const camera = new window.Camera(videoRef.current, {
+              onFrame: async () => {
+                if (faceMeshRef.current && !isSubmitting) {
+                  await faceMeshRef.current.send({ image: videoRef.current });
+                }
+              },
+              width: 640,
+              height: 480,
+            });
+            camera.start();
           }
         } catch (err) {
           console.error("Camera access denied:", err);
@@ -164,13 +235,14 @@ export default function ExamEngine({ showToast }) {
           showAlert("🚨 Proctoring Required: Camera access is mandatory for this assessment. Please enable camera permissions and refresh the page to continue.");
         }
       };
+
+      initializeAI();
       startCamera();
     }
 
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      if (faceMeshRef.current) faceMeshRef.current.close();
     };
   }, [hasAgreed]);
 
@@ -527,11 +599,16 @@ export default function ExamEngine({ showToast }) {
                 autoPlay 
                 playsInline 
                 muted 
-                className="w-full h-full object-cover grayscale contrast-125 brightness-110"
+                className={`w-full h-full object-cover grayscale contrast-125 brightness-110 transition-all ${aiWarning ? 'border-4 border-rose-500 blur-[1px]' : 'border-0'}`}
               />
-              <div className="absolute bottom-2 left-2 right-2 bg-black/40 backdrop-blur-sm rounded-lg py-1 px-2 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="h-1.5 w-1.5 bg-teal-400 rounded-full animate-pulse"></span>
-                <span className="text-[8px] font-bold text-white uppercase tracking-widest">Live Proctor</span>
+              <div className={`absolute bottom-2 left-2 right-2 bg-black/60 backdrop-blur-sm rounded-lg py-1.5 px-2 flex flex-col items-center justify-center gap-1 transition-all ${aiWarning ? 'bg-rose-900/80' : ''}`}>
+                <div className="flex items-center gap-1.5">
+                    <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${aiWarning ? 'bg-white' : 'bg-teal-400'}`}></span>
+                    <span className="text-[8px] font-bold text-white uppercase tracking-widest">{aiWarning ? 'AI Alert' : 'Live Proctor'}</span>
+                </div>
+                <span className="text-[7px] font-black text-slate-300 uppercase tracking-tighter text-center leading-none truncate w-full">
+                    {aiStatus}
+                </span>
               </div>
             </div>
           </div>
