@@ -1,10 +1,7 @@
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 
-// 🌟 FULLY DYNAMIC BACKEND URL
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 
-  ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:3000' 
-    : 'https://beyond-the-verse-production.up.railway.app'); 
+// 🌟 PRODUCTION BACKEND URL
+const BACKEND_URL = 'https://beyond-the-verse-production.up.railway.app'; 
 
 const handleFetchResponse = async (response, url) => {
   const contentType = response.headers.get("content-type");

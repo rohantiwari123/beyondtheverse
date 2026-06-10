@@ -11,8 +11,8 @@ import {
 
 const app = express();
 
-// 🌟 FRONTEND URL DETECTION (Default for Local Dev)
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+// 🌟 FRONTEND URL DETECTION (Default for Production)
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://rohantiwari123.github.io/beyondtheverse';
 
 // 🌟 CORS CONFIGURATION
 app.use(cors({
