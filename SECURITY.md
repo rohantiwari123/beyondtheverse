@@ -6,7 +6,7 @@ This document outlines the security measures implemented on the Beyond the Verse
 
 | Fundamental | Implementation Status | Technical Detail |
 | :--- | :--- | :--- |
-| **SSL/TLS Encryption** | ✅ **Active** | Handled automatically by Vercel Edge Network. |
+| **SSL/TLS Encryption** | ✅ **Active** | Handled automatically by the hosting provider (Railway/Netlify). |
 | **Keep Software Updated** | ✅ **Active** | Regular `npm audit` and vulnerability patching. |
 | **Limit Admin Access** | ✅ **Active** | Role-based authentication enforced via Firestore Rules. |
 | **Strong Authentication** | ✅ **Active** | Complex password rules + Email OTP verification during signup. |
@@ -14,7 +14,7 @@ This document outlines the security measures implemented on the Beyond the Verse
 | **Secure Database** | ✅ **Active** | Comprehensive Firestore & Storage Security Rules. |
 | **Regular Backups** | ✅ **Active** | Python-based Firestore Export tool provided in `python_tools/`. |
 | **Input Validation** | ⚠️ **Partial** | Client-side validation active; Server-side validation recommended for all POST routes. |
-| **Firewall (WAF)** | ✅ **Active** | Protected by Vercel's built-in firewall and DDoS mitigation. |
+| **Firewall (WAF)** | ✅ **Active** | Protected by hosting provider's built-in firewall and DDoS mitigation. |
 
 ---
 

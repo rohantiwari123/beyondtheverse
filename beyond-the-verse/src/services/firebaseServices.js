@@ -22,6 +22,12 @@ import { getToken } from "firebase/messaging";
 // 🌟 Sab kuch ek hi line mein import karein taaki "Redeclaration" error na aaye
 import { db, auth, messaging } from '../firebase';
 
+// 🌟 FULLY DYNAMIC BACKEND URL
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 
+  ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:3000' 
+    : 'https://beyond-the-verse-production.up.railway.app'); // Default Railway Fallback
+
 
 // 1. Categories ko Firebase se laane ke liye
 export const getAdminCategories = async () => {
@@ -71,8 +77,7 @@ export const createPost = async (postData) => {
       let currentBatch = writeBatch(db);
       let operationCount = 0;
       
-      // 👇 YAHAN APNA ASLI VERCEL URL DAALNA 👇
-      const BACKEND_URL = "https://beyondtheverse.vercel.app/api/send-notification";
+      const NOTIFICATION_API = `${BACKEND_URL}/api/send-notification`;
       
       usersSnap.forEach((userDoc) => {
         if (userDoc.id !== postData.userId) { 
@@ -97,9 +102,9 @@ export const createPost = async (postData) => {
             
             operationCount++;
 
-            // 🌟 2. ASLI PUSH NOTIFICATION (FCM / Vercel Server)
+            // 🌟 2. ASLI PUSH NOTIFICATION (FCM / Backend Server)
             if (fcmToken) {
-              fetch(BACKEND_URL, {
+              fetch(NOTIFICATION_API, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -691,10 +696,9 @@ export const createNotification = async (targetUserId, data) => {
 
     // 🌟 3. ASLI PUSH NOTIFICATION BHEJO (Backend ko call karke)
     if (fcmToken) {
-      // 👇 YAHAN APNA CODESPACE WALA PORT 3000 KA URL DAALO 👇
-      const BACKEND_URL = "https://beyondtheverse.vercel.app/api/send-notification";
+      const NOTIFICATION_API = `${BACKEND_URL}/api/send-notification`;
 
-      await fetch(BACKEND_URL, {
+      await fetch(NOTIFICATION_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

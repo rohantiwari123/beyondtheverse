@@ -4,6 +4,12 @@ import { auth, db } from '../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { registerBiometric } from '../../services/webauthnService';
 
+// 🌟 FULLY DYNAMIC BACKEND URL
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 
+  ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:3000' 
+    : 'https://beyond-the-verse-production.up.railway.app'); 
+
 export default function SecuritySettings() {
     const [passwords, setPasswords] = useState({ new: '', confirm: '' });
     const [showPassword, setShowPassword] = useState(false); // 🌟 Eye icon toggle
@@ -72,7 +78,7 @@ export default function SecuritySettings() {
                     const fcmToken = userSnap.data()?.fcmToken;
                     
                     if (fcmToken) {
-                        fetch("https://beyondtheverse.vercel.app/api/send-notification", {
+                        fetch(`${BACKEND_URL}/api/send-notification`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -284,9 +290,6 @@ export default function SecuritySettings() {
                         
                         setIsRevoking(true);
                         try {
-                            const BACKEND_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-                                ? 'http://localhost:3000' 
-                                : window.location.origin;
                             const res = await fetch(`${BACKEND_URL}/api/revoke-sessions`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
