@@ -11,41 +11,29 @@ import {
 
 const app = express();
 
-// 🌟 FRONTEND URL DETECTION (Robust Origin Extraction)
-const getCleanOrigin = (url) => {
-  try {
-    const parsed = new URL(url || 'https://rohantiwari123.github.io');
-    return `${parsed.protocol}//${parsed.host}`;
-  } catch (e) {
-    return 'https://rohantiwari123.github.io';
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://rohantiwari123.github.io').replace(/\/$/, '');
+
+// 🌟 MANUAL CORS & PRE-FLIGHT HANDLING
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // Strictly allow your production domain or localhost
+  if (origin && (origin.startsWith('https://rohantiwari123.github.io') || origin.startsWith('http://localhost'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
   }
-};
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-const FRONTEND_URL = getCleanOrigin(process.env.FRONTEND_URL);
+  // Handle Pre-flight (OPTIONS)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
 
-// 🌟 CORS CONFIGURATION
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    
-    const normalizedOrigin = origin.replace(/\/$/, '');
-    
-    if (normalizedOrigin === FRONTEND_URL) {
-      callback(null, true);
-    } else {
-      console.error(`❌ CORS REJECTED:
-        Incoming Origin: ${origin}
-        Expected Origin: ${FRONTEND_URL}
-        Env Var: ${process.env.FRONTEND_URL}
-      `);
-      callback(null, false); // Return false instead of Error to allow standard 403/headers
-    }
-  },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+console.log(`📡 Backend Configured. Allowed Origin: ${FRONTEND_URL}`);
 
 app.use(express.json());
 
