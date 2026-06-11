@@ -47,9 +47,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Pre-flight fix for all routes (Express 5.x syntax)
-app.options('/(.*)', cors());
-
 app.use(express.json());
 
 // 🌟 FIREBASE ADMIN SETUP
