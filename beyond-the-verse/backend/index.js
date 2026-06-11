@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import admin from 'firebase-admin';
 import {
   generateRegistrationOptions,
@@ -10,28 +11,24 @@ import {
 
 const app = express();
 
-const FRONTEND_URL = 'https://rohantiwari123.github.io';
+// 🌟 THE ULTIMATE CORS FIX (Reflect Origin)
+app.use(cors({
+  origin: true, // Automatically allow the requesting origin
+  credentials: true,
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
+}));
 
-// 🌟 AGGRESSIVE CORS MIDDLEWARE (ALWAYS SET HEADERS)
+app.use(express.json());
+
+// 📝 Request Logger for Railway Console
 app.use((req, res, next) => {
-  const origin = req.headers.origin || FRONTEND_URL;
-  
-  // Set headers for EVERY response
-  res.header('Access-Control-Allow-Origin', origin);
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.header('Access-Control-Allow-Credentials', 'true');
-
-  // Answer pre-flight instantly
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
   next();
 });
 
-console.log(`🚀 BTV Backend Live. Origin Policy: ${FRONTEND_URL}`);
-
-app.use(express.json());
+console.log("🚀 BTV Backend is starting with Auto-CORS enabled...");
 
 // 🌟 FIREBASE ADMIN SETUP
 let serviceAccount = null;
