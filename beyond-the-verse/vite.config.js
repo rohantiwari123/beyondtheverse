@@ -5,7 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: './', // 🌟 Relative paths (Works everywhere)
+  base: '/beyondtheverse/', // 🌟 Hardcoded for GitHub Pages
   
   plugins: [
     react(),
