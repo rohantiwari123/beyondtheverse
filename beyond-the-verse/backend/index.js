@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import express from 'express';
-import cors from 'cors';
 import admin from 'firebase-admin';
 import {
   generateRegistrationOptions,
@@ -11,29 +10,26 @@ import {
 
 const app = express();
 
-const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://rohantiwari123.github.io').replace(/\/$/, '');
+const FRONTEND_URL = 'https://rohantiwari123.github.io';
 
-// 🌟 MANUAL CORS & PRE-FLIGHT HANDLING
+// 🌟 AGGRESSIVE CORS MIDDLEWARE (ALWAYS SET HEADERS)
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
+  const origin = req.headers.origin || FRONTEND_URL;
   
-  // Strictly allow your production domain or localhost
-  if (origin && (origin.startsWith('https://rohantiwari123.github.io') || origin.startsWith('http://localhost'))) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  // Set headers for EVERY response
+  res.header('Access-Control-Allow-Origin', origin);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
 
-  // Handle Pre-flight (OPTIONS)
+  // Answer pre-flight instantly
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.sendStatus(200);
   }
   next();
 });
 
-console.log(`📡 Backend Configured. Allowed Origin: ${FRONTEND_URL}`);
+console.log(`🚀 BTV Backend Live. Origin Policy: ${FRONTEND_URL}`);
 
 app.use(express.json());
 
