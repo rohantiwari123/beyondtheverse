@@ -34,22 +34,29 @@ export default function FaceLivenessVerification({ onVerify, onCancel }) {
                 // 2. Initialize FaceMesh
                 faceMesh = new FaceMeshConstructor({
                     locateFile: (file) => {
-                        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633503008/${file}`;
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}`;
                     },
                 });
 
                 faceMesh.setOptions({
                     maxNumFaces: 1,
                     refineLandmarks: true,
-                    minDetectionConfidence: 0.5,
-                    minTrackingConfidence: 0.5,
+                    minDetectionConfidence: 0.4, // 🌟 MORE SENSITIVE
+                    minTrackingConfidence: 0.4,
                 });
 
                 faceMesh.onResults((results) => {
                     if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
-                        setStatus('No face detected');
+                        if (status !== 'No face detected') {
+                            console.log("⚠️ AI is running but seeing no face...");
+                            setStatus('No face detected');
+                        }
                         setStepProgress(0);
                         return;
+                    }
+                    
+                    if (status === 'No face detected' || status === 'Initializing AI...') {
+                        console.log("✅ Face detected!");
                     }
                     analyzeFace(results.multiFaceLandmarks[0]);
                 });
@@ -64,7 +71,7 @@ export default function FaceLivenessVerification({ onVerify, onCancel }) {
 
                     const cameraInstance = new CameraConstructor(videoRef.current, {
                         onFrame: async () => {
-                            if (faceMesh) {
+                            if (faceMesh && videoRef.current && videoRef.current.readyState === 4) {
                                 try {
                                     await faceMesh.send({ image: videoRef.current });
                                 } catch (e) {
@@ -72,8 +79,8 @@ export default function FaceLivenessVerification({ onVerify, onCancel }) {
                                 }
                             }
                         },
-                        width: 640,
-                        height: 480,
+                        width: 1280, // 🌟 Higher resolution for better detection
+                        height: 720,
                     });
                     
                     camera = cameraInstance;
