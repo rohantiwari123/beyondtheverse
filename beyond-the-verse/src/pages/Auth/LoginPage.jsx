@@ -669,8 +669,8 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
               disabled={isLoading || isBiometricLoading || !email.trim()}
               className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
             >
-              {isBiometricLoading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-fingerprint text-teal-600"></i>}
-              Biometric Access
+              {isBiometricLoading ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-face-smile text-teal-600"></i>}
+              Face ID / Biometrics
             </button>
           )}
         </form>

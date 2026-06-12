@@ -147,14 +147,14 @@ export default function SecuritySettings() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-start gap-4">
                         <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
-                            <i className="fa-solid fa-fingerprint text-teal-600"></i>
+                            <i className="fa-solid fa-face-smile text-teal-600 text-xl"></i>
                         </div>
                         <div>
-                            <h3 className="text-sm font-bold text-slate-900">Biometric Login</h3>
+                            <h3 className="text-sm font-bold text-slate-900">Face ID / Biometric Login</h3>
                             <p className="text-xs text-slate-500 mt-1 max-w-sm">
                                 {hasBiometric 
-                                    ? "You have already enabled biometric login for this device." 
-                                    : "Use your device's fingerprint or face recognition for faster, more secure access."}
+                                    ? "You have enabled Face ID / Biometric login for this device." 
+                                    : "Use your device's Face Recognition or Biometrics for instant, secure access."}
                             </p>
                         </div>
                     </div>
@@ -167,8 +167,8 @@ export default function SecuritySettings() {
                             : 'bg-teal-600 text-white hover:bg-teal-700 shadow-sm active:scale-95'
                         }`}
                     >
-                        {isRegisteringBiometric ? <i className="fa-solid fa-circle-notch fa-spin"></i> : hasBiometric ? <i className="fa-solid fa-check"></i> : <i className="fa-solid fa-plus"></i>}
-                        {hasBiometric ? "Enabled" : "Enable Biometric"}
+                        {isRegisteringBiometric ? <i className="fa-solid fa-circle-notch fa-spin"></i> : hasBiometric ? <i className="fa-solid fa-check"></i> : <i className="fa-solid fa-face-smile"></i>}
+                        {hasBiometric ? "Enabled" : "Enable Face ID"}
                     </button>
                 </div>
             </div>

@@ -207,7 +207,7 @@ app.post('/api/webauthn/login-options', async (req, res) => {
         type: 'public-key',
         transports: cred.transports,
       })),
-      userVerification: 'preferred',
+      userVerification: 'required', // 🌟 FORCED: Require biometric/pin prompt
     });
 
     await db.collection('authChallenges').doc(email.toLowerCase()).set({
