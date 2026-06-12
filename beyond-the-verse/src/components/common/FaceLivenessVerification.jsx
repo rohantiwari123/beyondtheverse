@@ -9,6 +9,13 @@ export default function FaceLivenessVerification({ onVerify, onCancel }) {
     const [progress, setStepProgress] = useState(0);
     const [error, setError] = useState(null);
 
+    const steps = [
+        { label: "Position face in center", icon: "fa-user-check" },
+        { label: "Blink your eyes", icon: "fa-eye" },
+        { label: "Turn head slowly left", icon: "fa-arrow-left" },
+        { label: "Turn head slowly right", icon: "fa-arrow-right" }
+    ];
+
     useEffect(() => {
         let camera = null;
         let faceMesh = null;
