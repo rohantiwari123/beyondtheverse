@@ -1,0 +1,18 @@
+{
+  "name": "beyond-the-verse-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Root proxy for Beyond the Verse deployment",
+  "scripts": {
+    "start": "node beyond-the-verse/backend/index.js",
+    "install-backend": "cd beyond-the-verse && npm install",
+    "build": "echo 'No root build needed'"
+  },
+  "dependencies": {
+    "@simplewebauthn/server": "^13.3.1",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "firebase-admin": "^13.10.0",
+    "cors": "^2.8.6"
+  }
+}
