@@ -5,7 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { registerBiometric } from '../../services/webauthnService';
 
 // 🌟 PRODUCTION BACKEND URL
-const BACKEND_URL = 'https://beyond-the-verse-production.up.railway.app';
+const BACKEND_URL = 'https://beyondtheverse-production.up.railway.app';
 export default function SecuritySettings() {
     const [passwords, setPasswords] = useState({ new: '', confirm: '' });
     const [showPassword, setShowPassword] = useState(false); // 🌟 Eye icon toggle

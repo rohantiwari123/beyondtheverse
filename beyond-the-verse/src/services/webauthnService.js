@@ -1,7 +1,7 @@
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
 
 // 🌟 PRODUCTION BACKEND URL
-const BACKEND_URL = 'https://beyond-the-verse-production.up.railway.app'; 
+const BACKEND_URL = 'https://beyondtheverse-production.up.railway.app'; 
 
 const handleFetchResponse = async (response, url) => {
   const contentType = response.headers.get("content-type");
