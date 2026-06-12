@@ -22,23 +22,27 @@ export default function FaceLivenessVerification({ onVerify, onCancel }) {
 
         const initAI = async () => {
             try {
-                // 🌟 VITE/ESM COMPATIBILITY FIX
-                // MediaPipe exports differently depending on the environment.
-                const FaceMeshConstructor = FaceMeshLib.FaceMesh || window.FaceMesh;
+                // 1. Identify Constructor
+                const FaceMeshConstructor = FaceMeshLib.FaceMesh || (window && window.FaceMesh);
                 
                 if (!FaceMeshConstructor) {
-                    throw new Error("FaceMesh library not found. Check imports.");
+                    console.error("MediaPipe FaceMesh not found in library or window");
+                    setError("AI Library failed to load. Please refresh the page.");
+                    return;
                 }
 
+                // 2. Initialize FaceMesh
                 faceMesh = new FaceMeshConstructor({
-                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633503008/${file}`;
+                    },
                 });
 
                 faceMesh.setOptions({
                     maxNumFaces: 1,
                     refineLandmarks: true,
-                    minDetectionConfidence: 0.7,
-                    minTrackingConfidence: 0.7,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5,
                 });
 
                 faceMesh.onResults((results) => {
@@ -47,23 +51,32 @@ export default function FaceLivenessVerification({ onVerify, onCancel }) {
                         setStepProgress(0);
                         return;
                     }
-                    const landmarks = results.multiFaceLandmarks[0];
-                    analyzeFace(landmarks);
+                    analyzeFace(results.multiFaceLandmarks[0]);
                 });
 
+                // 3. Initialize Camera
                 if (videoRef.current) {
-                    camera = new cam.Camera(videoRef.current, {
+                    const cameraInstance = new cam.Camera(videoRef.current, {
                         onFrame: async () => {
-                            if (faceMesh) await faceMesh.send({ image: videoRef.current });
+                            if (faceMesh) {
+                                try {
+                                    await faceMesh.send({ image: videoRef.current });
+                                } catch (e) {
+                                    console.error("FaceMesh send error:", e);
+                                }
+                            }
                         },
                         width: 640,
                         height: 480,
                     });
+                    
+                    camera = cameraInstance;
                     await camera.start();
+                    console.log("✅ Camera and AI started successfully");
                 }
             } catch (err) {
-                console.error("AI Initialization failed:", err);
-                setError("Failed to start AI. Please ensure camera access is allowed.");
+                console.error("🚨 AI Setup Error:", err);
+                setError(`Identity scanner error: ${err.message || "Unknown error"}`);
             }
         };
 

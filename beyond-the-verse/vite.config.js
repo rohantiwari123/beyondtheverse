@@ -71,6 +71,6 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    include: ['animejs'],
+    include: ['animejs', '@mediapipe/face_mesh', '@mediapipe/camera_utils', '@mediapipe/drawing_utils'],
   }
 })
