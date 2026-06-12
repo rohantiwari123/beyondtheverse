@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import express from 'express';
-import cors from 'cors';
 import admin from 'firebase-admin';
 import {
   generateRegistrationOptions,
@@ -11,26 +10,36 @@ import {
 
 const app = express();
 
-// 🌟 THE ULTIMATE CORS FIX (Reflect Origin)
-app.use(cors({
-  origin: true, // Automatically allow the requesting origin
-  credentials: true,
-  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  optionsSuccessStatus: 200
-}));
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://rohantiwari123.github.io').replace(/\/$/, '');
+
+// 🌟 1. MANUAL CORS (ABSOLUTE TOP)
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
 
 app.use(express.json());
 
-// 📝 Request Logger for Railway Console
+// 🌟 2. DIAGNOSTIC LOGGER
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
   next();
 });
 
-console.log("🚀 BTV Backend is starting with Auto-CORS enabled...");
+// 🌟 3. INDEPENDENT HEALTH CHECK
+app.get('/health', (req, res) => res.status(200).json({ status: 'alive', time: new Date().toISOString() }));
+app.get('/api', (req, res) => res.json({ success: true, message: 'BTVerse API is Live! 🚀' }));
+app.get('/', (req, res) => res.send('Beyond the Verse API Server is Live! 🚀'));
 
-// 🌟 FIREBASE ADMIN SETUP
+// 🌟 4. FIREBASE ADMIN SETUP
 let serviceAccount = null;
 const credsRaw = process.env.FIREBASE_CREDENTIALS;
 
@@ -45,34 +54,34 @@ if (credsRaw) {
       cleanCreds = cleanCreds.slice(1, -1).trim();
     }
     serviceAccount = JSON.parse(cleanCreds);
+    console.log("✅ Firebase Credentials parsed successfully");
   } catch (err) {
     console.error("❌ ERROR: FIREBASE_CREDENTIALS is not valid JSON.");
   }
 }
 
-if (!admin.apps.length) {
-  if (serviceAccount) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
-    console.log("✅ Firebase Admin initialized");
-  } else {
-    console.warn("⚠️ FIREBASE_CREDENTIALS not found.");
-  }
+if (!admin.apps.length && serviceAccount) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+  console.log("✅ Firebase Admin initialized");
+} else if (!serviceAccount) {
+  console.warn("⚠️ FIREBASE_CREDENTIALS not found or invalid.");
 }
 
 const db = admin.apps.length ? admin.firestore() : null;
 
-// 🛡️ MIDDLEWARE: Check if Firebase is initialized
+// 🛡️ MIDDLEWARE: Firebase Safety Check
 app.use((req, res, next) => {
-  if (req.path === '/' || req.path === '/api') return next();
+  if (['/', '/api', '/health'].includes(req.path)) return next();
   if (!db) {
-    return res.status(500).json({ error: "Firebase Admin not initialized." });
+    console.error("❌ Firebase DB requested but not initialized!");
+    return res.status(500).json({ error: "Firebase Admin not initialized. Check FIREBASE_CREDENTIALS." });
   }
   next();
 });
 
-// 🌟 DYNAMIC DOMAIN DETECTION (Fixed for Cross-Domain WebAuthn)
+// 🌟 DYNAMIC DOMAIN DETECTION
 const getRPID = () => {
   try {
     return new URL(FRONTEND_URL).hostname;
@@ -137,7 +146,6 @@ app.post('/api/webauthn/register-verify', async (req, res) => {
 
     const { challenge: expectedChallenge, createdAt } = challengeDoc.data();
     
-    // Check for timeout
     if (Date.now() - createdAt.toMillis() > CHALLENGE_TIMEOUT_MS) {
       await db.collection('authChallenges').doc(uid).delete();
       return res.status(400).json({ error: 'Challenge expired. Please try again.' });
@@ -227,7 +235,6 @@ app.post('/api/webauthn/login-verify', async (req, res) => {
 
     const { challenge: expectedChallenge, uid, createdAt } = challengeDoc.data();
 
-    // Check for timeout
     if (Date.now() - createdAt.toMillis() > CHALLENGE_TIMEOUT_MS) {
       await db.collection('authChallenges').doc(lowercaseEmail).delete();
       return res.status(400).json({ error: 'Challenge expired. Please try again.' });
@@ -277,10 +284,6 @@ app.post('/api/webauthn/login-verify', async (req, res) => {
   }
 });
 
-// 🌟 HEALTH CHECK & BASE ROUTES
-app.get('/', (req, res) => res.send('Beyond the Verse API Server is Live! 🚀'));
-app.get('/api', (req, res) => res.json({ success: true, message: 'BTVerse API is Live! 🚀' }));
-
 // 🌟 NOTIFICATION BHEJNE WALA API ROUTE
 app.post('/api/send-notification', async (req, res) => {
   const { fcmToken, title, body, link } = req.body;
@@ -313,7 +316,6 @@ app.post('/api/revoke-sessions', async (req, res) => {
   }
 });
 
-// 🌟 START THE SERVER
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`BTVerse Backend is running on port ${PORT} 🚀`);
