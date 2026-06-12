@@ -1,17 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
-import * as FaceMeshLib from '@mediapipe/face_mesh';
-import * as cam from '@mediapipe/camera_utils';
 
+// 🌟 BULLETPROOF VERSION: Loads MediaPipe via Global Scripts to avoid Bundler issues
 export default function FaceLivenessVerification({ onVerify, onCancel }) {
     const videoRef = useRef(null);
     const [status, setStatus] = useState('Initializing AI...');
     const [error, setError] = useState(null);
 
-    // 🌟 REFS FOR REAL-TIME TRACKING (Prevents Stale State)
     const stepRef = useRef(0);
     const progressRef = useRef(0);
     
-    // UI State (Synced with Refs)
     const [uiStep, setUIStep] = useState(0);
     const [uiProgress, setUIProgress] = useState(0);
 
@@ -26,23 +23,40 @@ export default function FaceLivenessVerification({ onVerify, onCancel }) {
         let camera = null;
         let faceMesh = null;
 
+        const loadScript = (src) => {
+            return new Promise((resolve) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.crossOrigin = 'anonymous';
+                script.onload = () => resolve();
+                document.head.appendChild(script);
+            });
+        };
+
         const initAI = async () => {
             try {
-                const FaceMeshConstructor = FaceMeshLib.FaceMesh || (window && window.FaceMesh);
-                if (!FaceMeshConstructor) {
-                    setError("AI Library failed to load. Please refresh.");
-                    return;
+                // 1. Load Scripts Manually if not already present
+                if (!window.FaceMesh) {
+                    await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js');
+                }
+                if (!window.Camera) {
+                    await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js');
                 }
 
-                faceMesh = new FaceMeshConstructor({
-                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}`,
+                if (!window.FaceMesh || !window.Camera) {
+                    throw new Error("AI Libraries could not be loaded from CDN.");
+                }
+
+                // 2. Initialize FaceMesh from Global window
+                faceMesh = new window.FaceMesh({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
                 });
 
                 faceMesh.setOptions({
                     maxNumFaces: 1,
                     refineLandmarks: true,
-                    minDetectionConfidence: 0.4,
-                    minTrackingConfidence: 0.4,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5,
                 });
 
                 faceMesh.onResults((results) => {
@@ -54,8 +68,9 @@ export default function FaceLivenessVerification({ onVerify, onCancel }) {
                     analyzeFace(results.multiFaceLandmarks[0]);
                 });
 
+                // 3. Initialize Camera from Global window
                 if (videoRef.current) {
-                    camera = new cam.Camera(videoRef.current, {
+                    camera = new window.Camera(videoRef.current, {
                         onFrame: async () => {
                             if (faceMesh && videoRef.current && videoRef.current.readyState === 4) {
                                 await faceMesh.send({ image: videoRef.current });
@@ -65,6 +80,7 @@ export default function FaceLivenessVerification({ onVerify, onCancel }) {
                         height: 720,
                     });
                     await camera.start();
+                    console.log("✅ Custom AI Scanner Started");
                 }
             } catch (err) {
                 console.error("🚨 AI Setup Error:", err);
@@ -95,7 +111,6 @@ export default function FaceLivenessVerification({ onVerify, onCancel }) {
         stepRef.current += 1;
         setUIStep(stepRef.current);
         updateProgress(0);
-        console.log(`✅ Moving to Step ${stepRef.current}`);
     };
 
     const analyzeFace = (landmarks) => {
@@ -160,7 +175,7 @@ export default function FaceLivenessVerification({ onVerify, onCancel }) {
                 <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
                     {error ? (
                         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-                            <i className="fa-solid fa-camera-slash text-4xl text-rose-400 mb-4"></i>
+                            <i className="fa-solid fa-triangle-exclamation text-4xl text-rose-400 mb-4"></i>
                             <p className="text-slate-600 font-bold">{error}</p>
                             <button onClick={onCancel} className="mt-4 px-6 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold">Close</button>
                         </div>
