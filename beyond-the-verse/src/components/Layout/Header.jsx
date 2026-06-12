@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { subscribeToUserNotifications, markNotificationAsRead, requestPushNotificationPermission } from '../../services/firebaseServices';
 import { formatDateTime } from '../../utils/dateFormatter';
+import GlobalSearch from "../common/GlobalSearch";
 
 const styles = {
   header: "bg-white/95 backdrop-blur-xl fixed top-0 left-0 right-0 z-[100] border-b w-full overflow-visible transition-colors duration-300 border-slate-200",  
@@ -135,19 +136,7 @@ export default function Header() {
             </Link>
           </div>
 
-          <nav className={styles.navContainer}>
-            <div className={styles.navLinkWrapper}>
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  className={`${styles.navLinkBase} ${isPathActive(link.path) ? styles.navLinkActive : styles.navLinkInactive}`}
-                >
-                  {link.name}
-                </Link>
-              ))}
-            </div>
-          </nav>
+          <GlobalSearch />
 
           <div className="flex items-center justify-end flex-1 lg:w-1/4 gap-2">
 
