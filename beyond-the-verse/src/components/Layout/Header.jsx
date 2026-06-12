@@ -125,16 +125,10 @@ export default function Header() {
 
           <div className="flex items-center justify-start min-w-max lg:w-1/4">
             <Link to="/" className="flex flex-col justify-center items-start select-none">
-              <div className={`${styles.logoContainer} hidden xs:flex`}>
+              <div className={styles.logoContainer}>
                 <span className={styles.brandFirst}>Beyond</span>
                 <span className={styles.brandMiddle}>The</span>
                 <span className={styles.brandLast}>Verse</span>
-              </div>
-              {/* Mobile-only compact logo */}
-              <div className="xs:hidden flex items-baseline gap-0.5">
-                <span className="text-[20px] font-black text-slate-900">B</span>
-                <span className="text-[14px] font-bold text-slate-400">t</span>
-                <span className="text-[18px] font-black text-teal-600">V</span>
               </div>
               <span className={styles.brandTagline}>
                 <div className="h-px w-3 bg-teal-500/40"></div> Empowering Education
