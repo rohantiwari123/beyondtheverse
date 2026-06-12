@@ -1,64 +1,70 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { FaceMesh } from '@mediapipe/face_mesh';
+import * as FaceMeshLib from '@mediapipe/face_mesh';
 import * as cam from '@mediapipe/camera_utils';
 
 export default function FaceLivenessVerification({ onVerify, onCancel }) {
     const videoRef = useRef(null);
     const [status, setStatus] = useState('Initializing AI...');
-    const [step, setStep] = useState(0); // 0: Center, 1: Blink, 2: Look Left, 3: Look Right, 4: Done
+    const [step, setStep] = useState(0); 
     const [progress, setStepProgress] = useState(0);
     const [error, setError] = useState(null);
 
-    // Liveness State
-    const [lastBlinkTime, setLastBlinkTime] = useState(0);
-    const steps = [
-        { label: "Position face in center", icon: "fa-user-check" },
-        { label: "Blink your eyes", icon: "fa-eye" },
-        { label: "Turn head slowly left", icon: "fa-arrow-left" },
-        { label: "Turn head slowly right", icon: "fa-arrow-right" }
-    ];
-
     useEffect(() => {
         let camera = null;
-        const faceMesh = new FaceMesh({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
-        });
+        let faceMesh = null;
 
-        faceMesh.setOptions({
-            maxNumFaces: 1,
-            refineLandmarks: true,
-            minDetectionConfidence: 0.7,
-            minTrackingConfidence: 0.7,
-        });
+        const initAI = async () => {
+            try {
+                // 🌟 VITE/ESM COMPATIBILITY FIX
+                // MediaPipe exports differently depending on the environment.
+                const FaceMeshConstructor = FaceMeshLib.FaceMesh || window.FaceMesh;
+                
+                if (!FaceMeshConstructor) {
+                    throw new Error("FaceMesh library not found. Check imports.");
+                }
 
-        faceMesh.onResults((results) => {
-            if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
-                setStatus('No face detected');
-                setStepProgress(0);
-                return;
+                faceMesh = new FaceMeshConstructor({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
+                });
+
+                faceMesh.setOptions({
+                    maxNumFaces: 1,
+                    refineLandmarks: true,
+                    minDetectionConfidence: 0.7,
+                    minTrackingConfidence: 0.7,
+                });
+
+                faceMesh.onResults((results) => {
+                    if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
+                        setStatus('No face detected');
+                        setStepProgress(0);
+                        return;
+                    }
+                    const landmarks = results.multiFaceLandmarks[0];
+                    analyzeFace(landmarks);
+                });
+
+                if (videoRef.current) {
+                    camera = new cam.Camera(videoRef.current, {
+                        onFrame: async () => {
+                            if (faceMesh) await faceMesh.send({ image: videoRef.current });
+                        },
+                        width: 640,
+                        height: 480,
+                    });
+                    await camera.start();
+                }
+            } catch (err) {
+                console.error("AI Initialization failed:", err);
+                setError("Failed to start AI. Please ensure camera access is allowed.");
             }
+        };
 
-            const landmarks = results.multiFaceLandmarks[0];
-            analyzeFace(landmarks);
-        });
-
-        if (videoRef.current) {
-            camera = new cam.Camera(videoRef.current, {
-                onFrame: async () => {
-                    await faceMesh.send({ image: videoRef.current });
-                },
-                width: 640,
-                height: 480,
-            });
-            camera.start().catch(err => {
-                console.error("Camera failed:", err);
-                setError("Camera access denied. Please allow camera permissions.");
-            });
-        }
+        initAI();
 
         return () => {
             if (camera) camera.stop();
-            faceMesh.close();
+            if (faceMesh) faceMesh.close();
         };
     }, []);
 
