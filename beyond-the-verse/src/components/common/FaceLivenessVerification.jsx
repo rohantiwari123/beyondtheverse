@@ -56,7 +56,13 @@ export default function FaceLivenessVerification({ onVerify, onCancel }) {
 
                 // 3. Initialize Camera
                 if (videoRef.current) {
-                    const cameraInstance = new cam.Camera(videoRef.current, {
+                    const CameraConstructor = cam.Camera || (window && window.Camera);
+                    
+                    if (!CameraConstructor) {
+                        throw new Error("Camera library not found.");
+                    }
+
+                    const cameraInstance = new CameraConstructor(videoRef.current, {
                         onFrame: async () => {
                             if (faceMesh) {
                                 try {
