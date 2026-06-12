@@ -54,7 +54,7 @@ export default function GlobalSearch() {
     };
 
     return (
-        <div className="relative flex-1 max-w-md mx-4 hidden md:block" ref={searchRef}>
+        <div className={`relative flex-1 max-w-md mx-2 sm:mx-4 ${isOpen && searchTerm ? 'z-[150]' : 'z-[50]'}`} ref={searchRef}>
             <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <i className={`fa-solid fa-magnifying-glass text-xs transition-colors ${searchTerm ? 'text-teal-500' : 'text-slate-400 group-focus-within:text-teal-500'}`}></i>
