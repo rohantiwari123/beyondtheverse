@@ -11,6 +11,7 @@ import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase
 import { auth, db } from '../../firebase';
 import emailjs from '@emailjs/browser';
 import { loginBiometric } from '../../services/webauthnService';
+import FaceLivenessVerification from '../../components/common/FaceLivenessVerification';
 
 export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
   const navigate = useNavigate();
@@ -44,6 +45,7 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+  const [showFaceAI, setShowFaceAI] = useState(false); // 🌟 New State
 
   const handleBiometricLogin = async () => {
     if (!window.isSecureContext && window.location.hostname !== 'localhost') {
@@ -56,6 +58,11 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
       return;
     }
 
+    setShowFaceAI(true); // 🌟 Open Face AI First
+  };
+
+  const onFaceVerified = async () => {
+    setShowFaceAI(false);
     setIsBiometricLoading(true);
     try {
       let loginEmail = email.trim().toLowerCase();
@@ -434,6 +441,12 @@ export default function LoginPage({ showToast, initialAuthMode = 'login' }) {
 
   return (
     <div className="min-h-[100dvh] flex items-center justify-center p-0 sm:p-6 lg:p-8 relative z-10 bg-slate-50">
+      {showFaceAI && (
+        <FaceLivenessVerification 
+          onVerify={onFaceVerified} 
+          onCancel={() => setShowFaceAI(false)} 
+        />
+      )}
       <div className="bg-white sm:border border-slate-200 px-6 py-8 sm:p-10 rounded-none sm:rounded-[2.5rem] w-full max-w-[32rem] min-h-[100dvh] sm:min-h-fit flex flex-col justify-center relative shadow-none">
 
         <div className="flex justify-center mb-8">

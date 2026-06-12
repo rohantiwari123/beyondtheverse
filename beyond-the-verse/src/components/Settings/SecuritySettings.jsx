@@ -3,6 +3,7 @@ import { updateUserSecurityPassword } from '../../services/firebaseServices';
 import { auth, db } from '../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { registerBiometric } from '../../services/webauthnService';
+import FaceLivenessVerification from '../common/FaceLivenessVerification';
 
 // 🌟 PRODUCTION BACKEND URL
 const BACKEND_URL = 'https://beyondtheverse-production.up.railway.app';
@@ -12,6 +13,7 @@ export default function SecuritySettings() {
     const [isLoading, setIsLoading] = useState(false);
     const [isRevoking, setIsRevoking] = useState(false);
     const [isRegisteringBiometric, setIsRegisteringBiometric] = useState(false);
+    const [showFaceAI, setShowFaceAI] = useState(false); // 🌟 New State for Face AI Modal
     const [hasBiometric, setHasBiometric] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -105,6 +107,11 @@ export default function SecuritySettings() {
 
     const handleEnableBiometric = async () => {
         if (!auth.currentUser) return;
+        setShowFaceAI(true); // 🌟 Open AI Face Scanner
+    };
+
+    const onFaceVerified = async () => {
+        setShowFaceAI(false);
         setIsRegisteringBiometric(true);
         setMessage({ type: '', text: '' });
         try {
@@ -132,6 +139,12 @@ export default function SecuritySettings() {
 
     return (
         <div className="bg-white rounded-2xl border border-slate-200 p-5 md:p-8 animate-fade-in">
+            {showFaceAI && (
+                <FaceLivenessVerification 
+                    onVerify={onFaceVerified} 
+                    onCancel={() => setShowFaceAI(false)} 
+                />
+            )}
             <h2 className="text-lg font-bold text-slate-900 mb-1">Security & Password</h2>
             <p className="text-sm text-slate-500 mb-6">Ensure your account is using a strong, random password to stay secure.</p>
 
