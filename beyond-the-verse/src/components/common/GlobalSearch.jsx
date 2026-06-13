@@ -2,13 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { globalSearch } from '../../services/searchService';
 
-export default function GlobalSearch() {
+export default function GlobalSearch({ isMobileExpanded, onSelect }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [results, setResults] = useState([]);
     const [isSearching, setIsLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const searchRef = useRef(null);
+    const inputRef = useRef(null);
     const navigate = useNavigate();
+
+    // Auto-focus input when expanded on mobile
+    useEffect(() => {
+        if (isMobileExpanded && inputRef.current) {
+            setTimeout(() => inputRef.current.focus(), 300);
+        } else {
+            setSearchTerm('');
+            setIsOpen(false);
+        }
+    }, [isMobileExpanded]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -40,6 +51,7 @@ export default function GlobalSearch() {
     const handleSelect = (link) => {
         setSearchTerm('');
         setIsOpen(false);
+        if (onSelect) onSelect();
         navigate(link);
     };
 
@@ -54,12 +66,13 @@ export default function GlobalSearch() {
     };
 
     return (
-        <div className={`relative flex-1 max-w-md mx-2 sm:mx-4 ${isOpen && searchTerm ? 'z-[150]' : 'z-[50]'}`} ref={searchRef}>
+        <div className={`relative flex-1 ${isMobileExpanded ? 'w-full mx-0' : 'max-w-md mx-4 hidden md:block'} transition-all duration-300`} ref={searchRef}>
             <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <i className={`fa-solid fa-magnifying-glass text-xs transition-colors ${searchTerm ? 'text-teal-500' : 'text-slate-400 group-focus-within:text-teal-500'}`}></i>
                 </div>
                 <input
+                    ref={inputRef}
                     type="text"
                     className="block w-full pl-9 pr-3 py-2 bg-slate-100/50 border border-transparent rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-teal-500/10 focus:border-teal-500/50 transition-all"
                     placeholder="Search Verse, People, Research..."
@@ -75,10 +88,10 @@ export default function GlobalSearch() {
             </div>
 
             {isOpen && (
-                <div className="absolute mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl z-[150] overflow-hidden animate-fade-in origin-top">
+                <div className={`absolute mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl z-[150] overflow-hidden animate-fade-in origin-top ${isMobileExpanded ? 'fixed left-0 right-0 mx-4 w-auto top-14' : ''}`}>
                     <div className="p-2">
                         {results.length > 0 ? (
-                            <div className="space-y-0.5">
+                            <div className="max-h-[60vh] overflow-y-auto no-scrollbar space-y-0.5">
                                 {results.map((item) => (
                                     <div
                                         key={`${item.type}-${item.id}`}
