@@ -168,6 +168,7 @@ export default function Header() {
             <Link
               to="/"
               className="flex flex-col justify-center items-start select-none"
+              onClick={() => setIsSearchExpanded(false)}
             >
               <div className={styles.logoContainer}>
                 <span className={styles.brandFirst}>Beyond</span>
@@ -181,9 +182,27 @@ export default function Header() {
             </Link>
           </div>
 
-          <GlobalSearch />
+          {/* Desktop Search Bar */}
+          <div className="hidden md:flex flex-1 justify-center max-w-md mx-4">
+            <GlobalSearch />
+          </div>
 
           <div className="flex items-center justify-end flex-1 lg:w-1/4 gap-2">
+            {/* 🔍 Mobile Search Toggle */}
+            <button
+              onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+              className={`md:hidden h-9 w-9 flex items-center justify-center rounded-xl transition-all ${
+                isSearchExpanded
+                  ? "bg-teal-600 text-white shadow-lg shadow-teal-500/20"
+                  : "bg-slate-100 text-slate-600"
+              }`}
+            >
+              <i
+                className={`fa-solid ${
+                  isSearchExpanded ? "fa-xmark" : "fa-magnifying-glass"
+                } text-sm`}
+              ></i>
+            </button>
             {isAuthenticated && (
               <div className="relative">
                 <button
