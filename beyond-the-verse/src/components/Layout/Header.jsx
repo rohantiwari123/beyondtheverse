@@ -22,7 +22,7 @@ const styles = {
     "text-[20px] sm:text-[24px] lg:text-[28px] font-cabinet font-black tracking-tight leading-none text-teal-600",
   brandTagline:
     "hidden xs:flex items-center gap-1.5 text-[6.5px] sm:text-[7px] lg:text-[8px] uppercase mt-1.5 sm:mt-2 truncate tracking-[0.35em] font-medium font-sans text-slate-400",
-  navContainer: "hidden xl:flex flex-1 justify-center px-4",
+  navContainer: "hidden lg:flex flex-1 justify-center px-4",
   navLinkWrapper: "flex items-center gap-1 xl:gap-2",
   navLinkBase:
     "px-3 py-2 rounded-lg text-[12px] xl:text-[13px] transition-all whitespace-nowrap",
@@ -53,9 +53,9 @@ const styles = {
   notifItemRead:
     "p-4 border-b cursor-pointer transition-colors flex gap-3.5 border-slate-50 bg-white hover:bg-slate-50",
   mobileOverlay:
-    "fixed inset-0 backdrop-blur-sm transition-opacity z-[100] xl:hidden bg-slate-900/60",
+    "fixed inset-0 backdrop-blur-sm transition-opacity z-[100] lg:hidden bg-slate-900/60",
   mobileDrawer:
-    "fixed top-0 right-0 h-screen w-[280px] sm:w-[320px] bg-white z-[110] xl:hidden flex flex-col transition-transform duration-300 ease-in-out border-l border-slate-200",
+    "fixed top-0 right-0 h-screen w-[280px] sm:w-[320px] bg-white z-[110] lg:hidden flex flex-col transition-transform duration-300 ease-in-out border-l border-slate-200",
   mobileHeader:
     "flex items-center justify-between p-5 border-b border-slate-100",
   mobileCloseBtn:
@@ -146,7 +146,7 @@ export default function Header() {
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? "hidden" : "unset";
     const handleResize = () => {
-      if (window.innerWidth >= 1150) setIsMobileMenuOpen(false);
+      if (window.innerWidth >= 1024) setIsMobileMenuOpen(false);
     };
     window.addEventListener("resize", handleResize);
     return () => {
@@ -181,6 +181,25 @@ export default function Header() {
               </span>
             </Link>
           </div>
+
+          {/* Desktop Navigation */}
+          <nav className={styles.navContainer}>
+            <div className={styles.navLinkWrapper}>
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className={`${styles.navLinkBase} ${
+                    isPathActive(link.path)
+                      ? styles.navLinkActive
+                      : styles.navLinkInactive
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
+          </nav>
 
           {/* Desktop Search Bar */}
           <div className="hidden md:flex flex-1 justify-center max-w-md mx-4">
@@ -398,7 +417,7 @@ export default function Header() {
               )}
             </div>
 
-            <div className="flex xl:hidden">
+            <div className="flex lg:hidden">
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="h-9 w-9 flex items-center justify-center bg-slate-100 text-slate-700 rounded-lg active:scale-95 transition-transform"

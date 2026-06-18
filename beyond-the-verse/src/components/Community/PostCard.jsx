@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'; // 🌟 Naya Import: Profile par link k
 
 // Utils aur Services
 import { formatDateTime } from '../../utils/dateFormatter';
+import { formatText, stripShortcuts } from '../../utils/textFormatter';
 import {
   upgradeToAdminPost,
   editPostText,
@@ -82,17 +83,23 @@ export default function PostCard({ post, showToast, isSinglePost }) {
   const doubtCount = topLevelInteractions.filter(i => i.type === 'doubt').length;
 
   const getTextSizeClass = (text) => {
-    const len = text.length;
+    if (!text) return "text-base";
+    const plainText = stripShortcuts(text);
+    const len = plainText.length;
     if (len < 80) return "text-2xl sm:text-3xl md:text-4xl font-medium leading-tight";
     if (len < 250) return "text-lg sm:text-xl md:text-2xl leading-snug";
     return "text-base sm:text-lg md:text-xl leading-relaxed";
   };
 
+  const isContentEmpty = (content) => {
+    return !content || stripShortcuts(content).length === 0;
+  };
+
   const handleEditSubmit = async () => {
-    if (!editText.trim()) return;
+    if (isContentEmpty(editText)) return;
     setIsSavingEdit(true);
     try {
-      await editPostText(post.id, editText.trim());
+      await editPostText(post.id, editText);
       setIsEditing(false);
       setShowMenu(false);
       showToast("Post updated! ✏️");
@@ -185,7 +192,15 @@ export default function PostCard({ post, showToast, isSinglePost }) {
 
   return (
     <div className={`w-full border-y sm:border sm:rounded-2xl md:rounded-[2.5rem] lg:rounded-[3rem] mb-0 sm:mb-6 md:mb-8 pt-5 pb-4 sm:pt-8 sm:pb-6 px-4 sm:px-8 lg:px-10 transition-all duration-500 relative ${bgClass} ${borderClass} ${pinnedClass} shadow-sm`}>
-
+      <style>{`
+        .post-content h1 { @apply text-2xl font-black mb-2; }
+        .post-content h2 { @apply text-xl font-bold mb-2; }
+        .post-content ul { @apply list-disc ml-5 mb-2; }
+        .post-content ol { @apply list-decimal ml-5 mb-2; }
+        .post-content p { @apply mb-2; }
+        .post-content u { @apply underline; }
+        .post-content s { @apply line-through; }
+      `}</style>
       <div className="flex items-start justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3 sm:gap-4">
 
@@ -271,20 +286,25 @@ export default function PostCard({ post, showToast, isSinglePost }) {
           <div className="animate-fade-in space-y-3">
             <textarea
               value={editText}
-              onChange={(e) => setEditText(e.target.value)}
-              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-base sm:text-lg text-slate-900 focus:border-teal-500 focus:bg-white outline-none transition-all h-48 sm:h-64 resize-none"
+              onChange={(e) => {
+                setEditText(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }}
+              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-base sm:text-lg text-slate-900 focus:border-teal-500 focus:bg-white outline-none transition-all h-48 sm:h-64 resize-none overflow-y-auto"
               autoFocus
             />
             <div className="flex justify-end gap-2 px-1">
               <button onClick={() => { setIsEditing(false); setEditText(post.text); }} className="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-100 px-4 py-2 rounded-lg transition-colors">Cancel</button>
-              <button onClick={handleEditSubmit} disabled={!editText.trim() || isSavingEdit} className="bg-slate-900 text-white font-bold text-xs sm:text-sm px-6 py-2.5 rounded-lg disabled:opacity-30 uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-teal-500/10">Save Change</button>
+              <button onClick={handleEditSubmit} disabled={isContentEmpty(editText) || isSavingEdit} className="bg-slate-900 text-white font-bold text-xs sm:text-sm px-6 py-2.5 rounded-lg disabled:opacity-30 uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-teal-500/10">Save Change</button>
             </div>
           </div>
         ) : (
           <div className="max-h-[60vh] md:max-h-[500px] overflow-y-auto pr-3 -mr-3 scrollbar-custom">
-            <p className={`text-slate-900 whitespace-pre-wrap text-justify break-words break-all transition-all ${getTextSizeClass(post.text)}`}>
-              {post.text}
-            </p>
+            <div 
+              className={`post-content text-slate-900 text-justify break-words transition-all ${getTextSizeClass(post.text)}`}
+              dangerouslySetInnerHTML={{ __html: formatText(post.text) }}
+            />
           </div>
         )}
       </div>

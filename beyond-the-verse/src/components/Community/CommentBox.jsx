@@ -14,6 +14,7 @@ import {
   addCommentReply,
   getUserProfile
 } from '../../services/firebaseServices';
+import { formatText, stripShortcuts } from '../../utils/textFormatter';
 
 function InteractionNode({ interaction, allInteractions, post, showToast, isMainComment }) {
   const { isAuthenticated, isAdmin, userId, userName, userUsername, currentUser } = useAuth();
@@ -32,6 +33,10 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
 
   // 🌟 PRO FRONTEND TRICK
   const currentDisplayName = isOwner ? userName : interaction.userName;
+
+  const isContentEmpty = (content) => {
+    return !content || stripShortcuts(content).length === 0;
+  };
 
   // 🌟 FIX: Old comments par bhi username dikhane ke liye dynamic fetch aur fallback
   const [fetchedUsername, setFetchedUsername] = useState(interaction.userUsername || "");
@@ -89,9 +94,9 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
   };
 
   const handleEditSubmit = async () => {
-    if (editText.trim().length < 2) return;
+    if (isContentEmpty(editText)) return;
     try {
-      await editCommentInteraction(post.id, post.interactions, targetId, editText.trim());
+      await editCommentInteraction(post.id, post.interactions, targetId, editText);
       setIsEditing(false);
       setShowMenu(false);
       showToast("Comment updated.");
@@ -114,10 +119,10 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
   };
 
   const handleReplySubmit = async () => {
-    if (replyText.trim().length < 2) return;
+    if (isContentEmpty(replyText)) return;
     setIsSubmitting(true);
 
-    const currentReplyText = replyText.trim();
+    const currentReplyText = replyText;
     const replyId = Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
 
     try {
@@ -145,24 +150,21 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
     finally { setIsSubmitting(false); }
   };
 
-  const formatMessage = (text) => {
-    if (!text) return null;
-    const parts = text.split(/(\*\*.*?\*\*)/g);
-    return parts.map((part, idx) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <span key={idx} className="font-semibold text-slate-800">{part.slice(2, -2)}</span>;
-      }
-      return <span key={idx}>{part}</span>;
-    });
-  };
-
   const nameColorClass = isAdminBadge
     ? "text-amber-900 font-medium hover:text-amber-700"
     : "text-slate-700 hover:text-slate-900"; // 🌟 Hover effect add kiya taaki clickable lage
 
   return (
     <div className={`transition-all group w-full ${isMainComment ? 'py-2' : ''}`}>
-
+      <style>{`
+        .comment-content h1 { @apply text-xl font-bold mb-1; }
+        .comment-content h2 { @apply text-lg font-bold mb-1; }
+        .comment-content ul { @apply list-disc ml-5 mb-1; }
+        .comment-content ol { @apply list-decimal ml-5 mb-1; }
+        .comment-content p { @apply mb-1; }
+        .comment-content u { @apply underline; }
+        .comment-content s { @apply line-through; }
+      `}</style>
       {!isMainComment && parentInteraction && (
         <div className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 mb-2 pl-12">
           <i className="fa-solid fa-reply rotate-180"></i>
@@ -252,13 +254,14 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
               />
               <div className="flex gap-2 mt-2 justify-end">
                 <button onClick={() => setIsEditing(false)} className="text-xs text-slate-500 px-3 py-1.5 hover:bg-slate-100 rounded-lg transition-colors">Cancel</button>
-                <button onClick={handleEditSubmit} className="text-xs text-white bg-slate-900 px-4 py-1.5 rounded-lg">Save</button>
+                <button onClick={handleEditSubmit} disabled={isContentEmpty(editText)} className="text-xs text-white bg-slate-900 px-4 py-1.5 rounded-lg">Save</button>
               </div>
             </div>
           ) : (
-            <p className={`text-slate-700 whitespace-pre-wrap text-justify break-words break-all ${isMainComment ? 'text-sm sm:text-base mt-1' : 'text-xs sm:text-sm mt-0.5'} mb-1`}>
-              {formatMessage(interaction.text)}
-            </p>
+            <div 
+              className={`comment-content text-slate-700 text-justify break-words break-all ${isMainComment ? 'text-sm sm:text-base mt-1' : 'text-xs sm:text-sm mt-0.5'} mb-1`}
+              dangerouslySetInnerHTML={{ __html: formatText(interaction.text) }}
+            />
           )}
 
           {!isEditing && (
@@ -288,13 +291,13 @@ function InteractionNode({ interaction, allInteractions, post, showToast, isMain
                 className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm sm:text-base text-slate-800 placeholder:text-slate-400 focus:border-slate-400 outline-none resize-none overflow-hidden mb-2"
                 rows="2" autoFocus
               />
-              <div className="flex justify-between items-center px-1">
-                <span className={`text-xs ${replyText.trim().length < 2 ? 'text-slate-400' : 'text-emerald-500'}`}>
-                  {replyText.trim().length < 2 ? "Type to reply..." : "Ready"}
+              <div className="flex justify-between items-center px-1 mt-2">
+                <span className={`text-xs ${isContentEmpty(replyText) ? 'text-slate-400' : 'text-emerald-500'}`}>
+                  {isContentEmpty(replyText) ? "Type to reply..." : "Ready"}
                 </span>
                 <div className="flex items-center gap-2">
                   <button onClick={() => setIsReplying(false)} className="px-3 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">CANCEL</button>
-                  <button onClick={handleReplySubmit} disabled={replyText.trim().length < 2 || isSubmitting} className="bg-slate-900 text-white px-5 py-1.5 rounded-lg text-xs font-medium disabled:opacity-40">
+                  <button onClick={handleReplySubmit} disabled={isContentEmpty(replyText) || isSubmitting} className="bg-slate-900 text-white px-5 py-1.5 rounded-lg text-xs font-medium disabled:opacity-40">
                     {isSubmitting ? "..." : "POST"}
                   </button>
                 </div>

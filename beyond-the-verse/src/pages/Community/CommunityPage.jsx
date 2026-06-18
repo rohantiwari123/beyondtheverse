@@ -4,6 +4,7 @@ import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import PostCard from '../../components/Community/PostCard';
 import { PostSkeleton } from '../../components/common/Skeleton';
+import { stripShortcuts } from '../../utils/textFormatter';
 
 import { createPost, saveCategories } from '../../services/firebaseServices';
 // 🌟 1. YAHAN LOGIN OVERLAY IMPORT KIYA HAI (Path check kar lena)
@@ -16,6 +17,10 @@ export default function CommunityPage({ showToast }) {
   const [newPost, setNewPost] = useState("");
   const [category, setCategory] = useState("Philosophy");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isContentEmpty = (content) => {
+    return !content || stripShortcuts(content).length === 0;
+  };
 
   const [categories, setCategories] = useState(["Philosophy", "Science", "Quantum", "Spirituality", "Reflection"]);
   const [isEditingCategories, setIsEditingCategories] = useState(false);
@@ -69,13 +74,13 @@ export default function CommunityPage({ showToast }) {
 
   const handlePostSubmit = async (e) => {
     e.preventDefault();
-    if (!newPost.trim()) return;
+    if (isContentEmpty(newPost)) return;
     if (!isAuthenticated || !userId) return showToast("Please login first.", false);
     
     setIsSubmitting(true);
     try {
       await createPost({
-        text: newPost.trim(),
+        text: newPost,
         category: category, 
         userName: userName || "Explorer", 
         userId: userId,
@@ -133,10 +138,21 @@ export default function CommunityPage({ showToast }) {
                 <div className="flex-1">
                   <textarea 
                     value={newPost}
-                    onChange={(e) => setNewPost(e.target.value)}
+                    onChange={(e) => {
+                      setNewPost(e.target.value);
+                      e.target.style.height = 'auto';
+                      e.target.style.height = e.target.scrollHeight + 'px';
+                    }}
                     placeholder="Share your thoughts, logic, or reflections..."
-                    className="w-full bg-transparent border-0 outline-none focus:ring-0 focus:outline-none focus:border-transparent p-0 pt-2 md:pt-3 text-lg md:text-xl text-slate-900 placeholder:text-slate-400 resize-y min-h-[120px] md:min-h-[160px] overflow-y-auto leading-[1.7]"
+                    className="w-full bg-transparent border-0 outline-none focus:ring-0 focus:outline-none focus:border-transparent p-0 pt-2 md:pt-3 text-lg md:text-xl text-slate-900 placeholder:text-slate-400 resize-none min-h-[120px] md:min-h-[160px] overflow-hidden leading-[1.7]"
                   />
+                  <div className="flex gap-4 mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                    <span>*bold*</span>
+                    <span>_italic_</span>
+                    <span>__underline__</span>
+                    <span>~strike~</span>
+                    <span># heading</span>
+                  </div>
                 </div>
               </div>
               
@@ -171,7 +187,7 @@ export default function CommunityPage({ showToast }) {
                 )}
 
                 <div className="flex justify-end pt-2">
-                  <button type="submit" disabled={!newPost.trim() || isSubmitting || isEditingCategories} className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-10 py-3 rounded-full text-sm font-bold uppercase tracking-widest disabled:bg-slate-200 disabled:text-slate-400 transition-all active:scale-95 shadow-lg shadow-teal-500/20">
+                  <button type="submit" disabled={isContentEmpty(newPost) || isSubmitting || isEditingCategories} className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white px-10 py-3 rounded-full text-sm font-bold uppercase tracking-widest disabled:bg-slate-200 disabled:text-slate-400 transition-all active:scale-95 shadow-lg shadow-teal-500/20">
                     {isSubmitting ? "Posting..." : "Post"}
                   </button>
                 </div>
